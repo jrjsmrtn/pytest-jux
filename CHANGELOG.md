@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-10-15
+
+### Added
+- Sprint 2 (CLI Tools) - Complete
+- Standalone CLI commands for offline operations:
+  - `jux-keygen`: Cryptographic key pair generation
+    - RSA key generation (2048, 3072, 4096 bits)
+    - ECDSA key generation (P-256, P-384, P-521 curves)
+    - X.509 self-signed certificate generation
+    - Secure file permissions (0600 for private keys)
+    - 31 comprehensive tests, 92.59% code coverage
+  - `jux-sign`: Offline JUnit XML signing
+    - Sign any JUnit XML file without pytest
+    - Support for RSA and ECDSA keys
+    - Optional X.509 certificate embedding
+    - Stdin/stdout pipeline support
+    - 18 comprehensive tests, 93.33% code coverage
+  - `jux-verify`: XML signature verification
+    - Verify XMLDSig signatures with certificates
+    - Exit codes: 0 = valid, 1 = invalid
+    - JSON output for scripting
+    - Quiet mode option
+    - 11 comprehensive tests, 78.48% code coverage
+  - `jux-inspect`: JUnit XML report inspection
+    - Display test summary (tests, failures, errors, skipped)
+    - Show canonical SHA-256 hash
+    - Detect signature presence
+    - JSON output for scripting
+    - Rich formatted terminal output
+    - 9 comprehensive tests, 90.12% code coverage
+- XML signature verification module (`pytest_jux.verifier`):
+  - Verify XMLDSig signatures using signxml
+  - Support for RSA and ECDSA signatures
+  - Certificate validation
+  - 6 comprehensive tests, 73.81% code coverage
+- Configuration management:
+  - configargparse for CLI with config file support
+  - Environment variable support (JUX_KEY_PATH, JUX_CERT_PATH)
+  - Config file support (~/.jux/config, /etc/jux/config)
+
+### Changed
+- Package management now uses `uv` (fast alternative to pip)
+- Development documentation updated with uv usage
+- CLI framework changed from click to configargparse for better config management
+
 ## [0.1.1] - 2025-10-15
 
 ### Added
