@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-10-15
+
+### Added
+- Sprint 1 (Core Plugin Infrastructure) - Complete
+- XML canonicalization module (`pytest_jux.canonicalizer`):
+  - C14N (Canonical XML) implementation for duplicate detection
+  - SHA-256 canonical hash computation
+  - Support for loading XML from files, strings, and bytes
+  - 25 comprehensive tests, 82% code coverage
+- XML digital signature module (`pytest_jux.signer`):
+  - XMLDSig enveloped signature generation
+  - RSA-SHA256 and ECDSA-SHA256 signature algorithms
+  - Support for PEM-encoded RSA and ECDSA private keys
+  - Optional X.509 certificate embedding
+  - 28 comprehensive tests (21 passing, 7 xfail for self-signed cert limitations), 82% coverage
+  - Test cryptographic keys (RSA 2048-bit, ECDSA P-256) for development
+- pytest plugin hooks (`pytest_jux.plugin`):
+  - `pytest_addoption`: CLI options (--jux-sign, --jux-key, --jux-cert)
+  - `pytest_configure`: Configuration validation
+  - `pytest_sessionfinish`: Automatic JUnit XML signing after test run
+  - 21 comprehensive tests, 73% code coverage
+  - End-to-end validated with actual pytest execution
+
+### Security
+- Test-only cryptographic keys clearly marked with security warnings
+- Self-signed X.509 certificates for testing (not for production use)
+- Comprehensive documentation on secure key management practices
+
 ## [0.1.0] - 2025-10-15
 
 ### Added
