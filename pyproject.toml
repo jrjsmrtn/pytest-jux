@@ -79,6 +79,9 @@ Security = "https://github.com/jrjsmrtn/pytest-jux/blob/main/docs/security/SECUR
 [project.entry-points.pytest11]
 jux_publisher = "pytest_jux.plugin"
 
+[project.scripts]
+jux-keygen = "pytest_jux.commands.keygen:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["pytest_jux*"]
