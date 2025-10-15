@@ -50,19 +50,30 @@ podman run --rm -p 8080:8080 \
 
 ## Development Commands
 
+**IMPORTANT: This project uses `uv` for package and virtual environment management. Do NOT use `pip` or `python -m venv` directly.**
+
 ### Environment Setup
 
 ```bash
-# Create virtual environment
+# Create virtual environment (using uv)
 uv venv
-source .venv/bin/activate
 
-# Install dependencies (development mode)
+# Activate virtual environment
+source .venv/bin/activate  # Linux/macOS
+# or: .venv\Scripts\activate  # Windows
+
+# Install dependencies (development mode, using uv)
 uv pip install -e ".[dev]"
 
 # Install pre-commit hooks
 pre-commit install
 ```
+
+**Why uv?**
+- Faster package installation (10-100x faster than pip)
+- Better dependency resolution
+- Consistent environment management
+- Recommended by the project maintainer
 
 ### Code Quality
 
