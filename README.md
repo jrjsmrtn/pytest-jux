@@ -56,11 +56,11 @@ See the [docs/adr/](docs/adr/) directory for complete decision history.
 
 ```bash
 # From PyPI (when published)
-pip install pytest-jux
+uv pip install pytest-jux
 
 # From source (development)
 cd pytest-jux
-pip install -e ".[dev,security]"
+uv pip install -e ".[dev,security]"
 ```
 
 ## Usage
@@ -104,7 +104,7 @@ python3 -m venv venv
 source venv/bin/activate  # or: venv\Scripts\activate on Windows
 
 # Install development dependencies
-pip install -e ".[dev,security]"
+uv pip install -e ".[dev,security]"
 
 # Install pre-commit hooks
 pre-commit install

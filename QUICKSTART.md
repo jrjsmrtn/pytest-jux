@@ -37,7 +37,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 
 # Install pre-commit hooks
 pre-commit install
