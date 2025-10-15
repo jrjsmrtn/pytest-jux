@@ -100,8 +100,8 @@ git clone https://github.com/jrjsmrtn/pytest-jux.git
 cd pytest-jux
 
 # Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # or: venv\Scripts\activate on Windows
+uv venv
+source .venv/bin/activate  # or: .venv\Scripts\activate on Windows
 
 # Install development dependencies
 uv pip install -e ".[dev,security]"

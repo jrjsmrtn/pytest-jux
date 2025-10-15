@@ -33,8 +33,8 @@ chmod +x init-git.sh
 ./init-git.sh
 
 # Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+uv venv
+source .venv/bin/activate
 
 # Install dependencies
 uv pip install -e ".[dev]"

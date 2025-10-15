@@ -54,8 +54,8 @@ podman run --rm -p 8080:8080 \
 
 ```bash
 # Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+uv venv
+source .venv/bin/activate
 
 # Install dependencies (development mode)
 uv pip install -e ".[dev]"
