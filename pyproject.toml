@@ -82,6 +82,8 @@ jux_publisher = "pytest_jux.plugin"
 [project.scripts]
 jux-keygen = "pytest_jux.commands.keygen:main"
 jux-sign = "pytest_jux.commands.sign:main"
+jux-verify = "pytest_jux.commands.verify:main"
+jux-inspect = "pytest_jux.commands.inspect:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
