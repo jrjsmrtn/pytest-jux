@@ -6,13 +6,15 @@
 
 ## Overview
 
-Sprint 3 adds REST API integration and local filesystem storage to pytest-jux, enabling:
+Sprint 3 adds REST API integration, local filesystem storage, and comprehensive configuration management to pytest-jux, enabling:
+- **Configuration management**: Full-featured config system with validation, debugging, and initialization
 - **Local filesystem storage**: Cache/store signed reports in XDG-compliant directories
 - **Flexible storage modes**: Local-only, API-only, or both (with offline fallback)
 - **REST API publishing**: Publish signed reports to the Jux REST API
 - **Automatic publishing**: After test execution (via pytest hook)
-- **Manual publishing**: Via standalone CLI command
-- **Cache management**: CLI tools to inspect and manage cached reports
+- **Manual publishing**: Via standalone CLI command (`jux-publish`)
+- **Cache management**: CLI tools to inspect and manage cached reports (`jux-cache`)
+- **Config inspection**: Debug and validate configuration (`jux-config`)
 - **Environment metadata**: Capture execution context (hostname, user, platform)
 - **Offline resilience**: Queue reports locally when API unavailable
 
@@ -339,6 +341,134 @@ jux-cache stats
 
 ---
 
+### US-3.7: Configuration Management CLI Command
+
+**As a** developer
+**I want** to manage and inspect pytest-jux configuration
+**So that** I can debug configuration issues and understand effective settings
+
+**Acceptance Criteria**:
+- [ ] `jux-config` CLI command for configuration management
+- [ ] Subcommands (similar to `ansible-config`):
+  - `jux-config list`: List all available configuration options with descriptions
+  - `jux-config dump`: Show current effective configuration (merged from all sources)
+  - `jux-config view`: View configuration file contents (with source precedence)
+  - `jux-config init`: Initialize/create configuration files with defaults
+  - `jux-config validate`: Validate configuration syntax and values
+- [ ] Show configuration source (CLI, env, file) for each setting
+- [ ] Support for different output formats (text, JSON, YAML)
+- [ ] Highlight configuration conflicts or warnings
+- [ ] >85% test coverage for config command
+
+**Technical Tasks**:
+- [ ] Create `pytest_jux/commands/config.py`
+- [ ] Implement configuration discovery and merging logic
+- [ ] Add configuration schema/validation
+- [ ] Implement all subcommands
+- [ ] Add JSON/YAML output formats
+- [ ] Write comprehensive tests
+- [ ] Test with various configuration scenarios
+
+**CLI Interface**:
+```bash
+# List all configuration options
+jux-config list
+# Output:
+#   jux_enabled          (bool)   Enable pytest-jux plugin [default: false]
+#   jux_sign             (bool)   Enable report signing [default: false]
+#   jux_publish          (bool)   Enable API publishing [default: false]
+#   jux_storage_mode     (enum)   Storage mode: local|api|both|cache [default: local]
+#   jux_api_url          (str)    API endpoint URL
+#   jux_api_key          (str)    API authentication key
+#   ...
+
+# Dump current effective configuration
+jux-config dump
+# Output:
+#   Configuration from multiple sources:
+#
+#   jux_enabled = true                    (source: pytest.ini)
+#   jux_sign = true                       (source: pytest.ini)
+#   jux_key_path = ~/.jux/signing_key.pem (source: ~/.jux/config)
+#   jux_storage_mode = cache              (source: environment variable JUX_STORAGE_MODE)
+#   jux_api_url = https://jux.example.com (source: pytest.ini)
+#   jux_api_key = ***********             (source: environment variable JUX_API_KEY)
+
+# Dump configuration as JSON
+jux-config dump --format json
+# Output: {"jux_enabled": true, "jux_sign": true, ...}
+
+# View configuration file
+jux-config view ~/.jux/config
+# Output: [Shows file contents with syntax highlighting]
+
+# View all configuration files with precedence
+jux-config view --all
+# Output:
+#   Configuration files (in precedence order):
+#
+#   1. ~/.jux/config (user-level)
+#      [jux]
+#      enabled = true
+#      sign = true
+#
+#   2. pytest.ini (project-level)
+#      [pytest]
+#      jux_api_url = https://jux.example.com
+
+# Initialize configuration file
+jux-config init
+# Output: Created configuration file: ~/.jux/config
+
+jux-config init --path .jux.conf
+# Output: Created configuration file: .jux.conf
+
+jux-config init --path .jux.conf --template full
+# Output: Created configuration file with all options: .jux.conf
+
+# Validate configuration
+jux-config validate
+# Output: ✓ Configuration is valid
+
+jux-config validate --strict
+# Output:
+#   ⚠ Warning: jux_sign enabled but jux_key_path not set
+#   ⚠ Warning: jux_publish enabled but jux_api_url not set
+#   ✗ Error: jux_storage_mode has invalid value 'invalid' (expected: local|api|both|cache)
+```
+
+**Configuration Schema**:
+```python
+# Configuration options with types and defaults
+CONFIG_SCHEMA = {
+    "jux_enabled": {
+        "type": "bool",
+        "default": False,
+        "description": "Enable pytest-jux plugin"
+    },
+    "jux_sign": {
+        "type": "bool",
+        "default": False,
+        "description": "Enable report signing",
+        "requires": ["jux_key_path"]
+    },
+    "jux_key_path": {
+        "type": "path",
+        "default": None,
+        "description": "Path to signing key (PEM format)"
+    },
+    "jux_storage_mode": {
+        "type": "enum",
+        "default": "local",
+        "choices": ["local", "api", "both", "cache"],
+        "description": "Storage mode"
+    },
+    # ... more options
+}
+```
+
+---
+
 ## Technical Architecture
 
 ### Module Structure
@@ -348,8 +478,10 @@ pytest_jux/
 ├── storage.py              # (new) Local filesystem storage (XDG directories)
 ├── api_client.py           # (new) REST API client
 ├── metadata.py             # (new) Environment metadata capture
+├── config.py               # (new) Configuration management (schema, validation, merging)
 ├── plugin.py               # (updated) Add storage + publishing to pytest hook
 ├── commands/
+│   ├── config.py           # (new) Configuration management command
 │   ├── cache.py            # (new) Cache management command
 │   ├── publish.py          # (new) Manual publishing command
 │   ├── keygen.py           # (existing)
@@ -388,38 +520,52 @@ Configuration priority:
 
 Following TDD principles, implement in this order:
 
-1. **Environment Metadata** (foundational, no dependencies)
+1. **Configuration Management** (foundational, used by all modules)
+   - Write tests: `tests/test_config.py`
+   - Implement: `pytest_jux/config.py`
+   - Define configuration schema with types and validation
+   - Implement configuration merging (CLI, env, files)
+   - Validate: >85% coverage
+
+2. **Environment Metadata** (foundational, no dependencies)
    - Write tests: `tests/test_metadata.py`
    - Implement: `pytest_jux/metadata.py`
    - Validate: >85% coverage
 
-2. **Local Filesystem Storage** (foundational, uses metadata)
+3. **Local Filesystem Storage** (foundational, uses metadata + config)
    - Write tests: `tests/test_storage.py`
    - Implement: `pytest_jux/storage.py`
    - Test XDG directory support on multiple platforms
    - Validate: >85% coverage
 
-3. **REST API Client** (uses metadata)
+4. **REST API Client** (uses metadata + config)
    - Write tests: `tests/test_api_client.py`
    - Implement: `pytest_jux/api_client.py`
    - Validate: >85% coverage
 
-4. **Plugin Storage & Publishing Integration** (uses storage + API client)
+5. **Plugin Storage & Publishing Integration** (uses storage + API client + config)
    - Update tests: `tests/test_plugin.py`
    - Update: `pytest_jux/plugin.py`
    - Add configuration for signing enabled/disabled
    - Add configuration for storage modes
    - Validate: >85% coverage
 
-5. **Manual Publishing Command** (uses API client + storage)
+6. **Manual Publishing Command** (uses API client + storage)
    - Write tests: `tests/commands/test_publish.py`
    - Implement: `pytest_jux/commands/publish.py`
    - Validate: >85% coverage
 
-6. **Cache Management Command** (uses storage)
+7. **Cache Management Command** (uses storage)
    - Write tests: `tests/commands/test_cache.py`
    - Implement: `pytest_jux/commands/cache.py`
    - Test all subcommands (list, show, clean, push, stats)
+   - Validate: >85% coverage
+
+8. **Configuration Management Command** (uses config module)
+   - Write tests: `tests/commands/test_config.py`
+   - Implement: `pytest_jux/commands/config.py`
+   - Test all subcommands (list, dump, view, init, validate)
+   - Test multiple output formats (text, JSON, YAML)
    - Validate: >85% coverage
 
 ---
@@ -530,6 +676,7 @@ jux-verify = "pytest_jux.commands.verify:main"      # (existing)
 jux-inspect = "pytest_jux.commands.inspect:main"    # (existing)
 jux-publish = "pytest_jux.commands.publish:main"    # NEW
 jux-cache = "pytest_jux.commands.cache:main"        # NEW
+jux-config = "pytest_jux.commands.config:main"      # NEW
 ```
 
 ---
@@ -742,15 +889,23 @@ Sprint 3 is complete when:
 
 ## Sprint Backlog
 
-### Week 1: Foundation & Storage
+### Week 1: Foundation & Configuration
 
-**Day 1-2: Environment Metadata**
+**Day 1-2: Configuration Management Module**
+- [ ] Write tests: `tests/test_config.py`
+- [ ] Implement: `pytest_jux/config.py`
+- [ ] Define configuration schema with types
+- [ ] Implement configuration merging (CLI, env, files)
+- [ ] Add validation logic
+- [ ] Achieve >85% coverage
+
+**Day 3: Environment Metadata**
 - [ ] Write tests: `tests/test_metadata.py`
 - [ ] Implement: `pytest_jux/metadata.py`
 - [ ] Test on multiple platforms
 - [ ] Achieve >85% coverage
 
-**Day 3-4: Local Filesystem Storage**
+**Day 4-5: Local Filesystem Storage**
 - [ ] Write tests: `tests/test_storage.py`
 - [ ] Implement: `pytest_jux/storage.py`
 - [ ] Add XDG directory support (Linux, macOS, Windows)
@@ -758,7 +913,7 @@ Sprint 3 is complete when:
 - [ ] Test atomic writes and permissions
 - [ ] Achieve >85% coverage
 
-**Day 5-6: REST API Client**
+**Day 6-7: REST API Client**
 - [ ] Write tests: `tests/test_api_client.py`
 - [ ] Implement: `pytest_jux/api_client.py`
 - [ ] Add authentication support
@@ -768,7 +923,7 @@ Sprint 3 is complete when:
 
 ### Week 2: Publishing Integration & CLI
 
-**Day 7-8: pytest Plugin Storage & Publishing**
+**Day 8-9: pytest Plugin Storage & Publishing**
 - [ ] Update tests: `tests/test_plugin.py`
 - [ ] Update: `pytest_jux/plugin.py`
 - [ ] Add configuration for signing enabled/disabled
@@ -776,7 +931,7 @@ Sprint 3 is complete when:
 - [ ] Test graceful degradation
 - [ ] Achieve >85% coverage
 
-**Day 9: Manual Publishing Command**
+**Day 10: Manual Publishing Command**
 - [ ] Write tests: `tests/commands/test_publish.py`
 - [ ] Implement: `pytest_jux/commands/publish.py`
 - [ ] Add stdin/stdout support
@@ -784,9 +939,7 @@ Sprint 3 is complete when:
 - [ ] Test exit codes
 - [ ] Achieve >85% coverage
 
-### Week 3: Cache Management & Polish
-
-**Day 10-11: Cache Management Command**
+**Day 11: Cache Management Command**
 - [ ] Write tests: `tests/commands/test_cache.py`
 - [ ] Implement: `pytest_jux/commands/cache.py`
 - [ ] Implement subcommands (list, show, clean, push, stats)
@@ -794,12 +947,22 @@ Sprint 3 is complete when:
 - [ ] Test dry-run mode for destructive operations
 - [ ] Achieve >85% coverage
 
-**Day 12: Polish & Documentation**
+### Week 3: Configuration CLI & Polish
+
+**Day 12-13: Configuration Management Command**
+- [ ] Write tests: `tests/commands/test_config.py`
+- [ ] Implement: `pytest_jux/commands/config.py`
+- [ ] Implement subcommands (list, dump, view, init, validate)
+- [ ] Add JSON/YAML output formats
+- [ ] Test configuration precedence and merging
+- [ ] Achieve >85% coverage
+
+**Day 14: Polish & Documentation**
 - [ ] Update README.md with storage and publishing examples
 - [ ] Update CLAUDE.md with architecture clarification
-- [ ] Write usage documentation for cache management
+- [ ] Write usage documentation for cache and config management
 - [ ] Update CHANGELOG.md
-- [ ] End-to-end smoke testing (all storage modes)
+- [ ] End-to-end smoke testing (all storage modes, all commands)
 - [ ] Sprint review
 - [ ] Merge to `develop`
 
@@ -980,6 +1143,76 @@ jux-publish --input signed-report.xml \
   --api-url https://jux.example.com/api/v1/reports \
   --api-key secret-api-key
 # Output: ✓ Published successfully (report-12345)
+```
+
+### Example 5: Configuration Management and Debugging
+
+```bash
+# 1. Initialize configuration file with defaults
+jux-config init
+# Output: Created configuration file: ~/.jux/config
+
+# 2. List all available configuration options
+jux-config list
+# Output:
+#   jux_enabled          (bool)   Enable pytest-jux plugin [default: false]
+#   jux_sign             (bool)   Enable report signing [default: false]
+#   jux_publish          (bool)   Enable API publishing [default: false]
+#   jux_storage_mode     (enum)   Storage mode: local|api|both|cache [default: local]
+#   jux_api_url          (str)    API endpoint URL
+#   jux_key_path         (path)   Path to signing key (PEM format)
+#   ... (more options)
+
+# 3. Edit configuration file
+vim ~/.jux/config
+# Add your settings:
+#   [jux]
+#   enabled = true
+#   sign = true
+#   key_path = ~/.jux/signing_key.pem
+#   storage_mode = cache
+
+# 4. Dump current effective configuration (debug)
+jux-config dump
+# Output:
+#   Configuration from multiple sources:
+#
+#   jux_enabled = true                    (source: ~/.jux/config)
+#   jux_sign = true                       (source: ~/.jux/config)
+#   jux_key_path = ~/.jux/signing_key.pem (source: ~/.jux/config)
+#   jux_storage_mode = cache              (source: ~/.jux/config)
+#   jux_api_url = <not set>
+
+# 5. Validate configuration
+jux-config validate --strict
+# Output:
+#   ⚠ Warning: jux_sign enabled but jux_cert_path not set
+#   ⚠ Warning: jux_storage_mode is 'cache' but jux_api_url not configured
+#   Configuration has warnings but is valid
+
+# 6. View all configuration files with precedence
+jux-config view --all
+# Output:
+#   Configuration files (in precedence order):
+#
+#   1. ~/.jux/config (user-level) ✓ exists
+#      [jux]
+#      enabled = true
+#      sign = true
+#      ...
+#
+#   2. pytest.ini (project-level) ✗ not found
+#
+#   3. /etc/jux/config (system-level) ✗ not found
+
+# 7. Export configuration as JSON (for scripting)
+jux-config dump --format json
+# Output: {"jux_enabled": true, "jux_sign": true, ...}
+
+# 8. Validate configuration before running tests
+jux-config validate && pytest
+# Output: ✓ Configuration is valid
+#         (pytest runs...)
 ```
 
 ---
