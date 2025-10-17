@@ -9,18 +9,40 @@ _A pytest plugin for signing and publishing JUnit XML test reports to the Jux RE
 
 ## Overview
 
-pytest-jux is a pytest plugin that automatically signs JUnit XML test reports using XML digital signatures (XMLDSig) and publishes them to a Jux REST API for storage and analysis. It enables system administrators, integrators, and infrastructure engineers to maintain a chain-of-trust for test results across local and distributed environments.
+pytest-jux is a **client-side pytest plugin** that automatically signs JUnit XML test reports using XML digital signatures (XMLDSig) and publishes them to a Jux REST API backend for storage and analysis. It enables system administrators, integrators, and infrastructure engineers to maintain a chain-of-trust for test results across local and distributed environments.
+
+### Architecture
+
+pytest-jux is the **client component** in a client-server architecture:
+
+- **pytest-jux (this project)**: Client-side plugin for signing and publishing test reports
+- **Jux API Server** (separate project): Server-side backend for storing, querying, and visualizing reports
+
+This separation allows pytest-jux to be lightweight and focused on test report signing, while the Jux API Server handles data persistence, deduplication, and web interfaces.
 
 ## Features
 
+### Client-Side Features (pytest-jux)
+
 - **Automatic Report Signing**: Signs JUnit XML reports with XML digital signatures after test execution
-- **XML Canonicalization**: Uses C14N for detecting duplicate reports via canonical hash
-- **Chain-of-Trust**: Cryptographic verification ensures report integrity and provenance
-- **REST API Integration**: Publishes signed reports to Jux backend (SQLite or PostgreSQL)
+- **XML Canonicalization**: Uses C14N for generating canonical hashes
+- **Chain-of-Trust**: Cryptographic signatures ensure report integrity and provenance
+- **REST API Publishing**: Publishes signed reports to Jux API backend
 - **pytest Integration**: Seamless integration via pytest hooks (post-session processing)
-- **Duplicate Detection**: Canonical hash-based deduplication prevents redundant storage
+- **Standalone CLI Tools**: Key generation, signing, verification, and inspection utilities
 - **Environment Metadata**: Captures test environment context (hostname, user, platform)
 - **Security Framework**: Comprehensive security with automated scanning and threat modeling
+
+### Server-Side Features (Jux API Server)
+
+The following features are provided by the **Jux API Server** (separate project):
+
+- **Report Storage**: Persistent storage in SQLite (local) or PostgreSQL (distributed)
+- **Duplicate Detection**: Canonical hash-based deduplication prevents redundant storage
+- **Signature Verification**: Server-side validation of XMLDSig signatures
+- **Query API**: REST API for retrieving and filtering stored reports
+- **Web UI**: Browser-based interface for visualizing test results
+- **Multi-tenancy**: Support for multiple projects and users
 
 ## Security
 
@@ -175,14 +197,24 @@ pytest-jux/
 │   ├── __init__.py
 │   ├── plugin.py           # pytest hooks
 │   ├── signer.py           # XML signing
+│   ├── verifier.py         # Signature verification
 │   ├── canonicalizer.py    # C14N operations
-│   ├── api_client.py       # REST API client
-│   └── models.py           # SQLAlchemy models
+│   ├── api_client.py       # REST API client (Sprint 3)
+│   ├── metadata.py         # Environment metadata (Sprint 3)
+│   └── commands/           # CLI commands
+│       ├── keygen.py       # Key generation
+│       ├── sign.py         # Offline signing
+│       ├── verify.py       # Signature verification
+│       ├── inspect.py      # Report inspection
+│       └── publish.py      # Manual publishing (Sprint 3)
 ├── tests/                   # Test suite
 │   ├── test_plugin.py
 │   ├── test_signer.py
+│   ├── test_verifier.py
+│   ├── test_canonicalizer.py
+│   ├── commands/           # CLI command tests
 │   ├── security/           # Security tests
-│   └── fixtures/           # JUnit XML fixtures
+│   └── fixtures/           # JUnit XML fixtures & test keys
 ├── docs/                    # Documentation
 │   ├── tutorials/          # Learning-oriented
 │   ├── howto/             # Problem-oriented
@@ -190,6 +222,7 @@ pytest-jux/
 │   ├── explanation/       # Understanding-oriented
 │   ├── adr/              # Architecture decisions
 │   ├── architecture/     # C4 DSL models
+│   ├── sprints/          # Sprint documentation
 │   └── security/         # Security documentation
 ├── .github/
 │   └── workflows/
@@ -201,19 +234,49 @@ pytest-jux/
 └── README.md              # This file
 ```
 
+**Note**: This project does **not** include database models (`models.py`) or database integration. These are handled by the Jux API Server.
+
 ## Architecture Overview
+
+### Client-Server Architecture
+
+```
+┌─────────────────────────────────┐         ┌──────────────────────────┐
+│   pytest-jux (Client)           │         │  Jux API Server          │
+│                                 │         │                          │
+│  1. Run tests                   │         │  6. Receive signed XML   │
+│  2. Generate JUnit XML          │         │  7. Verify signature     │
+│  3. Canonicalize (C14N)         │  HTTP   │  8. Check for duplicates │
+│  4. Sign with XMLDSig           │ ─POST─> │  9. Store in database    │
+│  5. Publish to API              │         │ 10. Return status        │
+│                                 │         │                          │
+│  • XML signing                  │         │  • Report storage        │
+│  • Environment metadata         │         │  • Duplicate detection   │
+│  • API client                   │         │  • Signature verification│
+│                                 │         │  • Query API             │
+│                                 │         │  • Web UI                │
+└─────────────────────────────────┘         └──────────────────────────┘
+```
 
 ### pytest Plugin Integration
 
 pytest-jux integrates with pytest via the `pytest_sessionfinish` hook, processing JUnit XML reports after test execution completes.
 
-### XML Signature Workflow
+### Client-Side Workflow
 
 1. **Generate**: pytest creates JUnit XML report (`--junit-xml`)
-2. **Canonicalize**: Convert XML to canonical form (C14N)
-3. **Hash**: Calculate SHA-256 hash of canonical XML (for deduplication)
-4. **Sign**: Generate XMLDSig signature using private key
-5. **Publish**: POST signed report to Jux REST API
+2. **Canonicalize**: Convert XML to canonical form (C14N) and compute SHA-256 hash
+3. **Sign**: Generate XMLDSig signature using private key
+4. **Capture Metadata**: Collect environment information (hostname, platform, etc.)
+5. **Publish**: POST signed report + metadata to Jux REST API
+
+### Server-Side Processing (Jux API Server)
+
+6. **Receive**: Accept signed XML report via REST API
+7. **Verify**: Validate XMLDSig signature
+8. **Deduplicate**: Check canonical hash against existing reports
+9. **Store**: Save to database (SQLite or PostgreSQL)
+10. **Index**: Make report queryable via API and Web UI
 
 ### C4 DSL Architecture Models
 
@@ -272,10 +335,33 @@ See [LICENSE](LICENSE) for the full license text.
 
 ## Related Projects
 
-- **Jux**: JUnit XML toolkit (Elixir/Phoenix)
-  - Parent project providing REST API backend
-  - SQLite (local) and PostgreSQL (distributed) storage
-  - Web and CLI interfaces for browsing test reports
+### Jux API Server (Separate Project)
+
+The **Jux API Server** is the server-side component that works with pytest-jux. It is a separate project that provides:
+
+**Core Functionality:**
+- REST API endpoints for receiving signed test reports
+- XMLDSig signature verification
+- Report storage in SQLite (local) or PostgreSQL (distributed)
+- Canonical hash-based duplicate detection
+- Query API for retrieving stored reports
+
+**User Interfaces:**
+- Web UI for browsing and visualizing test results
+- CLI tools for querying reports
+- API documentation (OpenAPI/Swagger)
+
+**Technology Stack:**
+- Elixir/Phoenix framework
+- PostgreSQL or SQLite database
+- RESTful API design
+
+**Deployment Options:**
+- Local development (SQLite)
+- Single-server deployment (PostgreSQL)
+- Distributed/multi-tenant deployment (PostgreSQL cluster)
+
+For more information about the Jux API Server, refer to its separate repository and documentation.
 
 ## Support
 

@@ -4,7 +4,26 @@ _AI-assisted development context and guidelines for pytest-jux_
 
 ## Project Overview
 
-pytest-jux is a pytest plugin for signing and publishing JUnit XML test reports to the Jux REST API. This document provides context for AI-assisted development sessions and human developers.
+pytest-jux is a **client-side pytest plugin** for signing and publishing JUnit XML test reports to the Jux REST API. This document provides context for AI-assisted development sessions and human developers.
+
+### Client-Server Architecture
+
+pytest-jux is part of a **client-server architecture**:
+
+- **pytest-jux (this project)**: Client-side plugin responsible for:
+  - Signing JUnit XML reports with XMLDSig
+  - Computing canonical hashes (C14N + SHA-256)
+  - Capturing environment metadata
+  - Publishing signed reports to Jux REST API via HTTP
+
+- **Jux API Server (separate project)**: Server-side backend responsible for:
+  - Receiving signed reports via REST API
+  - Verifying XMLDSig signatures
+  - Detecting duplicate reports (canonical hash comparison)
+  - Storing reports in database (SQLite/PostgreSQL)
+  - Providing query API and Web UI
+
+**IMPORTANT**: This project does **NOT** include database models, SQLAlchemy integration, or duplicate detection logic. These are handled by the Jux API Server.
 
 ## Architecture Documentation
 
@@ -21,11 +40,11 @@ This project uses ADRs to track significant architectural decisions. Current dec
   - C4 DSL architecture documentation
   - Sprint-based development lifecycle
   - Diátaxis documentation framework
-- **[ADR-0003](docs/adr/0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md)**: Use Python 3 with pytest, lxml, signxml, and SQLAlchemy stack
-  - Core libraries: lxml, signxml, cryptography, SQLAlchemy, click, rich
+- **[ADR-0003](docs/adr/0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md)**: Use Python 3 with pytest, lxml, signxml stack
+  - Core libraries: lxml, signxml, cryptography, requests, configargparse, rich
   - Target Python 3.11+ on Debian 12/13, openSUSE, Fedora
   - pytest plugin architecture with hook integration
-  - Database abstraction for SQLite and PostgreSQL
+  - **Note**: SQLAlchemy mentioned in ADR-0003 is implemented in the Jux API Server, not in pytest-jux
 
 See [docs/adr/README.md](docs/adr/README.md) for the complete ADR index.
 
@@ -167,11 +186,10 @@ git merge main
 - **lxml** (5.x): XML parsing, XPath, C14N canonicalization
 - **signxml** (3.x): XMLDSig digital signatures
 - **cryptography** (41.x+): RSA/ECDSA key management
-- **SQLAlchemy** (2.x): ORM for SQLite and PostgreSQL
 - **pytest** (7.4+/8.x): Plugin host and test framework
-- **click** (8.x): CLI interfaces
+- **requests** (2.x): REST API client (HTTP POST to Jux API)
+- **configargparse** (1.x): CLI and configuration file management
 - **rich** (13.x): Terminal output formatting
-- **requests** (2.x): REST API client
 
 ### Development Tools
 
@@ -266,11 +284,27 @@ pytest-jux/
 │   ├── __init__.py         # Package initialization
 │   ├── plugin.py           # pytest hook integration
 │   ├── signer.py           # XMLDSig signing
+│   ├── verifier.py         # Signature verification
 │   ├── canonicalizer.py    # C14N canonicalization
-│   ├── api_client.py       # REST API client
-│   ├── models.py           # SQLAlchemy models
-│   └── cli.py              # Optional CLI commands
+│   ├── api_client.py       # REST API client (Sprint 3)
+│   ├── metadata.py         # Environment metadata (Sprint 3)
+│   └── commands/           # CLI commands
+│       ├── __init__.py
+│       ├── keygen.py       # Key generation
+│       ├── sign.py         # Offline signing
+│       ├── verify.py       # Signature verification
+│       ├── inspect.py      # Report inspection
+│       └── publish.py      # Manual publishing (Sprint 3)
 ├── tests/                   # Test suite (TDD)
+│   ├── test_plugin.py
+│   ├── test_signer.py
+│   ├── test_verifier.py
+│   ├── test_canonicalizer.py
+│   ├── test_api_client.py  # Sprint 3
+│   ├── test_metadata.py    # Sprint 3
+│   ├── commands/           # CLI command tests
+│   ├── security/           # Security tests
+│   └── fixtures/           # Test fixtures
 ├── docs/                    # Documentation
 │   ├── tutorials/          # Getting started guides
 │   ├── howto/             # Problem-solving guides
@@ -278,10 +312,10 @@ pytest-jux/
 │   ├── explanation/       # Architecture and design
 │   ├── adr/              # Architecture decisions
 │   ├── architecture/     # C4 DSL models
-│   └── sprints/          # Sprint documentation
+│   ├── sprints/          # Sprint documentation
+│   └── security/         # Security documentation
 ├── .github/                # GitHub workflows (CI/CD)
 ├── pyproject.toml          # Project metadata and dependencies
-├── setup.py                # Setup configuration
 ├── .editorconfig           # Editor formatting rules
 ├── .pre-commit-config.yaml # Pre-commit hooks
 ├── .gitignore             # Git ignore patterns
@@ -289,6 +323,8 @@ pytest-jux/
 ├── README.md              # Project overview
 └── CLAUDE.md              # This file
 ```
+
+**Note**: Database models (`models.py`) and SQLAlchemy integration are **NOT** part of this project. These are implemented in the Jux API Server.
 
 ## Documentation Framework (Diátaxis)
 
@@ -403,9 +439,15 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Project Initialization (Sprint 0)
-**Next Milestone**: Sprint 1 - Core plugin infrastructure and XML signing
-**Version**: 0.1.0-dev (pre-release)
+**Current Phase**: Sprint 2 Complete (CLI Tools)
+**Completed Sprints**:
+- ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
+- ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
+- ✅ Sprint 2: CLI Tools (jux-keygen, jux-sign, jux-verify, jux-inspect)
+
+**Next Milestone**: Sprint 3 - REST API Client & Publishing
+**Version**: 0.1.2 (released 2025-10-15)
+**Current Branch**: develop
 
 ---
 
