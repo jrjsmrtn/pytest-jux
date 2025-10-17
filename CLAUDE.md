@@ -486,7 +486,7 @@ Each sprint should have:
 **Total Sprint 3**: 5 modules, 118 tests, >85% average coverage
 
 **Next Milestone**: Sprint 4 - REST API Client & Plugin Integration (when API server available)
-**Version**: 0.1.2 (released 2025-10-15)
+**Version**: 0.1.3 (released 2025-10-17)
 **Current Branch**: develop
 
 ---

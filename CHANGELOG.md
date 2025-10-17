@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-10-17
+
 ### Added
-- Sprint 3 (Configuration, Storage & Caching) - In Progress
+- Sprint 3 (Configuration, Storage & Caching) - Complete
 - Configuration management module (`pytest_jux.config`):
   - Multi-source configuration (CLI, environment, files)
   - ConfigSchema with all configuration options
@@ -170,5 +172,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.2...v0.1.3
+[0.1.2]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jrjsmrtn/pytest-jux/releases/tag/v0.1.0
