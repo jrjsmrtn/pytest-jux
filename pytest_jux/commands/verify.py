@@ -75,7 +75,9 @@ def main() -> int:
         if args.input:
             if not args.input.exists():
                 if not args.quiet and not args.json:
-                    console_err.print(f"[red]Error:[/red] Input file not found: {args.input}")
+                    console_err.print(
+                        f"[red]Error:[/red] Input file not found: {args.input}"
+                    )
                 return 1
             tree = load_xml(args.input)
         else:
@@ -85,7 +87,9 @@ def main() -> int:
         # Read certificate
         if not args.cert.exists():
             if not args.quiet and not args.json:
-                console_err.print(f"[red]Error:[/red] Certificate file not found: {args.cert}")
+                console_err.print(
+                    f"[red]Error:[/red] Certificate file not found: {args.cert}"
+                )
             return 1
 
         cert = args.cert.read_bytes()

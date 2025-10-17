@@ -14,9 +14,7 @@
 
 """Tests for configuration management."""
 
-import os
 from pathlib import Path
-from typing import Any
 
 import pytest
 

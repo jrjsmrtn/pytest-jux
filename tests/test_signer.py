@@ -140,11 +140,16 @@ class TestSignXML:
 
         assert signed_tree is not None
         # Check that Signature element was added
-        signatures = signed_tree.findall(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+        signatures = signed_tree.findall(
+            ".//{http://www.w3.org/2000/09/xmldsig#}Signature"
+        )
         assert len(signatures) == 1
 
     def test_sign_xml_with_ecdsa(
-        self, sample_xml_tree: etree._Element, ecdsa_key_path: Path, ecdsa_cert_path: Path
+        self,
+        sample_xml_tree: etree._Element,
+        ecdsa_key_path: Path,
+        ecdsa_cert_path: Path,
     ) -> None:
         """Test signing XML with ECDSA key."""
         key = load_private_key(ecdsa_key_path)
@@ -152,10 +157,14 @@ class TestSignXML:
         signed_tree = sign_xml(sample_xml_tree, key, cert)
 
         assert signed_tree is not None
-        signatures = signed_tree.findall(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+        signatures = signed_tree.findall(
+            ".//{http://www.w3.org/2000/09/xmldsig#}Signature"
+        )
         assert len(signatures) == 1
 
-    def test_sign_junit_xml(self, simple_xml: Path, rsa_key_path: Path, rsa_cert_path: Path) -> None:
+    def test_sign_junit_xml(
+        self, simple_xml: Path, rsa_key_path: Path, rsa_cert_path: Path
+    ) -> None:
         """Test signing actual JUnit XML file."""
         tree = load_xml(simple_xml)
         key = load_private_key(rsa_key_path)
@@ -166,7 +175,10 @@ class TestSignXML:
         # Verify original content is preserved
         assert signed_tree.find(".//testcase") is not None
         # Verify signature was added
-        assert signed_tree.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature") is not None
+        assert (
+            signed_tree.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+            is not None
+        )
 
     def test_sign_xml_enveloped_signature(
         self, sample_xml_tree: etree._Element, rsa_key_path: Path, rsa_cert_path: Path
@@ -208,11 +220,18 @@ class TestSignXML:
         signed_once = sign_xml(sample_xml_tree, key, cert)
         signed_twice = sign_xml(signed_once, key, cert)
 
-        signatures = signed_twice.findall(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+        signatures = signed_twice.findall(
+            ".//{http://www.w3.org/2000/09/xmldsig#}Signature"
+        )
         assert len(signatures) == 2
 
     def test_sign_xml_with_different_algorithms(
-        self, sample_xml_tree: etree._Element, rsa_key_path: Path, ecdsa_key_path: Path, rsa_cert_path: Path, ecdsa_cert_path: Path
+        self,
+        sample_xml_tree: etree._Element,
+        rsa_key_path: Path,
+        ecdsa_key_path: Path,
+        rsa_cert_path: Path,
+        ecdsa_cert_path: Path,
     ) -> None:
         """Test signing with different key types produces different signatures."""
         rsa_key = load_private_key(rsa_key_path)
@@ -230,19 +249,31 @@ class TestSignXML:
         signed_ecdsa = sign_xml(tree2, ecdsa_key, ecdsa_cert)
 
         # Both should have signatures
-        assert signed_rsa.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature") is not None
-        assert signed_ecdsa.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature") is not None
+        assert (
+            signed_rsa.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+            is not None
+        )
+        assert (
+            signed_ecdsa.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+            is not None
+        )
 
         # Signatures should be different
-        sig_rsa = etree.tostring(signed_rsa.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature"))
-        sig_ecdsa = etree.tostring(signed_ecdsa.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature"))
+        sig_rsa = etree.tostring(
+            signed_rsa.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+        )
+        sig_ecdsa = etree.tostring(
+            signed_ecdsa.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+        )
         assert sig_rsa != sig_ecdsa
 
 
 class TestVerifySignature:
     """Tests for signature verification functionality."""
 
-    @pytest.mark.xfail(reason="XMLDSig verification with self-signed certificates not yet fully supported")
+    @pytest.mark.xfail(
+        reason="XMLDSig verification with self-signed certificates not yet fully supported"
+    )
     def test_verify_rsa_signature(
         self, sample_xml_tree: etree._Element, rsa_key_path: Path, rsa_cert_path: Path
     ) -> None:
@@ -255,9 +286,14 @@ class TestVerifySignature:
         is_valid = verify_signature(signed_tree)
         assert is_valid is True
 
-    @pytest.mark.xfail(reason="XMLDSig verification with self-signed certificates not yet fully supported")
+    @pytest.mark.xfail(
+        reason="XMLDSig verification with self-signed certificates not yet fully supported"
+    )
     def test_verify_ecdsa_signature(
-        self, sample_xml_tree: etree._Element, ecdsa_key_path: Path, ecdsa_cert_path: Path
+        self,
+        sample_xml_tree: etree._Element,
+        ecdsa_key_path: Path,
+        ecdsa_cert_path: Path,
     ) -> None:
         """Test verifying ECDSA signature."""
         key = load_private_key(ecdsa_key_path)
@@ -288,9 +324,15 @@ class TestVerifySignature:
         is_valid = verify_signature(signed_tree)
         assert is_valid is False
 
-    @pytest.mark.xfail(reason="XMLDSig verification with self-signed certificates not yet fully supported")
+    @pytest.mark.xfail(
+        reason="XMLDSig verification with self-signed certificates not yet fully supported"
+    )
     def test_verify_signature_with_signxml_library(
-        self, sample_xml_tree: etree._Element, rsa_key_path: Path, rsa_pub_path: Path, rsa_cert_path: Path
+        self,
+        sample_xml_tree: etree._Element,
+        rsa_key_path: Path,
+        rsa_pub_path: Path,
+        rsa_cert_path: Path,
     ) -> None:
         """Test verification using signxml library directly."""
         key = load_private_key(rsa_key_path)
@@ -323,7 +365,9 @@ class TestSignatureFormats:
         cert = rsa_cert_path.read_bytes()
         signed_tree = sign_xml(sample_xml_tree, key, cert)
 
-        signed_info = signed_tree.find(".//{http://www.w3.org/2000/09/xmldsig#}SignedInfo")
+        signed_info = signed_tree.find(
+            ".//{http://www.w3.org/2000/09/xmldsig#}SignedInfo"
+        )
         assert signed_info is not None
 
     def test_signature_has_signaturevalue(
@@ -334,7 +378,9 @@ class TestSignatureFormats:
         cert = rsa_cert_path.read_bytes()
         signed_tree = sign_xml(sample_xml_tree, key, cert)
 
-        sig_value = signed_tree.find(".//{http://www.w3.org/2000/09/xmldsig#}SignatureValue")
+        sig_value = signed_tree.find(
+            ".//{http://www.w3.org/2000/09/xmldsig#}SignatureValue"
+        )
         assert sig_value is not None
         assert sig_value.text is not None
         assert len(sig_value.text.strip()) > 0
@@ -368,10 +414,17 @@ class TestEdgeCases:
         signed_tree = sign_xml(tree, key, cert)
 
         assert signed_tree is not None
-        assert signed_tree.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature") is not None
+        assert (
+            signed_tree.find(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+            is not None
+        )
 
-    @pytest.mark.xfail(reason="XMLDSig verification with self-signed certificates not yet fully supported")
-    def test_sign_xml_with_namespaces(self, rsa_key_path: Path, fixtures_dir: Path, rsa_cert_path: Path) -> None:
+    @pytest.mark.xfail(
+        reason="XMLDSig verification with self-signed certificates not yet fully supported"
+    )
+    def test_sign_xml_with_namespaces(
+        self, rsa_key_path: Path, fixtures_dir: Path, rsa_cert_path: Path
+    ) -> None:
         """Test signing XML with namespaces."""
         namespaced_xml = fixtures_dir / "junit_xml" / "namespaced.xml"
         tree = load_xml(namespaced_xml)
@@ -383,7 +436,9 @@ class TestEdgeCases:
         is_valid = verify_signature(signed_tree)
         assert is_valid is True
 
-    @pytest.mark.xfail(reason="XMLDSig verification with self-signed certificates not yet fully supported")
+    @pytest.mark.xfail(
+        reason="XMLDSig verification with self-signed certificates not yet fully supported"
+    )
     def test_sign_large_xml(self, rsa_key_path: Path, rsa_cert_path: Path) -> None:
         """Test signing large XML document."""
         # Create large XML
@@ -401,8 +456,12 @@ class TestEdgeCases:
         is_valid = verify_signature(signed_tree)
         assert is_valid is True
 
-    @pytest.mark.xfail(reason="XMLDSig verification with self-signed certificates not yet fully supported")
-    def test_sign_xml_with_special_characters(self, rsa_key_path: Path, rsa_cert_path: Path) -> None:
+    @pytest.mark.xfail(
+        reason="XMLDSig verification with self-signed certificates not yet fully supported"
+    )
+    def test_sign_xml_with_special_characters(
+        self, rsa_key_path: Path, rsa_cert_path: Path
+    ) -> None:
         """Test signing XML with special characters."""
         xml = """<root>
             <data attr="&lt;&gt;&amp;&quot;">Special &lt;chars&gt; &amp; entities</data>
@@ -416,8 +475,12 @@ class TestEdgeCases:
         is_valid = verify_signature(signed_tree)
         assert is_valid is True
 
-    @pytest.mark.xfail(reason="XMLDSig verification with self-signed certificates not yet fully supported")
-    def test_sign_xml_with_unicode(self, rsa_key_path: Path, rsa_cert_path: Path) -> None:
+    @pytest.mark.xfail(
+        reason="XMLDSig verification with self-signed certificates not yet fully supported"
+    )
+    def test_sign_xml_with_unicode(
+        self, rsa_key_path: Path, rsa_cert_path: Path
+    ) -> None:
         """Test signing XML with Unicode characters."""
         xml = """<?xml version="1.0" encoding="UTF-8"?>
         <root>
@@ -455,8 +518,9 @@ class TestIntegrationWithCanonicalizer:
         self, sample_xml_tree: etree._Element, rsa_key_path: Path, rsa_cert_path: Path
     ) -> None:
         """Test that signature changes the canonical hash."""
-        from pytest_jux.canonicalizer import compute_canonical_hash
         import copy
+
+        from pytest_jux.canonicalizer import compute_canonical_hash
 
         tree1 = copy.deepcopy(sample_xml_tree)
         tree2 = copy.deepcopy(sample_xml_tree)

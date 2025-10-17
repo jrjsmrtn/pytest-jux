@@ -14,7 +14,6 @@
 
 """Tests for jux-sign command."""
 
-import sys
 from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
@@ -66,16 +65,24 @@ def test_cert(tmp_path: Path, test_key: Path) -> Path:
 class TestSignCommand:
     """Tests for jux-sign command."""
 
-    def test_signs_xml_file(self, test_xml: Path, test_key: Path, tmp_path: Path) -> None:
+    def test_signs_xml_file(
+        self, test_xml: Path, test_key: Path, tmp_path: Path
+    ) -> None:
         """Test signing XML file with RSA key."""
         output_path = tmp_path / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -91,13 +98,20 @@ class TestSignCommand:
         """Test signing XML with key and certificate."""
         output_path = tmp_path / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--output", str(output_path),
-            "--key", str(test_key),
-            "--cert", str(test_cert)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+                "--cert",
+                str(test_cert),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -117,12 +131,18 @@ class TestSignCommand:
         assert original_testcase is not None
         original_name = original_testcase.get("name")
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+            ],
+        ):
             main()
 
         # Verify content preserved
@@ -140,11 +160,9 @@ class TestSignCommand:
         mock_stdout = Mock()
         mock_stdout.buffer = captured_output
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv", ["jux-sign", "--input", str(test_xml), "--key", str(test_key)]
+        ):
             with patch("sys.stdout", mock_stdout):
                 exit_code = main()
 
@@ -153,16 +171,17 @@ class TestSignCommand:
         assert "Signature" in output
         assert "<?xml" in output
 
-    def test_reads_from_stdin(self, test_xml: Path, test_key: Path, tmp_path: Path) -> None:
+    def test_reads_from_stdin(
+        self, test_xml: Path, test_key: Path, tmp_path: Path
+    ) -> None:
         """Test reading XML from stdin."""
         output_path = tmp_path / "signed.xml"
         xml_content = test_xml.read_text()
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            ["jux-sign", "--output", str(output_path), "--key", str(test_key)],
+        ):
             with patch("sys.stdin", StringIO(xml_content)):
                 exit_code = main()
 
@@ -201,12 +220,18 @@ class TestSignCommand:
         output_path = tmp_path / "signed.xml"
         nonexistent_key = tmp_path / "nonexistent.pem"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--output", str(output_path),
-            "--key", str(nonexistent_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(nonexistent_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code != 0  # Should fail
@@ -216,12 +241,18 @@ class TestSignCommand:
         output_path = tmp_path / "signed.xml"
         nonexistent_xml = tmp_path / "nonexistent.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(nonexistent_xml),
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(nonexistent_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code != 0
@@ -232,12 +263,18 @@ class TestSignCommand:
         invalid_xml.write_text("not valid xml content")
         output_path = tmp_path / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(invalid_xml),
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(invalid_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code != 0
@@ -248,12 +285,18 @@ class TestSignCommand:
         invalid_key.write_text("not a valid key")
         output_path = tmp_path / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--output", str(output_path),
-            "--key", str(invalid_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(invalid_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code != 0
@@ -273,12 +316,18 @@ class TestSignCommand:
         config_path.write_text(f"key={test_key}\n")
         output_path = tmp_path / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--config", str(config_path),
-            "--input", str(test_xml),
-            "--output", str(output_path)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--config",
+                str(config_path),
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -291,12 +340,18 @@ class TestSignCommand:
         output_path = tmp_path / "signed.xml"
         output_path.write_text("existing content")
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -324,12 +379,18 @@ class TestSigningWithECDSA:
         """Test signing with ECDSA key."""
         output_path = tmp_path / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--output", str(output_path),
-            "--key", str(ecdsa_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(ecdsa_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -345,10 +406,12 @@ class TestEdgeCases:
         large_xml = tmp_path / "large.xml"
 
         # Generate large XML with many test cases
-        testcases = "\n".join([
-            f'<testcase classname="test_module" name="test_{i}" time="0.001"/>'
-            for i in range(1000)
-        ])
+        testcases = "\n".join(
+            [
+                f'<testcase classname="test_module" name="test_{i}" time="0.001"/>'
+                for i in range(1000)
+            ]
+        )
         xml_content = f"""<?xml version="1.0" encoding="utf-8"?>
 <testsuites>
     <testsuite name="test_suite" tests="1000" failures="0" errors="0">
@@ -359,12 +422,18 @@ class TestEdgeCases:
         large_xml.write_text(xml_content)
         output_path = tmp_path / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(large_xml),
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(large_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -383,29 +452,43 @@ class TestEdgeCases:
         namespaced_xml.write_text(xml_content)
         output_path = tmp_path / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(namespaced_xml),
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(namespaced_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
 
-    def test_handles_permission_error(self, test_xml: Path, test_key: Path, tmp_path: Path) -> None:
+    def test_handles_permission_error(
+        self, test_xml: Path, test_key: Path, tmp_path: Path
+    ) -> None:
         """Test handling of permission errors."""
         readonly_dir = tmp_path / "readonly"
         readonly_dir.mkdir()
         readonly_dir.chmod(0o444)
         output_path = readonly_dir / "signed.xml"
 
-        with patch("sys.argv", [
-            "jux-sign",
-            "--input", str(test_xml),
-            "--output", str(output_path),
-            "--key", str(test_key)
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-sign",
+                "--input",
+                str(test_xml),
+                "--output",
+                str(output_path),
+                "--key",
+                str(test_key),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code != 0

@@ -16,7 +16,7 @@
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -171,10 +171,8 @@ class TestEnvironmentMetadata:
         """Timestamp should be recent (within last few seconds)."""
         metadata = capture_metadata()
 
-        timestamp_dt = datetime.fromisoformat(
-            metadata.timestamp.replace("Z", "+00:00")
-        )
-        now = datetime.now(timezone.utc)
+        timestamp_dt = datetime.fromisoformat(metadata.timestamp.replace("Z", "+00:00"))
+        now = datetime.now(UTC)
 
         # Timestamp should be within last 10 seconds
         diff = (now - timestamp_dt).total_seconds()
@@ -275,9 +273,7 @@ class TestEnvironmentMetadata:
         monkeypatch.setenv("COMPLEX_VAR", "value with spaces")
         monkeypatch.setenv("UNICODE_VAR", "unicode: 你好")
 
-        metadata = capture_metadata(
-            include_env_vars=["COMPLEX_VAR", "UNICODE_VAR"]
-        )
+        metadata = capture_metadata(include_env_vars=["COMPLEX_VAR", "UNICODE_VAR"])
         json_str = metadata.to_json()
 
         # Should be valid JSON

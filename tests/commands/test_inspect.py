@@ -24,7 +24,11 @@ from lxml import etree
 
 from pytest_jux.canonicalizer import load_xml
 from pytest_jux.commands.inspect import main
-from pytest_jux.commands.keygen import generate_rsa_key, generate_self_signed_cert, save_key
+from pytest_jux.commands.keygen import (
+    generate_rsa_key,
+    generate_self_signed_cert,
+    save_key,
+)
 from pytest_jux.signer import sign_xml
 
 
@@ -154,7 +158,9 @@ class TestInspectCommand:
         captured_stdout = StringIO()
 
         with (
-            patch.object(sys, "argv", ["jux-inspect", "-i", str(unsigned_xml), "--json"]),
+            patch.object(
+                sys, "argv", ["jux-inspect", "-i", str(unsigned_xml), "--json"]
+            ),
             patch("sys.stdout", captured_stdout),
         ):
             exit_code = main()

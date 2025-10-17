@@ -15,7 +15,7 @@
 """jux-keygen: Generate cryptographic keys for signing JUnit XML reports."""
 
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Union
 
@@ -133,9 +133,11 @@ def generate_self_signed_cert(
     else:
         cn_value = subject_name
 
-    subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, cn_value),
-    ])
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, cn_value),
+        ]
+    )
 
     # Generate certificate
     cert = (
@@ -144,8 +146,8 @@ def generate_self_signed_cert(
         .issuer_name(issuer)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.now(timezone.utc))
-        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=days_valid))
+        .not_valid_before(datetime.now(UTC))
+        .not_valid_after(datetime.now(UTC) + timedelta(days=days_valid))
         .sign(key, hashes.SHA256())
     )
 
@@ -168,7 +170,8 @@ def main() -> int:
     )
 
     parser.add_argument(
-        "-c", "--config",
+        "-c",
+        "--config",
         is_config_file=True,
         help="Config file path",
     )
@@ -241,13 +244,11 @@ def main() -> int:
         # Generate certificate if requested
         if args.cert:
             cert_path = args.output.with_suffix(".crt")
-            generate_self_signed_cert(
-                key, cert_path, args.subject, args.days_valid
-            )
+            generate_self_signed_cert(key, cert_path, args.subject, args.days_valid)
             console.print(f"  [green]✓[/green] Certificate saved: {cert_path}")
             console.print(
-                f"  [yellow]⚠[/yellow] Self-signed certificate - "
-                f"NOT suitable for production use"
+                "  [yellow]⚠[/yellow] Self-signed certificate - "
+                "NOT suitable for production use"
             )
 
         console.print("\n[green]Key generation complete![/green]")

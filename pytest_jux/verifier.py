@@ -14,14 +14,10 @@
 
 """XML signature verification using XMLDSig."""
 
-from datetime import datetime, timedelta, timezone
 from typing import Union
 
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.x509 import load_pem_x509_certificate
-from cryptography.x509.oid import NameOID
 from lxml import etree
 from signxml import XMLVerifier
 

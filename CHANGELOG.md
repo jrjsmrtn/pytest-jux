@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Sprint 3 (Configuration, Storage & Caching) - In Progress
+- Configuration management module (`pytest_jux.config`):
+  - Multi-source configuration (CLI, environment, files)
+  - ConfigSchema with all configuration options
+  - ConfigurationManager with load/validate/dump methods
+  - Configuration precedence: CLI > env > files > defaults
+  - Strict validation mode for dependency checking
+  - 25 comprehensive tests, 85.05% code coverage
+- Environment metadata module (`pytest_jux.metadata`):
+  - EnvironmentMetadata dataclass for test context
+  - capture_metadata() function for automatic collection
+  - System information (hostname, username, platform)
+  - Python and pytest version tracking
+  - ISO 8601 timestamps with UTC timezone
+  - Environment variable capture
+  - 19 comprehensive tests, 92.98% code coverage
+- Local storage & caching module (`pytest_jux.storage`):
+  - XDG-compliant storage paths (macOS, Linux, Windows)
+  - Four storage modes: LOCAL, API, BOTH, CACHE
+  - ReportStorage class with atomic file writes
+  - Offline queue for network-resilient operation
+  - Secure file permissions (0600 on Unix)
+  - get_default_storage_path() for platform detection
+  - 33 comprehensive tests, 80.33% code coverage
+- Cache management CLI command (`jux-cache`):
+  - `jux-cache list`: List all cached reports
+  - `jux-cache show`: Show report details by hash
+  - `jux-cache stats`: View cache statistics
+  - `jux-cache clean`: Remove old reports with dry-run mode
+  - JSON output support for all subcommands
+  - Custom storage path support
+  - 16 comprehensive tests, 84.13% code coverage
+- Configuration management CLI command (`jux-config`):
+  - `jux-config list`: List all configuration options
+  - `jux-config dump`: Show effective configuration with sources
+  - `jux-config view`: View configuration files
+  - `jux-config init`: Initialize configuration file (minimal/full templates)
+  - `jux-config validate`: Validate configuration with strict mode
+  - JSON output support for all subcommands
+  - 25 comprehensive tests, 91.32% code coverage
+- Documentation updates:
+  - README.md: Added storage, caching, and configuration examples
+  - CLAUDE.md: Updated with Sprint 3 architecture clarifications
+  - Client-side only focus clearly documented
+
+### Changed
+- pyproject.toml: Added CLI entry points for `jux-cache` and `jux-config`
+- Architecture documentation updated to clarify client-server separation
+- Technology stack documentation updated (removed SQLAlchemy references)
+
+### Postponed
+- REST API client module (api_client.py) - Deferred until Jux API Server available
+- Publishing commands - Dependent on API client implementation
+- Plugin integration with storage - Deferred to Sprint 4
+
 ## [0.1.2] - 2025-10-15
 
 ### Added

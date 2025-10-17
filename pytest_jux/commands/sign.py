@@ -16,7 +16,6 @@
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 import configargparse
 from lxml import etree
@@ -42,19 +41,22 @@ def main() -> int:
     )
 
     parser.add_argument(
-        "-c", "--config",
+        "-c",
+        "--config",
         is_config_file=True,
         help="Config file path",
     )
 
     parser.add_argument(
-        "-i", "--input",
+        "-i",
+        "--input",
         type=Path,
         help="Input JUnit XML file (default: stdin)",
     )
 
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=Path,
         help="Output path for signed XML (default: stdout)",
     )
@@ -84,7 +86,9 @@ def main() -> int:
 
         # Validate certificate file if provided
         if args.cert and not args.cert.exists():
-            console_err.print(f"[red]Error:[/red] Certificate file not found: {args.cert}")
+            console_err.print(
+                f"[red]Error:[/red] Certificate file not found: {args.cert}"
+            )
             return 1
 
         # Determine if we're in quiet mode (outputting to stdout)
@@ -94,7 +98,9 @@ def main() -> int:
         if args.input:
             # Validate input file exists
             if not args.input.exists():
-                console_err.print(f"[red]Error:[/red] Input file not found: {args.input}")
+                console_err.print(
+                    f"[red]Error:[/red] Input file not found: {args.input}"
+                )
                 return 1
 
             if not quiet:
@@ -113,7 +119,7 @@ def main() -> int:
         key = load_private_key(args.key)
 
         # Load certificate if provided
-        cert: Optional[bytes] = None
+        cert: bytes | None = None
         if args.cert:
             if not quiet:
                 console.print(f"[bold]Loading certificate:[/bold] {args.cert}")
@@ -136,7 +142,7 @@ def main() -> int:
         if args.output:
             console.print(f"[bold]Writing signed XML:[/bold] {args.output}")
             args.output.write_bytes(signed_xml)
-            console.print(f"[green]✓[/green] Successfully signed XML")
+            console.print("[green]✓[/green] Successfully signed XML")
         else:
             # Write to stdout
             sys.stdout.buffer.write(signed_xml)

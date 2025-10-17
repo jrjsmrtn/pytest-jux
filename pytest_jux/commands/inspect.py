@@ -18,7 +18,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 import configargparse
 from lxml import etree
@@ -31,7 +31,7 @@ console = Console()
 console_err = Console(stderr=True)
 
 
-def extract_statistics(tree: etree._Element) -> Dict[str, int]:
+def extract_statistics(tree: etree._Element) -> dict[str, int]:
     """Extract test statistics from JUnit XML.
 
     Args:
@@ -116,7 +116,9 @@ def main() -> int:
         # Read XML from file or stdin
         if args.input:
             if not args.input.exists():
-                console_err.print(f"[red]Error:[/red] Input file not found: {args.input}")
+                console_err.print(
+                    f"[red]Error:[/red] Input file not found: {args.input}"
+                )
                 return 1
             tree = load_xml(args.input)
         else:
@@ -130,12 +132,15 @@ def main() -> int:
 
         # Output result
         if args.json:
-            result: Dict[str, Any] = {
+            result: dict[str, Any] = {
                 "tests": stats["tests"],
                 "failures": stats["failures"],
                 "errors": stats["errors"],
                 "skipped": stats["skipped"],
-                "passed": stats["tests"] - stats["failures"] - stats["errors"] - stats["skipped"],
+                "passed": stats["tests"]
+                - stats["failures"]
+                - stats["errors"]
+                - stats["skipped"],
                 "canonical_hash": canonical_hash,
                 "signed": signed,
             }
@@ -153,12 +158,16 @@ def main() -> int:
             table.add_row("Failures", str(stats["failures"]))
             table.add_row("Errors", str(stats["errors"]))
             table.add_row("Skipped", str(stats["skipped"]))
-            passed = stats["tests"] - stats["failures"] - stats["errors"] - stats["skipped"]
+            passed = (
+                stats["tests"] - stats["failures"] - stats["errors"] - stats["skipped"]
+            )
             table.add_row("Passed", str(passed))
 
             console.print(table)
 
-            console.print(f"\n[bold]Canonical Hash:[/bold] {canonical_hash[:16]}...{canonical_hash[-16:]}")
+            console.print(
+                f"\n[bold]Canonical Hash:[/bold] {canonical_hash[:16]}...{canonical_hash[-16:]}"
+            )
 
             if signed:
                 console.print("[bold]Signature:[/bold] [green]Present[/green]")

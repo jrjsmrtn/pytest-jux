@@ -28,8 +28,11 @@ This separation allows pytest-jux to be lightweight and focused on test report s
 - **XML Canonicalization**: Uses C14N for generating canonical hashes
 - **Chain-of-Trust**: Cryptographic signatures ensure report integrity and provenance
 - **REST API Publishing**: Publishes signed reports to Jux API backend
+- **Local Storage & Caching**: XDG-compliant storage with offline queue for unreliable networks
+- **Flexible Storage Modes**: LOCAL (filesystem only), API (server only), BOTH (dual), CACHE (offline queue)
+- **Configuration Management**: Multi-source configuration (CLI, environment, files) with precedence
 - **pytest Integration**: Seamless integration via pytest hooks (post-session processing)
-- **Standalone CLI Tools**: Key generation, signing, verification, and inspection utilities
+- **Standalone CLI Tools**: Key generation, signing, verification, inspection, cache, and config utilities
 - **Environment Metadata**: Captures test environment context (hostname, user, platform)
 - **Security Framework**: Comprehensive security with automated scanning and threat modeling
 
@@ -111,6 +114,291 @@ jux_key_path = ~/.jux/private_key.pem
 - `--jux-publish`: Enable pytest-jux plugin (default: disabled)
 - `--jux-api-url URL`: Jux REST API endpoint
 - `--jux-key PATH`: Path to private key for signing (PEM format)
+- `--jux-storage-mode MODE`: Storage mode (local, api, both, cache)
+- `--jux-storage-path PATH`: Custom storage directory path
+
+## Storage & Caching
+
+pytest-jux provides flexible storage options for test reports, supporting both local filesystem storage and API publishing. This enables offline operation, network-resilient workflows, and local inspection of test results.
+
+### Storage Modes
+
+pytest-jux supports four storage modes:
+
+- **LOCAL**: Store reports locally only (no API publishing)
+- **API**: Publish to API only (no local storage)
+- **BOTH**: Store locally AND publish to API
+- **CACHE**: Store locally, publish when API available (offline queue)
+
+### Storage Location
+
+Reports are stored in XDG-compliant directories:
+
+- **macOS**: `~/Library/Application Support/jux/reports/`
+- **Linux**: `~/.local/share/jux/reports/`
+- **Windows**: `%LOCALAPPDATA%\jux\reports\`
+
+Custom storage paths can be specified via `--jux-storage-path` or `JUX_STORAGE_PATH` environment variable.
+
+### Storage Examples
+
+**Local storage only** (no API required):
+```bash
+pytest --junit-xml=report.xml \
+       --jux-enabled \
+       --jux-sign \
+       --jux-key=~/.jux/private_key.pem \
+       --jux-storage-mode=local
+```
+
+**API publishing with local backup**:
+```bash
+pytest --junit-xml=report.xml \
+       --jux-enabled \
+       --jux-sign \
+       --jux-key=~/.jux/private_key.pem \
+       --jux-api-url=https://jux.example.com/api \
+       --jux-storage-mode=both
+```
+
+**Offline queue mode** (auto-publish when API available):
+```bash
+pytest --junit-xml=report.xml \
+       --jux-enabled \
+       --jux-sign \
+       --jux-key=~/.jux/private_key.pem \
+       --jux-api-url=https://jux.example.com/api \
+       --jux-storage-mode=cache
+```
+
+### Cache Management
+
+The `jux-cache` command provides tools for inspecting and managing cached reports.
+
+**List cached reports**:
+```bash
+# Text output
+jux-cache list
+
+# JSON output
+jux-cache list --json
+```
+
+**Show report details**:
+```bash
+# View specific report
+jux-cache show sha256:abc123...
+
+# JSON output
+jux-cache show sha256:abc123... --json
+```
+
+**View cache statistics**:
+```bash
+# Text output
+jux-cache stats
+
+# JSON output
+jux-cache stats --json
+```
+
+**Clean old reports**:
+```bash
+# Dry run (preview what would be deleted)
+jux-cache clean --days 30 --dry-run
+
+# Actually delete reports older than 30 days
+jux-cache clean --days 30
+```
+
+**Custom storage path**:
+```bash
+jux-cache --storage-path /custom/path list
+```
+
+## Configuration Management
+
+pytest-jux supports multi-source configuration with precedence: CLI arguments > environment variables > configuration files > defaults.
+
+### Configuration Sources
+
+Configuration can be loaded from:
+
+1. **Command-line arguments** (highest precedence)
+2. **Environment variables** (prefixed with `JUX_`)
+3. **Configuration files**:
+   - `~/.jux/config` (user-level)
+   - `.jux.conf` (project-level)
+   - `pytest.ini` (pytest configuration)
+   - `/etc/jux/config` (system-level, Linux/Unix)
+
+### Configuration File Format
+
+Configuration files use INI format with a `[jux]` section:
+
+```ini
+[jux]
+# Core settings
+enabled = true
+sign = true
+publish = false
+
+# Storage settings
+storage_mode = local
+# storage_path = ~/.local/share/jux/reports
+
+# Signing settings
+# key_path = ~/.jux/signing_key.pem
+# cert_path = ~/.jux/signing_key.crt
+
+# API settings
+# api_url = https://jux.example.com/api/v1/reports
+# api_key = your-api-key-here
+```
+
+### Configuration Management Commands
+
+The `jux-config` command provides tools for managing configuration.
+
+**List all configuration options**:
+```bash
+# Text output
+jux-config list
+
+# JSON output
+jux-config list --json
+```
+
+**Dump current effective configuration**:
+```bash
+# Text output (shows sources)
+jux-config dump
+
+# JSON output
+jux-config dump --json
+```
+
+**View configuration files**:
+```bash
+# View specific file
+jux-config view ~/.jux/config
+
+# View all configuration files
+jux-config view --all
+```
+
+**Initialize configuration file**:
+```bash
+# Create minimal config at default path (~/.jux/config)
+jux-config init
+
+# Create full config with all options
+jux-config init --template full
+
+# Create at custom path
+jux-config init --path /custom/path/config
+
+# Force overwrite existing file
+jux-config init --force
+```
+
+**Validate configuration**:
+```bash
+# Basic validation
+jux-config validate
+
+# Strict validation (check dependencies)
+jux-config validate --strict
+
+# JSON output
+jux-config validate --json
+```
+
+### Environment Variables
+
+All configuration options can be set via environment variables:
+
+```bash
+export JUX_ENABLED=true
+export JUX_SIGN=true
+export JUX_KEY_PATH=~/.jux/private_key.pem
+export JUX_STORAGE_MODE=local
+export JUX_API_URL=https://jux.example.com/api
+export JUX_API_KEY=your-api-key-here
+```
+
+### Configuration Examples
+
+**Minimal configuration** (local storage only):
+```ini
+[jux]
+enabled = true
+sign = false
+storage_mode = local
+```
+
+**Development configuration** (local storage + API publishing):
+```ini
+[jux]
+enabled = true
+sign = true
+key_path = ~/.jux/dev_key.pem
+storage_mode = both
+api_url = http://localhost:4000/api/v1/reports
+```
+
+**Production configuration** (signed reports with offline queue):
+```ini
+[jux]
+enabled = true
+sign = true
+key_path = ~/.jux/prod_key.pem
+cert_path = ~/.jux/prod_key.crt
+storage_mode = cache
+api_url = https://jux.example.com/api/v1/reports
+```
+
+## CLI Tools
+
+pytest-jux provides standalone CLI commands for key management, signing, verification, and administration:
+
+**Key generation**:
+```bash
+jux-keygen --output ~/.jux/private_key.pem --algorithm rsa
+```
+
+**Offline signing**:
+```bash
+jux-sign report.xml --key ~/.jux/private_key.pem --output signed_report.xml
+```
+
+**Signature verification**:
+```bash
+jux-verify signed_report.xml
+```
+
+**Report inspection**:
+```bash
+jux-inspect report.xml
+```
+
+**Cache management**:
+```bash
+jux-cache list
+jux-cache show sha256:abc123...
+jux-cache stats
+jux-cache clean --days 30
+```
+
+**Configuration management**:
+```bash
+jux-config list
+jux-config dump
+jux-config init
+jux-config validate
+```
+
+See CLI tool documentation for complete usage details.
 
 ## Development
 
@@ -199,20 +487,29 @@ pytest-jux/
 │   ├── signer.py           # XML signing
 │   ├── verifier.py         # Signature verification
 │   ├── canonicalizer.py    # C14N operations
-│   ├── api_client.py       # REST API client (Sprint 3)
+│   ├── config.py           # Configuration management (Sprint 3)
 │   ├── metadata.py         # Environment metadata (Sprint 3)
+│   ├── storage.py          # Local storage & caching (Sprint 3)
+│   ├── api_client.py       # REST API client (Sprint 3 - postponed)
 │   └── commands/           # CLI commands
 │       ├── keygen.py       # Key generation
 │       ├── sign.py         # Offline signing
 │       ├── verify.py       # Signature verification
 │       ├── inspect.py      # Report inspection
-│       └── publish.py      # Manual publishing (Sprint 3)
+│       ├── cache.py        # Cache management (Sprint 3)
+│       ├── config_cmd.py   # Config management (Sprint 3)
+│       └── publish.py      # Manual publishing (Sprint 3 - postponed)
 ├── tests/                   # Test suite
 │   ├── test_plugin.py
 │   ├── test_signer.py
 │   ├── test_verifier.py
 │   ├── test_canonicalizer.py
+│   ├── test_config.py      # Config tests (Sprint 3)
+│   ├── test_metadata.py    # Metadata tests (Sprint 3)
+│   ├── test_storage.py     # Storage tests (Sprint 3)
 │   ├── commands/           # CLI command tests
+│   │   ├── test_cache.py   # Cache command tests (Sprint 3)
+│   │   └── test_config_cmd.py  # Config command tests (Sprint 3)
 │   ├── security/           # Security tests
 │   └── fixtures/           # JUnit XML fixtures & test keys
 ├── docs/                    # Documentation

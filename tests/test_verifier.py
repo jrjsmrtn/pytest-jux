@@ -27,7 +27,11 @@ from pytest_jux.verifier import verify_signature
 @pytest.fixture
 def signed_xml_rsa(tmp_path: Path) -> Path:
     """Create a signed XML file with RSA key and certificate."""
-    from pytest_jux.commands.keygen import generate_rsa_key, generate_self_signed_cert, save_key
+    from pytest_jux.commands.keygen import (
+        generate_rsa_key,
+        generate_self_signed_cert,
+        save_key,
+    )
 
     # Create test XML
     xml_content = """<?xml version="1.0"?>
@@ -65,7 +69,11 @@ def signed_xml_rsa(tmp_path: Path) -> Path:
 @pytest.fixture
 def signed_xml_ecdsa(tmp_path: Path) -> Path:
     """Create a signed XML file with ECDSA key and certificate."""
-    from pytest_jux.commands.keygen import generate_ecdsa_key, generate_self_signed_cert, save_key
+    from pytest_jux.commands.keygen import (
+        generate_ecdsa_key,
+        generate_self_signed_cert,
+        save_key,
+    )
 
     # Create test XML
     xml_content = """<?xml version="1.0"?>
@@ -103,7 +111,9 @@ def signed_xml_ecdsa(tmp_path: Path) -> Path:
 class TestVerifySignature:
     """Tests for verify_signature function."""
 
-    def test_verifies_valid_rsa_signature(self, signed_xml_rsa: Path, tmp_path: Path) -> None:
+    def test_verifies_valid_rsa_signature(
+        self, signed_xml_rsa: Path, tmp_path: Path
+    ) -> None:
         """Test that valid RSA signature is verified."""
         cert_path = signed_xml_rsa.parent / "cert.crt"
         cert = cert_path.read_bytes()
@@ -113,7 +123,9 @@ class TestVerifySignature:
 
         assert is_valid is True
 
-    def test_verifies_valid_ecdsa_signature(self, signed_xml_ecdsa: Path, tmp_path: Path) -> None:
+    def test_verifies_valid_ecdsa_signature(
+        self, signed_xml_ecdsa: Path, tmp_path: Path
+    ) -> None:
         """Test that valid ECDSA signature is verified."""
         cert_path = signed_xml_ecdsa.parent / "cert.crt"
         cert = cert_path.read_bytes()
@@ -123,7 +135,9 @@ class TestVerifySignature:
 
         assert is_valid is True
 
-    def test_rejects_tampered_signature(self, signed_xml_rsa: Path, tmp_path: Path) -> None:
+    def test_rejects_tampered_signature(
+        self, signed_xml_rsa: Path, tmp_path: Path
+    ) -> None:
         """Test that tampered XML is rejected."""
         cert_path = signed_xml_rsa.parent / "cert.crt"
         cert = cert_path.read_bytes()
@@ -161,7 +175,9 @@ class TestVerifySignature:
         with pytest.raises(ValueError, match="No signature found"):
             verify_signature(tree, cert)
 
-    def test_verifies_with_certificate_bytes(self, signed_xml_rsa: Path, tmp_path: Path) -> None:
+    def test_verifies_with_certificate_bytes(
+        self, signed_xml_rsa: Path, tmp_path: Path
+    ) -> None:
         """Test verification with certificate as bytes."""
         from pytest_jux.commands.keygen import generate_self_signed_cert
 

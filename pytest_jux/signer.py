@@ -68,7 +68,7 @@ def load_private_key(source: str | bytes | Path) -> PrivateKey:
         raise ValueError(f"Failed to load private key: {e}") from e
 
     # Verify it's a supported key type
-    if not isinstance(private_key, (rsa.RSAPrivateKey, ec.EllipticCurvePrivateKey)):
+    if not isinstance(private_key, rsa.RSAPrivateKey | ec.EllipticCurvePrivateKey):
         raise ValueError(
             f"Unsupported key type: {type(private_key)}. "
             "Only RSA and ECDSA keys are supported."

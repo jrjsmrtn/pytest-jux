@@ -15,15 +15,20 @@
 """Tests for jux-verify command."""
 
 import sys
-from io import BytesIO, StringIO
+from io import StringIO
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from lxml import etree
 
 from pytest_jux.canonicalizer import load_xml
-from pytest_jux.commands.keygen import generate_ecdsa_key, generate_rsa_key, generate_self_signed_cert, save_key
+from pytest_jux.commands.keygen import (
+    generate_ecdsa_key,
+    generate_rsa_key,
+    generate_self_signed_cert,
+    save_key,
+)
 from pytest_jux.commands.verify import main
 from pytest_jux.signer import sign_xml
 
@@ -71,7 +76,11 @@ class TestVerifyCommand:
         """Test verification of valid signature."""
         signed_path, cert_path = signed_xml
 
-        with patch.object(sys, "argv", ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path)]):
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path)],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -91,7 +100,9 @@ class TestVerifyCommand:
 
         assert exit_code == 0
 
-    def test_fails_for_tampered_xml(self, signed_xml: tuple[Path, Path], tmp_path: Path) -> None:
+    def test_fails_for_tampered_xml(
+        self, signed_xml: tuple[Path, Path], tmp_path: Path
+    ) -> None:
         """Test verification fails for tampered XML."""
         signed_path, cert_path = signed_xml
 
@@ -106,7 +117,11 @@ class TestVerifyCommand:
             etree.tostring(tree, xml_declaration=True, encoding="utf-8")
         )
 
-        with patch.object(sys, "argv", ["jux-verify", "-i", str(tampered_path), "--cert", str(cert_path)]):
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", str(tampered_path), "--cert", str(cert_path)],
+        ):
             exit_code = main()
 
         assert exit_code == 1
@@ -129,7 +144,9 @@ class TestVerifyCommand:
         cert_path = tmp_path / "cert.crt"
         generate_self_signed_cert(key, cert_path)
 
-        with patch.object(sys, "argv", ["jux-verify", "-i", str(xml_path), "--cert", str(cert_path)]):
+        with patch.object(
+            sys, "argv", ["jux-verify", "-i", str(xml_path), "--cert", str(cert_path)]
+        ):
             exit_code = main()
 
         assert exit_code == 1
@@ -138,16 +155,26 @@ class TestVerifyCommand:
         """Test error handling for missing input file."""
         _, cert_path = signed_xml
 
-        with patch.object(sys, "argv", ["jux-verify", "-i", "/nonexistent.xml", "--cert", str(cert_path)]):
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", "/nonexistent.xml", "--cert", str(cert_path)],
+        ):
             exit_code = main()
 
         assert exit_code == 1
 
-    def test_fails_for_missing_certificate_file(self, signed_xml: tuple[Path, Path]) -> None:
+    def test_fails_for_missing_certificate_file(
+        self, signed_xml: tuple[Path, Path]
+    ) -> None:
         """Test error handling for missing certificate file."""
         signed_path, _ = signed_xml
 
-        with patch.object(sys, "argv", ["jux-verify", "-i", str(signed_path), "--cert", "/nonexistent.crt"]):
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", str(signed_path), "--cert", "/nonexistent.crt"],
+        ):
             exit_code = main()
 
         assert exit_code == 1
@@ -161,7 +188,11 @@ class TestVerifyCommand:
         captured_stderr = StringIO()
 
         with (
-            patch.object(sys, "argv", ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "-q"]),
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "-q"],
+            ),
             patch("sys.stdout", captured_stdout),
             patch("sys.stderr", captured_stderr),
         ):
@@ -172,7 +203,9 @@ class TestVerifyCommand:
         assert captured_stdout.getvalue() == ""
         assert captured_stderr.getvalue() == ""
 
-    def test_uses_certificate_from_env_var(self, signed_xml: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_uses_certificate_from_env_var(
+        self, signed_xml: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test loading certificate from environment variable."""
         signed_path, cert_path = signed_xml
         monkeypatch.setenv("JUX_CERT_PATH", str(cert_path))
@@ -214,7 +247,11 @@ class TestVerifyCommand:
             etree.tostring(signed_tree, xml_declaration=True, encoding="utf-8")
         )
 
-        with patch.object(sys, "argv", ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path)]):
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path)],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -226,7 +263,18 @@ class TestVerifyCommand:
         captured_stdout = StringIO()
 
         with (
-            patch.object(sys, "argv", ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "--json"]),
+            patch.object(
+                sys,
+                "argv",
+                [
+                    "jux-verify",
+                    "-i",
+                    str(signed_path),
+                    "--cert",
+                    str(cert_path),
+                    "--json",
+                ],
+            ),
             patch("sys.stdout", captured_stdout),
         ):
             exit_code = main()
@@ -235,7 +283,9 @@ class TestVerifyCommand:
         output = captured_stdout.getvalue()
         assert '"valid": true' in output or '"valid":true' in output
 
-    def test_json_output_for_invalid_signature(self, signed_xml: tuple[Path, Path], tmp_path: Path) -> None:
+    def test_json_output_for_invalid_signature(
+        self, signed_xml: tuple[Path, Path], tmp_path: Path
+    ) -> None:
         """Test JSON output format for invalid signature."""
         signed_path, cert_path = signed_xml
 
@@ -253,7 +303,18 @@ class TestVerifyCommand:
         captured_stdout = StringIO()
 
         with (
-            patch.object(sys, "argv", ["jux-verify", "-i", str(tampered_path), "--cert", str(cert_path), "--json"]),
+            patch.object(
+                sys,
+                "argv",
+                [
+                    "jux-verify",
+                    "-i",
+                    str(tampered_path),
+                    "--cert",
+                    str(cert_path),
+                    "--json",
+                ],
+            ),
             patch("sys.stdout", captured_stdout),
         ):
             exit_code = main()

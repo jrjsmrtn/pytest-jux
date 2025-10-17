@@ -14,10 +14,9 @@
 
 """Tests for jux-keygen command."""
 
-import os
 import stat
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from cryptography.hazmat.primitives import serialization
@@ -236,7 +235,9 @@ class TestGenerateSelfSignedCert:
         generate_self_signed_cert(key, cert_path, "Test Subject", days_valid=365)
 
         cert = load_pem_x509_certificate(cert_path.read_bytes())
-        validity_seconds = (cert.not_valid_after_utc - cert.not_valid_before_utc).total_seconds()
+        validity_seconds = (
+            cert.not_valid_after_utc - cert.not_valid_before_utc
+        ).total_seconds()
 
         # Should be approximately 365 days (within 1 hour tolerance)
         expected_seconds = 365 * 24 * 60 * 60
@@ -250,7 +251,18 @@ class TestMainCommand:
         """Test generating RSA key via CLI."""
         output_path = tmp_path / "key.pem"
 
-        with patch("sys.argv", ["jux-keygen", "--type", "rsa", "--bits", "2048", "--output", str(output_path)]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-keygen",
+                "--type",
+                "rsa",
+                "--bits",
+                "2048",
+                "--output",
+                str(output_path),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -260,7 +272,18 @@ class TestMainCommand:
         """Test generating ECDSA key via CLI."""
         output_path = tmp_path / "key.pem"
 
-        with patch("sys.argv", ["jux-keygen", "--type", "ecdsa", "--curve", "P-256", "--output", str(output_path)]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-keygen",
+                "--type",
+                "ecdsa",
+                "--curve",
+                "P-256",
+                "--output",
+                str(output_path),
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -271,14 +294,21 @@ class TestMainCommand:
         key_path = tmp_path / "key.pem"
         cert_path = tmp_path / "key.crt"
 
-        with patch("sys.argv", [
-            "jux-keygen",
-            "--type", "rsa",
-            "--bits", "2048",
-            "--output", str(key_path),
-            "--cert",
-            "--subject", "CN=test.example.com"
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "jux-keygen",
+                "--type",
+                "rsa",
+                "--bits",
+                "2048",
+                "--output",
+                str(key_path),
+                "--cert",
+                "--subject",
+                "CN=test.example.com",
+            ],
+        ):
             exit_code = main()
 
         assert exit_code == 0
@@ -295,7 +325,10 @@ class TestMainCommand:
         """Test that invalid key type is rejected."""
         output_path = tmp_path / "key.pem"
 
-        with patch("sys.argv", ["jux-keygen", "--type", "invalid", "--output", str(output_path)]):
+        with patch(
+            "sys.argv",
+            ["jux-keygen", "--type", "invalid", "--output", str(output_path)],
+        ):
             with pytest.raises((ValueError, SystemExit)):
                 main()
 
@@ -303,12 +336,15 @@ class TestMainCommand:
         """Test that default RSA key size is 2048 bits."""
         output_path = tmp_path / "key.pem"
 
-        with patch("sys.argv", ["jux-keygen", "--type", "rsa", "--output", str(output_path)]):
+        with patch(
+            "sys.argv", ["jux-keygen", "--type", "rsa", "--output", str(output_path)]
+        ):
             exit_code = main()
 
         assert exit_code == 0
         # Load the key and check size
         from pytest_jux.signer import load_private_key
+
         key = load_private_key(output_path)
         assert isinstance(key, rsa.RSAPrivateKey)
         assert key.key_size == 2048
@@ -317,12 +353,15 @@ class TestMainCommand:
         """Test that default ECDSA curve is P-256."""
         output_path = tmp_path / "key.pem"
 
-        with patch("sys.argv", ["jux-keygen", "--type", "ecdsa", "--output", str(output_path)]):
+        with patch(
+            "sys.argv", ["jux-keygen", "--type", "ecdsa", "--output", str(output_path)]
+        ):
             exit_code = main()
 
         assert exit_code == 0
         # Load the key and check curve
         from pytest_jux.signer import load_private_key
+
         key = load_private_key(output_path)
         assert isinstance(key, ec.EllipticCurvePrivateKey)
         assert isinstance(key.curve, ec.SECP256R1)

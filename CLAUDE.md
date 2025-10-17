@@ -183,13 +183,21 @@ git merge main
 
 ### Core Dependencies
 
+**IMPORTANT**: pytest-jux is a **client-side only** plugin. Database models, persistence, and server-side logic are handled by the separate Jux API Server project.
+
 - **lxml** (5.x): XML parsing, XPath, C14N canonicalization
 - **signxml** (3.x): XMLDSig digital signatures
 - **cryptography** (41.x+): RSA/ECDSA key management
 - **pytest** (7.4+/8.x): Plugin host and test framework
-- **requests** (2.x): REST API client (HTTP POST to Jux API)
-- **configargparse** (1.x): CLI and configuration file management
+- **configargparse** (1.x): Configuration management (CLI, environment, files)
+- **pydantic** (2.5+): Configuration validation and metadata schemas
 - **rich** (13.x): Terminal output formatting
+- **requests** (2.x): REST API client (HTTP POST to Jux API) - **postponed in Sprint 3**
+
+**Note**: This project does NOT include:
+- SQLAlchemy or database models (server-side only)
+- Database migrations (server-side only)
+- Hardware Security Module (HSM) support (future consideration)
 
 ### Development Tools
 
@@ -221,9 +229,19 @@ Following ADR-0002, this project uses **TDD-only** (no BDD) because it's a techn
 tests/
 ├── test_plugin.py           # pytest hook integration
 ├── test_signer.py          # XML signature generation
+├── test_verifier.py        # Signature verification
 ├── test_canonicalizer.py   # C14N operations
-├── test_api_client.py      # REST API integration
-├── test_models.py          # SQLAlchemy models
+├── test_config.py          # Configuration management (Sprint 3)
+├── test_metadata.py        # Environment metadata (Sprint 3)
+├── test_storage.py         # Local storage & caching (Sprint 3)
+├── commands/               # CLI command tests
+│   ├── test_keygen.py      # Key generation tests
+│   ├── test_sign.py        # Signing command tests
+│   ├── test_verify.py      # Verification command tests
+│   ├── test_inspect.py     # Inspection command tests
+│   ├── test_cache.py       # Cache management tests (Sprint 3)
+│   └── test_config_cmd.py  # Config management tests (Sprint 3)
+├── security/               # Security tests
 └── fixtures/
     ├── junit_xml/          # Sample JUnit XML files
     └── keys/               # Test signing keys
@@ -244,7 +262,7 @@ This project follows the **AI-Assisted Project Orchestration** pattern language.
 ### Using AI for Development
 
 **Appropriate AI Tasks**:
-- Boilerplate generation (pytest hooks, SQLAlchemy models, CLI commands)
+- Boilerplate generation (pytest hooks, configuration schemas, CLI commands)
 - Test generation following TDD patterns
 - Documentation writing (following Diátaxis structure)
 - Code refactoring suggestions
@@ -286,23 +304,34 @@ pytest-jux/
 │   ├── signer.py           # XMLDSig signing
 │   ├── verifier.py         # Signature verification
 │   ├── canonicalizer.py    # C14N canonicalization
-│   ├── api_client.py       # REST API client (Sprint 3)
-│   ├── metadata.py         # Environment metadata (Sprint 3)
+│   ├── config.py           # Configuration management (Sprint 3 ✓)
+│   ├── metadata.py         # Environment metadata (Sprint 3 ✓)
+│   ├── storage.py          # Local storage & caching (Sprint 3 ✓)
+│   ├── api_client.py       # REST API client (Sprint 3 - postponed)
 │   └── commands/           # CLI commands
 │       ├── __init__.py
-│       ├── keygen.py       # Key generation
-│       ├── sign.py         # Offline signing
-│       ├── verify.py       # Signature verification
-│       ├── inspect.py      # Report inspection
-│       └── publish.py      # Manual publishing (Sprint 3)
+│       ├── keygen.py       # Key generation (Sprint 2 ✓)
+│       ├── sign.py         # Offline signing (Sprint 2 ✓)
+│       ├── verify.py       # Signature verification (Sprint 2 ✓)
+│       ├── inspect.py      # Report inspection (Sprint 2 ✓)
+│       ├── cache.py        # Cache management (Sprint 3 ✓)
+│       ├── config_cmd.py   # Config management (Sprint 3 ✓)
+│       └── publish.py      # Manual publishing (Sprint 3 - postponed)
 ├── tests/                   # Test suite (TDD)
-│   ├── test_plugin.py
-│   ├── test_signer.py
-│   ├── test_verifier.py
-│   ├── test_canonicalizer.py
-│   ├── test_api_client.py  # Sprint 3
-│   ├── test_metadata.py    # Sprint 3
+│   ├── test_plugin.py      # Sprint 1 ✓
+│   ├── test_signer.py      # Sprint 1 ✓
+│   ├── test_verifier.py    # Sprint 2 ✓
+│   ├── test_canonicalizer.py  # Sprint 1 ✓
+│   ├── test_config.py      # Sprint 3 ✓
+│   ├── test_metadata.py    # Sprint 3 ✓
+│   ├── test_storage.py     # Sprint 3 ✓
 │   ├── commands/           # CLI command tests
+│   │   ├── test_keygen.py  # Sprint 2 ✓
+│   │   ├── test_sign.py    # Sprint 2 ✓
+│   │   ├── test_verify.py  # Sprint 2 ✓
+│   │   ├── test_inspect.py # Sprint 2 ✓
+│   │   ├── test_cache.py   # Sprint 3 ✓
+│   │   └── test_config_cmd.py  # Sprint 3 ✓
 │   ├── security/           # Security tests
 │   └── fixtures/           # Test fixtures
 ├── docs/                    # Documentation
@@ -439,13 +468,24 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Sprint 2 Complete (CLI Tools)
+**Current Phase**: Sprint 3 In Progress (Polish & Documentation)
 **Completed Sprints**:
 - ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
 - ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
 - ✅ Sprint 2: CLI Tools (jux-keygen, jux-sign, jux-verify, jux-inspect)
 
-**Next Milestone**: Sprint 3 - REST API Client & Publishing
+**Sprint 3 Progress** (Configuration, Storage & Caching):
+- ✅ Day 1-2: Configuration management (config.py, 25 tests, 85.05% coverage)
+- ✅ Day 3: Environment metadata (metadata.py, 19 tests, 92.98% coverage)
+- ✅ Day 4-5: Local storage & caching (storage.py, 33 tests, 80.33% coverage)
+- ⏸️ Day 6-10: REST API client & publishing (postponed - no API server yet)
+- ✅ Day 11: Cache management command (cache.py, 16 tests, 84.13% coverage)
+- ✅ Day 12-13: Config management command (config_cmd.py, 25 tests, 91.32% coverage)
+- 🔄 Day 14: Polish & Documentation (in progress)
+
+**Total Sprint 3**: 5 modules, 118 tests, >85% average coverage
+
+**Next Milestone**: Sprint 4 - REST API Client & Plugin Integration (when API server available)
 **Version**: 0.1.2 (released 2025-10-15)
 **Current Branch**: develop
 

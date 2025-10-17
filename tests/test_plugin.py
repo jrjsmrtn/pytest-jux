@@ -15,7 +15,7 @@
 """Tests for pytest plugin hooks."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from lxml import etree
