@@ -35,7 +35,7 @@ Created comprehensive security documentation in `docs/security/`:
 
 **GitHub Actions Workflow** (`.github/workflows/security.yml`) ✅
 - **pip-audit**: PyPA official vulnerability scanner
-- **Bandit**: Static security analysis
+- **Ruff**: Static security analysis (flake8-bandit rules)
 - **Safety**: Dependency vulnerability database
 - **Trivy**: Filesystem scanner (SARIF output to GitHub Security)
 - **Dependency Review**: PR dependency analysis
@@ -61,10 +61,9 @@ Created comprehensive security documentation in `docs/security/`:
 Enhanced `.pre-commit-config.yaml` ✅
 - **gitleaks**: Secret scanning
 - **detect-private-key**: Prevent private key commits
-- **bandit**: Security linting
+- **ruff**: Security linting (flake8-bandit rules)
 - **safety**: Dependency vulnerability checking
 - **mypy**: Strict type checking
-- **ruff**: Security-aware linting (flake8-bandit rules)
 
 ### 6. Security Test Infrastructure
 
@@ -85,9 +84,8 @@ make security-full    # Complete security validation
 
 **pyproject.toml Configuration** ✅
 - `[security]` optional dependency group
-- Bandit configuration
 - Security markers for pytest
-- Ruff security rules enabled
+- Ruff security rules enabled (flake8-bandit)
 
 ### 8. Security Standards Documentation
 
@@ -147,7 +145,7 @@ make security-full    # Complete security validation
 ```
 ┌─────────────────────────────────────────────────────┐
 │ Tier 1: Essential Security (✅ COMPLETE)            │
-│ - Automated scanning (pip-audit, bandit, safety)   │
+│ - Automated scanning (pip-audit, ruff, safety)     │
 │ - CI/CD integration (GitHub Actions)               │
 │ - Security documentation (SECURITY.md, etc.)       │
 │ - Pre-commit hooks                                 │
@@ -178,7 +176,7 @@ make security-full    # Complete security validation
 
 **Python Ecosystem Tools**:
 - pip-audit (PyPA official)
-- Bandit (PyCQA/OpenStack)
+- Ruff (security rules via flake8-bandit)
 - Safety (SafetyDB)
 - Trivy (Aqua Security)
 - OpenSSF Scorecard
@@ -216,7 +214,7 @@ make security-full    # Complete security validation
 
 | Metric | Target | Status |
 |--------|--------|--------|
-| Automated Scanners | 5+ tools | ✅ 6 tools (pip-audit, bandit, safety, trivy, scorecard, dependency-review) |
+| Automated Scanners | 5+ tools | ✅ 6 tools (pip-audit, ruff, safety, trivy, scorecard, dependency-review) |
 | Security Docs | Complete | ✅ 4 comprehensive documents |
 | Threat Coverage | All STRIDE | ✅ 19 threats identified |
 | CI/CD Integration | Full automation | ✅ GitHub Actions + pre-commit |

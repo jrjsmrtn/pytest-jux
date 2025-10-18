@@ -220,7 +220,7 @@ We use the following tools to maintain security:
 
 ### Automated Scanning
 - **pip-audit**: Vulnerability scanning (PyPA official)
-- **bandit**: Static security analysis
+- **ruff**: Static security analysis (flake8-bandit rules)
 - **safety**: Dependency vulnerability database
 - **Trivy**: Container and filesystem scanning
 

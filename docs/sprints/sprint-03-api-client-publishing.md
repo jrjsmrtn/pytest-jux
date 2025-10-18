@@ -880,7 +880,7 @@ Sprint 3 is complete when:
 
 - **Code Coverage**: >85% for all new modules
 - **Type Safety**: 0 mypy errors in strict mode
-- **Security**: 0 findings from Bandit/Safety
+- **Security**: 0 findings from Ruff/Safety
 - **Performance**: Publishing <1 second per report
 - **Reliability**: >99% success rate with retry logic
 - **Usability**: Clear error messages, comprehensive CLI help

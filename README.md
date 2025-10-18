@@ -51,7 +51,7 @@ The following features are provided by the **Jux API Server** (separate project)
 
 pytest-jux implements a comprehensive security framework:
 
-- **Automated Scanning**: pip-audit, Bandit, Safety, Trivy
+- **Automated Scanning**: pip-audit, Ruff (security rules), Safety, Trivy
 - **Threat Modeling**: STRIDE methodology with 19 identified threats
 - **Cryptographic Standards**: NIST-compliant algorithms (RSA-SHA256, ECDSA-SHA256)
 - **Supply Chain**: Dependabot, OpenSSF Scorecard, planned Sigstore signing

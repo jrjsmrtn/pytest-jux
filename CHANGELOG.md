@@ -174,7 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LICENSE and NOTICE files with proper copyright notices
 - Comprehensive security framework:
   - Security documentation (SECURITY.md, THREAT_MODEL.md, CRYPTO_STANDARDS.md)
-  - Automated security scanning (pip-audit, bandit, safety, trivy)
+  - Automated security scanning (pip-audit, ruff security rules, safety, trivy)
   - GitHub Actions security workflow
   - Dependabot configuration
   - Pre-commit security hooks

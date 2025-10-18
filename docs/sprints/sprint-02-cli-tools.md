@@ -300,7 +300,7 @@ Sprint 2 is complete when:
 
 - **Code Coverage**: >85% for all CLI modules
 - **Type Safety**: 0 mypy errors in strict mode
-- **Security**: 0 findings from Bandit/Safety
+- **Security**: 0 findings from Ruff/Safety
 - **Performance**: Key generation <1 second, signing <100ms
 - **Usability**: CLI help text clear, error messages actionable
 

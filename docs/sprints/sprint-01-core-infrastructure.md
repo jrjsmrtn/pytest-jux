@@ -188,7 +188,7 @@ Sprint 1 is complete when:
 
 - **Code Coverage**: >85% (100% for canonicalizer and signer)
 - **Type Safety**: 0 mypy errors in strict mode
-- **Security**: 0 findings from Bandit/Safety
+- **Security**: 0 findings from Ruff/Safety
 - **Performance**: Signing 1000 reports in <10 seconds
 - **Test Execution**: Full test suite in <5 seconds
 

@@ -29,7 +29,7 @@ We will adopt a comprehensive Python ecosystem security framework with three tie
 
 **Automated Vulnerability Scanning**:
 - **pip-audit** (PyPA official): Scan dependencies for known vulnerabilities
-- **bandit**: Static security analysis for Python code
+- **ruff**: Static security analysis for Python code (flake8-bandit rules)
 - **safety**: Dependency vulnerability database scanner
 - **OpenSSF Scorecard**: Automated security best practices scoring
 
@@ -140,7 +140,7 @@ We will adopt a comprehensive Python ecosystem security framework with three tie
 2. Implement SECURITY.md with vulnerability reporting
 3. Document threat model (STRIDE analysis)
 4. Create cryptographic standards document
-5. Configure bandit in pyproject.toml
+5. Configure ruff security rules in pyproject.toml
 
 **Week 2: Automation and Testing**
 6. Implement GitHub Actions security workflow
@@ -214,7 +214,7 @@ Security framework will be validated through:
 
 ### Tools
 
-- Bandit: https://github.com/PyCQA/bandit
+- Ruff: https://github.com/astral-sh/ruff
 - Safety: https://github.com/pyupio/safety
 - Trivy: https://github.com/aquasecurity/trivy
 - CycloneDX: https://cyclonedx.org/
