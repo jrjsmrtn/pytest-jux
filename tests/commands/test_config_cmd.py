@@ -110,7 +110,12 @@ class TestConfigDump:
         """Should show environment variable overrides."""
         monkeypatch.setenv("JUX_ENABLED", "true")
 
-        result = main(["dump"])
+        # Mock to prevent .jux.conf from being loaded
+        with patch(
+            "pytest_jux.commands.config_cmd._find_config_files",
+            return_value=[],
+        ):
+            result = main(["dump"])
 
         captured = capsys.readouterr()
         assert result == 0
@@ -283,7 +288,12 @@ class TestConfigValidate:
         # Enable signing without key path
         monkeypatch.setenv("JUX_SIGN", "true")
 
-        result = main(["validate", "--strict"])
+        # Mock to prevent .jux.conf from being loaded
+        with patch(
+            "pytest_jux.commands.config_cmd._find_config_files",
+            return_value=[],
+        ):
+            result = main(["validate", "--strict"])
 
         captured = capsys.readouterr()
         assert result == 0  # Still valid, just warnings
