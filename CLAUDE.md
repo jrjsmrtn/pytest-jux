@@ -486,7 +486,12 @@ Each sprint should have:
 
 **Total Sprint 3**: 5 modules, 118 tests, 86.76% average coverage
 
-**Next Milestone**: Sprint 4 - REST API Client & Plugin Integration (when API server available)
+**Next Sprint**: Sprint 4 - REST API Client & Plugin Integration
+- 📋 Planned (awaiting Jux API Server availability)
+- Target: v0.2.0 (Beta Milestone)
+- Duration: 12-16 days (can span multiple calendar periods)
+- See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
+
 **Version**: 0.1.4 (released 2025-10-18)
 **Current Branch**: develop
 
