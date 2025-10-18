@@ -467,25 +467,27 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Sprint 3 In Progress (Polish & Documentation)
+**Current Phase**: Sprint 3 Complete - Ready for Sprint 4
 **Completed Sprints**:
 - ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
 - ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
 - ✅ Sprint 2: CLI Tools (jux-keygen, jux-sign, jux-verify, jux-inspect)
+- ✅ Sprint 3: Configuration, Storage & Caching (v0.1.3, v0.1.4)
 
-**Sprint 3 Progress** (Configuration, Storage & Caching):
-- ✅ Day 1-2: Configuration management (config.py, 25 tests, 85.05% coverage)
-- ✅ Day 3: Environment metadata (metadata.py, 19 tests, 92.98% coverage)
-- ✅ Day 4-5: Local storage & caching (storage.py, 33 tests, 80.33% coverage)
-- ⏸️ Day 6-10: REST API client & publishing (postponed - no API server yet)
-- ✅ Day 11: Cache management command (cache.py, 16 tests, 84.13% coverage)
-- ✅ Day 12-13: Config management command (config_cmd.py, 25 tests, 91.32% coverage)
-- 🔄 Day 14: Polish & Documentation (in progress)
+**Sprint 3 Completed** (Configuration, Storage & Caching):
+- ✅ Configuration management (config.py, 25 tests, 85.05% coverage)
+- ✅ Environment metadata (metadata.py, 19 tests, 92.98% coverage)
+- ✅ Local storage & caching (storage.py, 33 tests, 80.33% coverage)
+- ✅ Cache management CLI (cache.py, 16 tests, 84.13% coverage)
+- ✅ Config management CLI (config_cmd.py, 25 tests, 91.32% coverage)
+- ✅ Multi-environment configuration guide (766 lines)
+- ✅ CLAUDE.md updated with uv run best practices
+- ⏸️ REST API client & publishing (postponed - no API server yet)
 
-**Total Sprint 3**: 5 modules, 118 tests, >85% average coverage
+**Total Sprint 3**: 5 modules, 118 tests, 86.76% average coverage
 
 **Next Milestone**: Sprint 4 - REST API Client & Plugin Integration (when API server available)
-**Version**: 0.1.3 (released 2025-10-17)
+**Version**: 0.1.4 (released 2025-10-18)
 **Current Branch**: develop
 
 ---

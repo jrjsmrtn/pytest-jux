@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2025-10-18
+
+### Added
+- Comprehensive multi-environment configuration guide (Diátaxis how-to):
+  - Configuration hierarchy and precedence documentation
+  - Development, staging, and production deployment profiles
+  - Platform-specific examples (GitHub Actions, GitLab CI/CD, Jenkins)
+  - Key management strategies with Ansible deployment examples
+  - Configuration validation and troubleshooting guide
+  - Environment comparison matrix
+
+### Changed
+- CLAUDE.md development workflow updated to use `uv run` pattern:
+  - All tool executions now use `uv run` (pytest, mypy, ruff)
+  - Removed manual virtual environment activation steps
+  - Simplified development commands for better developer experience
+  - Updated development workflow, PR checklist, and security checklist
+
+### Documentation
+- docs/howto/multi-environment-config.md (766 lines) - Complete guide for dev/staging/prod configuration
+- CLAUDE.md - Updated with uv best practices
+
 ## [0.1.3] - 2025-10-17
 
 ### Added
@@ -172,7 +194,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.0...v0.1.1

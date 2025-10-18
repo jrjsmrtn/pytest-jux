@@ -1,8 +1,8 @@
-# Sprint 3: REST API Client & Publishing
+# Sprint 3: Configuration, Storage & Caching
 
-**Sprint Duration**: TBD
-**Sprint Goal**: Implement REST API client, local storage/caching, and publishing for signed JUnit XML reports
-**Status**: 📋 Planned
+**Sprint Duration**: 2025-10-15 to 2025-10-18
+**Sprint Goal**: Implement configuration management, local storage/caching, and CLI tools for report management
+**Status**: ✅ Complete (REST API client postponed to Sprint 4)
 
 ## Overview
 
@@ -1217,6 +1217,84 @@ jux-config validate && pytest
 
 ---
 
+## Sprint 3 Completion Status
+
+### ✅ Completed (2025-10-18)
+
+**Modules Implemented** (5 modules, 118 tests, >85% average coverage):
+1. **Configuration Management** (`pytest_jux/config.py`):
+   - ✅ Multi-source configuration (CLI, environment, files)
+   - ✅ ConfigSchema with all configuration options
+   - ✅ ConfigurationManager with load/validate/dump methods
+   - ✅ Configuration precedence: CLI > env > files > defaults
+   - ✅ Strict validation mode for dependency checking
+   - ✅ 25 comprehensive tests, 85.05% code coverage
+
+2. **Environment Metadata** (`pytest_jux/metadata.py`):
+   - ✅ EnvironmentMetadata dataclass for test context
+   - ✅ capture_metadata() function for automatic collection
+   - ✅ System information (hostname, username, platform)
+   - ✅ Python and pytest version tracking
+   - ✅ ISO 8601 timestamps with UTC timezone
+   - ✅ Environment variable capture
+   - ✅ 19 comprehensive tests, 92.98% code coverage
+
+3. **Local Storage & Caching** (`pytest_jux/storage.py`):
+   - ✅ XDG-compliant storage paths (macOS, Linux, Windows)
+   - ✅ Four storage modes: LOCAL, API, BOTH, CACHE
+   - ✅ ReportStorage class with atomic file writes
+   - ✅ Offline queue for network-resilient operation
+   - ✅ Secure file permissions (0600 on Unix)
+   - ✅ get_default_storage_path() for platform detection
+   - ✅ 33 comprehensive tests, 80.33% code coverage
+
+4. **Cache Management CLI** (`pytest_jux/commands/cache.py`):
+   - ✅ `jux-cache list`: List all cached reports
+   - ✅ `jux-cache show`: Show report details by hash
+   - ✅ `jux-cache stats`: View cache statistics
+   - ✅ `jux-cache clean`: Remove old reports with dry-run mode
+   - ✅ JSON output support for all subcommands
+   - ✅ Custom storage path support
+   - ✅ 16 comprehensive tests, 84.13% code coverage
+
+5. **Configuration Management CLI** (`pytest_jux/commands/config_cmd.py`):
+   - ✅ `jux-config list`: List all configuration options
+   - ✅ `jux-config dump`: Show effective configuration with sources
+   - ✅ `jux-config view`: View configuration files
+   - ✅ `jux-config init`: Initialize configuration file (minimal/full templates)
+   - ✅ `jux-config validate`: Validate configuration with strict mode
+   - ✅ JSON output support for all subcommands
+   - ✅ 25 comprehensive tests, 91.32% code coverage
+
+**Documentation Completed**:
+- ✅ Multi-environment configuration guide (docs/howto/multi-environment-config.md)
+- ✅ CLAUDE.md updated with uv run best practices
+- ✅ CHANGELOG.md updated for v0.1.4 release
+- ✅ Sprint 3 retrospective (docs/sprints/sprint-03-retrospective.md)
+
+### ⏸️ Postponed to Sprint 4
+
+**Reason**: No Jux API Server available yet for testing/integration
+
+**Deferred Items**:
+1. **REST API Client** (`pytest_jux/api_client.py`):
+   - ⏸️ HTTP client for POST requests to Jux API
+   - ⏸️ JSON payload construction with signed XML and metadata
+   - ⏸️ API authentication (API keys, bearer tokens)
+   - ⏸️ Request timeout and retry logic
+
+2. **Manual Publishing Command** (`pytest_jux/commands/publish.py`):
+   - ⏸️ `jux-publish`: Manual report publishing to API
+   - ⏸️ Queue processing and retry logic
+
+3. **Plugin Integration**:
+   - ⏸️ Automatic publishing after test execution
+   - ⏸️ Integration with storage and API client
+
+**Next Steps**: Sprint 4 will implement API client and publishing when Jux API Server is available.
+
+---
+
 ## Notes
 
 - **TDD Approach**: Write tests first, then implement
@@ -1234,4 +1312,5 @@ jux-config validate && pytest
 
 **Sprint Lead**: AI-Assisted Development
 **Reviewed By**: Georges Martin
-**Last Updated**: 2025-10-17
+**Last Updated**: 2025-10-18
+**Status**: ✅ Complete (v0.1.3, v0.1.4)
