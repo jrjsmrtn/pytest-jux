@@ -23,8 +23,11 @@ from pathlib import Path
 import pytest
 from lxml import etree
 
-from pytest_jux.canonicalizer import load_xml
+from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
+from pytest_jux.config import ConfigurationManager, StorageMode
+from pytest_jux.metadata import capture_metadata
 from pytest_jux.signer import load_private_key, sign_xml
+from pytest_jux.storage import ReportStorage
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -61,7 +64,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    """Configure plugin based on command-line options.
+    """Configure plugin based on command-line options and configuration files.
+
+    Loads configuration from configuration files and merges with command-line
+    options. Command-line options take precedence over configuration files.
 
     Args:
         config: pytest configuration object
@@ -69,49 +75,88 @@ def pytest_configure(config: pytest.Config) -> None:
     Raises:
         pytest.UsageError: If configuration is invalid
     """
-    jux_sign = config.getoption("jux_sign")
-    jux_key = config.getoption("jux_key")
-    jux_cert = config.getoption("jux_cert")
+    # Load configuration from files (CLI > env > files > defaults)
+    config_manager = ConfigurationManager()
 
-    # Store configuration in config object for later use
+    # Load from environment variables
+    config_manager.load_from_env()
+
+    # Load from config files (in precedence order)
+    # User-level config
+    user_config = Path.home() / ".jux" / "config"
+    if user_config.exists():
+        config_manager.load_from_file(user_config)
+
+    # Project-level configs
+    project_configs = [Path(".jux.conf"), Path("pytest.ini")]
+    for config_file in project_configs:
+        if config_file.exists() and config_file.suffix in [".conf", ".ini"]:
+            config_manager.load_from_file(config_file)
+
+    # Command-line options override configuration files
+    cli_sign = config.getoption("jux_sign")
+    cli_key = config.getoption("jux_key")
+    cli_cert = config.getoption("jux_cert")
+    cli_publish = config.getoption("jux_publish")
+
+    # Merge configuration (CLI takes precedence)
+    jux_enabled = config_manager.get("jux_enabled")
+    jux_sign = cli_sign if cli_sign else config_manager.get("jux_sign")
+    jux_key = cli_key if cli_key else config_manager.get("jux_key_path")
+    jux_cert = cli_cert if cli_cert else config_manager.get("jux_cert_path")
+    jux_publish = cli_publish if cli_publish else config_manager.get("jux_publish")
+
+    # Storage configuration (from config files only, no CLI options yet)
+    jux_storage_mode = config_manager.get("jux_storage_mode")
+    jux_storage_path = config_manager.get("jux_storage_path")
+
+    # Store merged configuration in config object for later use
+    config._jux_enabled = jux_enabled  # type: ignore[attr-defined]
     config._jux_sign = jux_sign  # type: ignore[attr-defined]
     config._jux_key_path = jux_key  # type: ignore[attr-defined]
     config._jux_cert_path = jux_cert  # type: ignore[attr-defined]
+    config._jux_publish = jux_publish  # type: ignore[attr-defined]
+    config._jux_storage_mode = jux_storage_mode  # type: ignore[attr-defined]
+    config._jux_storage_path = jux_storage_path  # type: ignore[attr-defined]
 
-    # Validate configuration
-    if jux_sign:
-        if not jux_key:
-            raise pytest.UsageError(
-                "Error: --jux-sign requires --jux-key to specify the private key path"
-            )
-
-        # Verify key file exists
-        key_path = Path(jux_key)
-        if not key_path.exists():
-            raise pytest.UsageError(f"Error: Key file not found: {jux_key}")
-
-        # If certificate provided, verify it exists
-        if jux_cert:
-            cert_path = Path(jux_cert)
-            if not cert_path.exists():
+    # Validate configuration if plugin is enabled
+    if jux_enabled:
+        if jux_sign:
+            if not jux_key:
                 raise pytest.UsageError(
-                    f"Error: Certificate file not found: {jux_cert}"
+                    "Error: jux_sign is enabled but jux_key_path is not configured. "
+                    "Specify --jux-key or set jux_key_path in configuration file."
                 )
+
+            # Verify key file exists
+            key_path = Path(jux_key)
+            if not key_path.exists():
+                raise pytest.UsageError(f"Error: Key file not found: {jux_key}")
+
+            # If certificate provided, verify it exists
+            if jux_cert:
+                cert_path = Path(jux_cert)
+                if not cert_path.exists():
+                    raise pytest.UsageError(
+                        f"Error: Certificate file not found: {jux_cert}"
+                    )
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
-    """Sign JUnit XML report after test session completes.
+    """Sign and store JUnit XML report after test session completes.
 
-    This hook is called after the test session finishes. If signing is enabled
-    and a JUnit XML report was generated, it signs the report with the
-    configured private key.
+    This hook is called after the test session finishes. If the plugin is enabled
+    and a JUnit XML report was generated, it:
+    1. Signs the report (if signing is enabled)
+    2. Captures environment metadata
+    3. Stores the report (signed or unsigned) according to storage mode
 
     Args:
         session: pytest session object
         exitstatus: pytest exit status code
     """
-    # Check if signing is enabled
-    if not getattr(session.config, "_jux_sign", False):
+    # Check if plugin is enabled
+    if not getattr(session.config, "_jux_enabled", False):
         return
 
     # Check if JUnit XML report was configured
@@ -119,46 +164,76 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     if not xmlpath:
         return
 
-    # Get configuration
-    key_path_str = getattr(session.config, "_jux_key_path", None)
-    cert_path_str = getattr(session.config, "_jux_cert_path", None)
-
-    if not key_path_str:
+    # Load the generated JUnit XML
+    xml_path = Path(xmlpath)
+    if not xml_path.exists():
+        # XML file wasn't generated (no tests ran, etc.)
         return
 
-    try:
-        # Load the generated JUnit XML
-        xml_path = Path(xmlpath)
-        if not xml_path.exists():
-            # XML file wasn't generated (no tests ran, etc.)
-            return
+    # Get configuration
+    jux_sign = getattr(session.config, "_jux_sign", False)
+    key_path_str = getattr(session.config, "_jux_key_path", None)
+    cert_path_str = getattr(session.config, "_jux_cert_path", None)
+    storage_mode = getattr(session.config, "_jux_storage_mode", None)
+    storage_path = getattr(session.config, "_jux_storage_path", None)
 
+    try:
         tree = load_xml(xml_path)
 
-        # Load private key
-        key = load_private_key(Path(key_path_str))
+        # Sign the XML if signing is enabled
+        if jux_sign and key_path_str:
+            # Load private key
+            key = load_private_key(Path(key_path_str))
 
-        # Load certificate if provided
-        cert: str | bytes | None = None
-        if cert_path_str:
-            cert = Path(cert_path_str).read_bytes()
+            # Load certificate if provided
+            cert: str | bytes | None = None
+            if cert_path_str:
+                cert = Path(cert_path_str).read_bytes()
 
-        # Sign the XML
-        signed_tree = sign_xml(tree, key, cert)
+            # Sign the XML
+            tree = sign_xml(tree, key, cert)
 
-        # Write signed XML back to file
-        with open(xml_path, "wb") as f:
-            f.write(
-                etree.tostring(
-                    signed_tree,
-                    xml_declaration=True,
-                    encoding="utf-8",
-                    pretty_print=True,
+            # Write signed XML back to file
+            with open(xml_path, "wb") as f:
+                f.write(
+                    etree.tostring(
+                        tree,
+                        xml_declaration=True,
+                        encoding="utf-8",
+                        pretty_print=True,
+                    )
                 )
+
+        # Capture environment metadata
+        metadata = capture_metadata()
+
+        # Compute canonical hash
+        canonical_hash = compute_canonical_hash(tree)
+
+        # Store the report if storage is configured
+        # Only store locally for LOCAL, BOTH, and CACHE modes
+        should_store_locally = storage_mode in [
+            StorageMode.LOCAL,
+            StorageMode.BOTH,
+            StorageMode.CACHE,
+        ]
+
+        if should_store_locally and storage_path:
+            # Convert XML tree to bytes for storage
+            xml_bytes = etree.tostring(
+                tree, xml_declaration=True, encoding="utf-8", pretty_print=True
+            )
+
+            # Initialize storage
+            storage = ReportStorage(storage_path=Path(storage_path))
+
+            # Store the report (xml_content expects bytes, metadata expects EnvironmentMetadata object)
+            storage.store_report(
+                xml_content=xml_bytes, canonical_hash=canonical_hash, metadata=metadata
             )
 
     except Exception as e:
         # Report error but don't fail the test run
         import warnings
 
-        warnings.warn(f"Failed to sign JUnit XML report: {e}", stacklevel=2)
+        warnings.warn(f"Failed to process JUnit XML report: {e}", stacklevel=2)
