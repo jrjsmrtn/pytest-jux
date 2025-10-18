@@ -59,6 +59,7 @@ class TestCacheList:
                     platform="test",
                     python_version="3.11",
                     pytest_version="8.0",
+                    pytest_jux_version="0.1.4",
                     timestamp=f"2025-10-17T10:3{i}:00Z",
                 ),
             )
@@ -89,6 +90,7 @@ class TestCacheList:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:30:00Z",
             ),
         )
@@ -123,6 +125,7 @@ class TestCacheList:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:30:00Z",
             ),
         )
@@ -151,6 +154,7 @@ class TestCacheShow:
                 platform="test-platform",
                 python_version="3.11.0",
                 pytest_version="8.0.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:30:00Z",
             ),
         )
@@ -194,6 +198,7 @@ class TestCacheShow:
                 platform="test-platform",
                 python_version="3.11.0",
                 pytest_version="8.0.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:30:00Z",
             ),
         )
@@ -246,6 +251,7 @@ class TestCacheStats:
                     platform="test",
                     python_version="3.11",
                     pytest_version="8.0",
+                    pytest_jux_version="0.1.4",
                     timestamp=f"2025-10-17T10:3{i}:00Z",
                 ),
             )
@@ -275,6 +281,7 @@ class TestCacheStats:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:30:00Z",
             ),
         )
@@ -314,6 +321,7 @@ class TestCacheClean:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-09-01T10:30:00Z",  # Old timestamp
             ),
         )
@@ -337,6 +345,7 @@ class TestCacheClean:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:30:00Z",
             ),
         )
@@ -369,6 +378,7 @@ class TestCacheClean:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-09-01T10:30:00Z",
             ),
         )
@@ -411,6 +421,7 @@ class TestCacheClean:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:30:00Z",
             ),
         )

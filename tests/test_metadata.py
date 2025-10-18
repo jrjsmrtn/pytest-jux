@@ -69,6 +69,15 @@ class TestEnvironmentMetadata:
         # Pytest version format: X.Y.Z
         assert re.match(r"\d+\.\d+\.\d+", metadata.pytest_version)
 
+    def test_pytest_jux_version_captured(self) -> None:
+        """Should capture pytest-jux version."""
+        metadata = capture_metadata()
+
+        assert metadata.pytest_jux_version is not None
+        assert isinstance(metadata.pytest_jux_version, str)
+        # pytest-jux version format: X.Y.Z
+        assert re.match(r"\d+\.\d+\.\d+", metadata.pytest_jux_version)
+
     def test_python_version_format(self) -> None:
         """Python version should include version number."""
         metadata = capture_metadata()
@@ -98,6 +107,7 @@ class TestEnvironmentMetadata:
         assert "platform" in data
         assert "python_version" in data
         assert "pytest_version" in data
+        assert "pytest_jux_version" in data
         assert "timestamp" in data
 
     def test_metadata_to_json(self) -> None:
@@ -189,6 +199,7 @@ class TestEnvironmentMetadata:
         assert metadata1.platform == metadata2.platform
         assert metadata1.python_version == metadata2.python_version
         assert metadata1.pytest_version == metadata2.pytest_version
+        assert metadata1.pytest_jux_version == metadata2.pytest_jux_version
 
         # Timestamps might differ slightly
         # Just verify both exist
@@ -203,6 +214,7 @@ class TestEnvironmentMetadata:
             platform="Test-Platform",
             python_version="3.11.0",
             pytest_version="8.0.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             env=None,
         )
@@ -213,6 +225,7 @@ class TestEnvironmentMetadata:
             platform="Test-Platform",
             python_version="3.11.0",
             pytest_version="8.0.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             env=None,
         )
@@ -227,6 +240,7 @@ class TestEnvironmentMetadata:
             platform="Test-Platform",
             python_version="3.11.0",
             pytest_version="8.0.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             env=None,
         )
@@ -237,6 +251,7 @@ class TestEnvironmentMetadata:
             platform="Test-Platform",
             python_version="3.11.0",
             pytest_version="8.0.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             env=None,
         )

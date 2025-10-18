@@ -33,6 +33,7 @@ class EnvironmentMetadata:
     platform: str
     python_version: str
     pytest_version: str
+    pytest_jux_version: str
     timestamp: str
     env: dict[str, str] | None = None
 
@@ -77,6 +78,7 @@ class EnvironmentMetadata:
             and self.platform == other.platform
             and self.python_version == other.python_version
             and self.pytest_version == other.pytest_version
+            and self.pytest_jux_version == other.pytest_jux_version
             and self.timestamp == other.timestamp
             and self.env == other.env
         )
@@ -116,6 +118,14 @@ def capture_metadata(
     except (ImportError, AttributeError):
         pytest_version = "unknown"
 
+    # Capture pytest-jux version
+    try:
+        from pytest_jux import __version__
+
+        pytest_jux_version = __version__
+    except (ImportError, AttributeError):
+        pytest_jux_version = "unknown"
+
     # Generate ISO 8601 timestamp in UTC
     timestamp = datetime.now(UTC).isoformat()
 
@@ -134,6 +144,7 @@ def capture_metadata(
         platform=platform_info,
         python_version=python_version,
         pytest_version=pytest_version,
+        pytest_jux_version=pytest_jux_version,
         timestamp=timestamp,
         env=env_dict,
     )

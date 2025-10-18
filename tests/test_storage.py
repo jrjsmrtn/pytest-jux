@@ -97,6 +97,7 @@ class TestReportStorage:
             platform="Test-Platform",
             python_version="3.11.0",
             pytest_version="8.0.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -123,6 +124,7 @@ class TestReportStorage:
             platform="test",
             python_version="3.11",
             pytest_version="8.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -144,6 +146,7 @@ class TestReportStorage:
             platform="test",
             python_version="3.11",
             pytest_version="8.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -172,6 +175,7 @@ class TestReportStorage:
             platform="Test-Platform",
             python_version="3.11.0",
             pytest_version="8.0.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -197,6 +201,7 @@ class TestReportStorage:
                     platform="test",
                     python_version="3.11",
                     pytest_version="8.0",
+                    pytest_jux_version="0.1.4",
                     timestamp=f"2025-10-17T10:3{i}:00Z",
                 ),
             )
@@ -223,6 +228,7 @@ class TestReportStorage:
             platform="test",
             python_version="3.11",
             pytest_version="8.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -255,6 +261,7 @@ class TestReportStorage:
             platform="test",
             python_version="3.11",
             pytest_version="8.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -279,6 +286,7 @@ class TestReportStorage:
                     platform="test",
                     python_version="3.11",
                     pytest_version="8.0",
+                    pytest_jux_version="0.1.4",
                     timestamp=f"2025-10-17T10:3{i}:00Z",
                 ),
             )
@@ -299,6 +307,7 @@ class TestReportStorage:
             platform="test",
             python_version="3.11",
             pytest_version="8.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -323,6 +332,7 @@ class TestReportStorage:
             platform="test",
             python_version="3.11",
             pytest_version="8.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -347,6 +357,7 @@ class TestReportStorage:
                     platform="test",
                     python_version="3.11",
                     pytest_version="8.0",
+                    pytest_jux_version="0.1.4",
                     timestamp=f"2025-10-17T10:3{i}:00Z",
                 ),
             )
@@ -361,6 +372,7 @@ class TestReportStorage:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:40:00Z",
             ),
         )
@@ -387,6 +399,7 @@ class TestReportStorage:
             platform="test",
             python_version="3.11",
             pytest_version="8.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -412,6 +425,7 @@ class TestReportStorage:
             platform="Test-Platform",
             python_version="3.11.0",
             pytest_version="8.0.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             env={"CI": "true", "BUILD_ID": "123"},
         )
@@ -473,6 +487,7 @@ class TestReportStorage:
             platform="test",
             python_version="3.11",
             pytest_version="8.0",
+            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
         )
 
@@ -528,6 +543,7 @@ class TestReportStorage:
                     platform="test",
                     python_version="3.11",
                     pytest_version="8.0",
+                    pytest_jux_version="0.1.4",
                     timestamp=f"2025-10-17T10:3{i}:00Z",
                 ),
             )
@@ -575,6 +591,7 @@ class TestReportStorage:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:30:00Z",
             ),
         )
@@ -589,6 +606,7 @@ class TestReportStorage:
                 platform="test",
                 python_version="3.11",
                 pytest_version="8.0",
+                pytest_jux_version="0.1.4",
                 timestamp="2025-10-17T10:31:00Z",
             ),
         )

@@ -1,0 +1,55 @@
+Traceback (most recent call last):
+  File "/opt/local/bin/pytest", line 8, in <module>
+    sys.exit(console_main())
+             ^^^^^^^^^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/_pytest/config/__init__.py", line 201, in console_main
+    code = main()
+           ^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/_pytest/config/__init__.py", line 156, in main
+    config = _prepareconfig(args, plugins)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/_pytest/config/__init__.py", line 342, in _prepareconfig
+    config = pluginmanager.hook.pytest_cmdline_parse(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/_pytest/helpconfig.py", line 112, in pytest_cmdline_parse
+    config = yield
+             ^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/_pytest/config/__init__.py", line 1146, in pytest_cmdline_parse
+    self.parse(args)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/_pytest/config/__init__.py", line 1527, in parse
+    self._preparse(args, addopts=addopts)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/_pytest/config/__init__.py", line 1412, in _preparse
+    self.pluginmanager.load_setuptools_entrypoints("pytest11")
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pluggy/_manager.py", line 416, in load_setuptools_entrypoints
+    plugin = ep.load()
+             ^^^^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/importlib/metadata/__init__.py", line 202, in load
+    module = import_module(match.group('module'))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/Users/gm/Projects/jux-tools/pytest-jux/pytest_jux/plugin.py", line 29, in <module>
+    from pytest_jux.signer import load_private_key, sign_xml
+  File "/Users/gm/Projects/jux-tools/pytest-jux/pytest_jux/signer.py", line 23, in <module>
+    import signxml
+ModuleNotFoundError: No module named 'signxml'
