@@ -76,3 +76,7 @@ dmypy.json
 
 # Distribution / packaging
 *.whl
+
+# Dogfooding artifacts
+.jux-dogfood/
+junit*.xml
