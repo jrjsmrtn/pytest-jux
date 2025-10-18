@@ -9,6 +9,7 @@ This directory contains Architecture Decision Records for the pytest-jux project
 - [ADR-0003](0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md): Use Python 3 with pytest, lxml, signxml, and SQLAlchemy stack
 - [ADR-0004](0004-adopt-apache-license-2.0.md): Adopt Apache License 2.0
 - [ADR-0005](0005-adopt-python-ecosystem-security-framework.md): Adopt Python Ecosystem Security Framework
+- [ADR-0006](0006-adopt-slsa-build-level-2-compliance.md): Adopt SLSA Build Level 2 Compliance
 
 ## About ADRs
 
@@ -57,6 +58,7 @@ Security-related decisions are particularly important for pytest-jux due to its 
 
 - **ADR-0004**: License selection (Apache 2.0 for patent protection)
 - **ADR-0005**: Comprehensive security framework (OpenSSF, PyPA tools)
+- **ADR-0006**: SLSA Build Level 2 compliance (supply chain security)
 
 See [docs/security/](../security/) for detailed security documentation.
 
