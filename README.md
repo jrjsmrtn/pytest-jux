@@ -34,6 +34,7 @@ This separation allows pytest-jux to be lightweight and focused on test report s
 - **pytest Integration**: Seamless integration via pytest hooks (post-session processing)
 - **Standalone CLI Tools**: Key generation, signing, verification, inspection, cache, and config utilities
 - **Environment Metadata**: Captures test environment context (hostname, user, platform)
+- **Custom Metadata Support**: Add custom metadata to reports via pytest-metadata integration
 - **Security Framework**: Comprehensive security with automated scanning and threat modeling
 
 ### Server-Side Features (Jux API Server)
@@ -116,6 +117,33 @@ jux_key_path = ~/.jux/private_key.pem
 - `--jux-key PATH`: Path to private key for signing (PEM format)
 - `--jux-storage-mode MODE`: Storage mode (local, api, both, cache)
 - `--jux-storage-path PATH`: Custom storage directory path
+
+### Adding Custom Metadata
+
+pytest-jux integrates with pytest-metadata to add custom metadata to your test reports:
+
+```bash
+# Add metadata via command line
+pytest --junit-xml=report.xml \
+       --jux-sign \
+       --jux-key ~/.jux/signing_key.pem \
+       --metadata ci_build_id 12345 \
+       --metadata environment production
+```
+
+The metadata appears as property tags in the JUnit XML:
+
+```xml
+<testsuite>
+  <properties>
+    <property name="ci_build_id" value="12345"/>
+    <property name="environment" value="production"/>
+  </properties>
+  ...
+</testsuite>
+```
+
+See [How to Add Metadata to Reports](docs/howto/add-metadata-to-reports.md) for complete documentation including CI/CD integration, JSON metadata, and programmatic usage.
 
 ## Storage & Caching
 

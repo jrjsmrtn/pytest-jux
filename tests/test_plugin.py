@@ -689,6 +689,213 @@ class TestPluginIntegration:
         assert "<Signature" not in original_content
 
 
+class TestPytestMetadataIntegration:
+    """Tests for pytest-metadata integration and property tag preservation."""
+
+    def test_pytest_metadata_is_available(self) -> None:
+        """Test that pytest-metadata is installed and importable."""
+        try:
+            import pytest_metadata
+            assert pytest_metadata is not None
+        except ImportError:
+            pytest.fail("pytest-metadata should be installed as a dependency")
+
+    def test_preserves_property_tags_during_signing(
+        self, mock_session: Mock, tmp_path: Path, test_key_path: Path
+    ) -> None:
+        """Test that property tags from pytest-metadata are preserved during signing."""
+        # Create JUnit XML with property tags (simulating pytest-metadata output)
+        xml_path = tmp_path / "junit_with_metadata.xml"
+        xml_content = """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+    <testsuite name="test_suite" tests="1" failures="0" errors="0">
+        <properties>
+            <property name="build_id" value="12345"/>
+            <property name="environment" value="staging"/>
+            <property name="commit_sha" value="abc123def"/>
+        </properties>
+        <testcase classname="test_module" name="test_example" time="0.001"/>
+    </testsuite>
+</testsuites>
+"""
+        xml_path.write_text(xml_content)
+
+        # Configure signing
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config.option.xmlpath = str(xml_path)
+
+        # Sign the XML
+        pytest_sessionfinish(mock_session, 0)
+
+        # Parse signed XML
+        signed_tree = etree.parse(str(xml_path))
+
+        # Verify property tags are still present
+        properties = signed_tree.findall(".//property")
+        assert len(properties) == 3
+
+        # Verify property values
+        property_dict = {
+            prop.get("name"): prop.get("value") for prop in properties
+        }
+        assert property_dict["build_id"] == "12345"
+        assert property_dict["environment"] == "staging"
+        assert property_dict["commit_sha"] == "abc123def"
+
+        # Verify signature was added
+        signatures = signed_tree.findall(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+        assert len(signatures) == 1
+
+    def test_preserves_empty_properties_section(
+        self, mock_session: Mock, tmp_path: Path, test_key_path: Path
+    ) -> None:
+        """Test that empty properties section is preserved during signing."""
+        xml_path = tmp_path / "junit_empty_properties.xml"
+        xml_content = """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+    <testsuite name="test_suite" tests="1" failures="0" errors="0">
+        <properties/>
+        <testcase classname="test_module" name="test_example" time="0.001"/>
+    </testsuite>
+</testsuites>
+"""
+        xml_path.write_text(xml_content)
+
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config.option.xmlpath = str(xml_path)
+
+        pytest_sessionfinish(mock_session, 0)
+
+        signed_tree = etree.parse(str(xml_path))
+        properties_sections = signed_tree.findall(".//properties")
+        assert len(properties_sections) == 1
+
+    def test_canonical_hash_includes_metadata(
+        self, tmp_path: Path, test_key_path: Path
+    ) -> None:
+        """Test that canonical hash computation includes property tags."""
+        from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
+
+        # Create two XML files: one with metadata, one without
+        xml_with_metadata = """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+    <testsuite name="test_suite" tests="1" failures="0" errors="0">
+        <properties>
+            <property name="build_id" value="12345"/>
+        </properties>
+        <testcase classname="test_module" name="test_example" time="0.001"/>
+    </testsuite>
+</testsuites>
+"""
+
+        xml_without_metadata = """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+    <testsuite name="test_suite" tests="1" failures="0" errors="0">
+        <testcase classname="test_module" name="test_example" time="0.001"/>
+    </testsuite>
+</testsuites>
+"""
+
+        tree_with = load_xml(xml_with_metadata)
+        tree_without = load_xml(xml_without_metadata)
+
+        hash_with = compute_canonical_hash(tree_with)
+        hash_without = compute_canonical_hash(tree_without)
+
+        # Hashes should be different because metadata is included
+        assert hash_with != hash_without
+
+    def test_multiple_property_tags_preserved(
+        self, mock_session: Mock, tmp_path: Path, test_key_path: Path
+    ) -> None:
+        """Test that multiple property tags are all preserved."""
+        xml_path = tmp_path / "junit_many_properties.xml"
+        xml_content = """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+    <testsuite name="test_suite" tests="1" failures="0" errors="0">
+        <properties>
+            <property name="Python" value="3.11.4"/>
+            <property name="Platform" value="Linux-5.15.0"/>
+            <property name="ci_provider" value="GitLab CI"/>
+            <property name="pipeline_id" value="67890"/>
+            <property name="job_id" value="54321"/>
+            <property name="commit_sha" value="def456abc"/>
+            <property name="branch" value="main"/>
+            <property name="environment" value="production"/>
+        </properties>
+        <testcase classname="test_module" name="test_example" time="0.001"/>
+    </testsuite>
+</testsuites>
+"""
+        xml_path.write_text(xml_content)
+
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config.option.xmlpath = str(xml_path)
+
+        pytest_sessionfinish(mock_session, 0)
+
+        signed_tree = etree.parse(str(xml_path))
+        properties = signed_tree.findall(".//property")
+
+        # All 8 properties should be preserved
+        assert len(properties) == 8
+
+        # Verify a few specific ones
+        property_dict = {prop.get("name"): prop.get("value") for prop in properties}
+        assert property_dict["ci_provider"] == "GitLab CI"
+        assert property_dict["environment"] == "production"
+        assert property_dict["Python"] == "3.11.4"
+
+    def test_property_tags_in_stored_reports(
+        self, mock_session: Mock, tmp_path: Path, test_key_path: Path
+    ) -> None:
+        """Test that property tags are preserved in stored reports."""
+        from pytest_jux.config import StorageMode
+
+        xml_path = tmp_path / "junit_stored.xml"
+        xml_content = """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+    <testsuite name="test_suite" tests="1" failures="0" errors="0">
+        <properties>
+            <property name="test_metadata" value="preserved"/>
+        </properties>
+        <testcase classname="test_module" name="test_example" time="0.001"/>
+    </testsuite>
+</testsuites>
+"""
+        xml_path.write_text(xml_content)
+
+        storage_path = tmp_path / "storage"
+
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = StorageMode.LOCAL
+        mock_session.config._jux_storage_path = storage_path
+        mock_session.config.option.xmlpath = str(xml_path)
+
+        pytest_sessionfinish(mock_session, 0)
+
+        # Find stored report
+        reports_dir = storage_path / "reports"
+        report_files = list(reports_dir.glob("*.xml"))
+        assert len(report_files) > 0
+
+        # Verify stored report has property tags
+        stored_tree = etree.parse(str(report_files[0]))
+        properties = stored_tree.findall(".//property")
+        assert len(properties) == 1
+        assert properties[0].get("name") == "test_metadata"
+        assert properties[0].get("value") == "preserved"
+
+
 class TestEdgeCases:
     """Tests for edge cases and error conditions."""
 

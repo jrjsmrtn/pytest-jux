@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- pytest-metadata integration for custom metadata in JUnit XML reports:
+  - pytest-metadata>=3.0 added as required dependency
+  - Automatic preservation of property tags during XMLDSig signing
+  - Canonical hash computation includes property tags
+  - Property tags preserved in stored reports (local and cache storage)
+  - 6 comprehensive tests for metadata preservation, 100% passing
+- Documentation for pytest-metadata integration:
+  - docs/howto/add-metadata-to-reports.md (323 lines) - Complete guide for adding metadata
+  - examples/with-metadata/ - Working example with conftest.py and test files
+  - README.md updated with metadata support mention and examples
+- Environment metadata now includes pytest-jux version (pytest_jux_version field)
+
+### Changed
+- EnvironmentMetadata dataclass: Added pytest_jux_version field
+- All existing tests updated to include pytest_jux_version in metadata constructions
+
 ## [0.1.4] - 2025-10-18
 
 ### Added
