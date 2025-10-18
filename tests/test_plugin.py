@@ -14,12 +14,14 @@
 
 """Tests for pytest plugin hooks."""
 
+import os
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from lxml import etree
 
+from pytest_jux.config import StorageMode
 from pytest_jux.plugin import pytest_addoption, pytest_configure, pytest_sessionfinish
 
 
@@ -168,17 +170,36 @@ class TestPytestConfigure:
         # Should not raise any errors
         pytest_configure(mock_config)
 
-    def test_configure_validates_key_path(self, mock_config: Mock) -> None:
+    def test_configure_validates_key_path(
+        self, mock_config: Mock, tmp_path: Path
+    ) -> None:
         """Test that configure validates key path when signing enabled."""
-        mock_config.getoption.side_effect = lambda x: {
-            "jux_sign": True,
-            "jux_key": None,
-            "jux_cert": None,
-        }.get(x)
+        # Create .jux.conf with jux enabled and signing enabled
+        config_file = tmp_path / ".jux.conf"
+        config_file.write_text(
+            """[jux]
+enabled = true
+sign = true
+"""
+        )
 
-        # Should raise error if signing enabled but no key provided
-        with pytest.raises((ValueError, pytest.UsageError)):
-            pytest_configure(mock_config)
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(tmp_path)
+
+            mock_config.getoption.side_effect = lambda x: {
+                "jux_sign": True,
+                "jux_key": None,
+                "jux_cert": None,
+                "jux_publish": False,
+            }.get(x, False)
+
+            # Should raise error if signing enabled but no key provided
+            with pytest.raises(pytest.UsageError, match="jux_key_path is not configured"):
+                pytest_configure(mock_config)
+
+        finally:
+            os.chdir(original_cwd)
 
     def test_configure_stores_settings_in_config(
         self, mock_config: Mock, test_key_path: Path
@@ -197,13 +218,156 @@ class TestPytestConfigure:
         assert mock_config._jux_sign is True
 
 
+class TestPytestConfigureWithConfigFiles:
+    """Tests for pytest_configure with configuration files."""
+
+    def test_loads_config_from_project_file(
+        self, mock_config: Mock, tmp_path: Path, test_key_path: Path
+    ) -> None:
+        """Test that configure loads settings from .jux.conf."""
+        # Create .jux.conf
+        config_file = tmp_path / ".jux.conf"
+        config_file.write_text(
+            f"""[jux]
+enabled = true
+sign = true
+key_path = {test_key_path}
+storage_mode = local
+storage_path = {tmp_path / 'reports'}
+"""
+        )
+
+        # Change to tmp_path so .jux.conf is found
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(tmp_path)
+
+            mock_config.getoption.return_value = False
+
+            pytest_configure(mock_config)
+
+            # Verify configuration was loaded from file
+            assert hasattr(mock_config, "_jux_enabled")
+            assert mock_config._jux_enabled is True
+            assert hasattr(mock_config, "_jux_sign")
+            assert mock_config._jux_sign is True
+            assert hasattr(mock_config, "_jux_storage_mode")
+            assert mock_config._jux_storage_mode == StorageMode.LOCAL
+
+        finally:
+            os.chdir(original_cwd)
+
+    def test_cli_overrides_config_file(
+        self, mock_config: Mock, tmp_path: Path, test_key_path: Path
+    ) -> None:
+        """Test that CLI options override configuration file settings."""
+        # Create .jux.conf with sign=false
+        config_file = tmp_path / ".jux.conf"
+        config_file.write_text(
+            """[jux]
+enabled = true
+sign = false
+"""
+        )
+
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(tmp_path)
+
+            # CLI option for sign=true should override
+            mock_config.getoption.side_effect = lambda x: {
+                "jux_sign": True,
+                "jux_key": str(test_key_path),
+                "jux_cert": None,
+                "jux_publish": False,
+            }.get(x, False)
+
+            pytest_configure(mock_config)
+
+            # CLI should override config file
+            assert mock_config._jux_sign is True
+
+        finally:
+            os.chdir(original_cwd)
+
+    def test_respects_jux_enabled_flag(
+        self, mock_config: Mock, tmp_path: Path
+    ) -> None:
+        """Test that jux_enabled flag controls plugin activation."""
+        # Create .jux.conf with enabled=false
+        config_file = tmp_path / ".jux.conf"
+        config_file.write_text(
+            """[jux]
+enabled = false
+"""
+        )
+
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(tmp_path)
+
+            mock_config.getoption.return_value = False
+
+            pytest_configure(mock_config)
+
+            # Plugin should be disabled
+            assert mock_config._jux_enabled is False
+
+        finally:
+            os.chdir(original_cwd)
+
+    def test_loads_storage_configuration(
+        self, mock_config: Mock, tmp_path: Path
+    ) -> None:
+        """Test that storage configuration is loaded correctly."""
+        storage_path = tmp_path / "custom" / "storage"
+        config_file = tmp_path / ".jux.conf"
+        config_file.write_text(
+            f"""[jux]
+enabled = true
+storage_mode = cache
+storage_path = {storage_path}
+"""
+        )
+
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(tmp_path)
+
+            mock_config.getoption.return_value = False
+
+            pytest_configure(mock_config)
+
+            # Verify storage settings
+            assert mock_config._jux_storage_mode == StorageMode.CACHE
+            assert mock_config._jux_storage_path == storage_path
+
+        finally:
+            os.chdir(original_cwd)
+
+
 class TestPytestSessionfinish:
     """Tests for pytest_sessionfinish hook."""
+
+    def test_does_nothing_when_jux_disabled(
+        self, mock_session: Mock, test_junit_xml: Path
+    ) -> None:
+        """Test that hook does nothing when jux is disabled."""
+        mock_session.config._jux_enabled = False
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Should not raise any errors
+        pytest_sessionfinish(mock_session, 0)
+
+        # XML should be unchanged
+        original_content = test_junit_xml.read_text()
+        assert "<Signature" not in original_content
 
     def test_does_nothing_when_signing_disabled(
         self, mock_session: Mock, test_junit_xml: Path
     ) -> None:
         """Test that hook does nothing when signing is disabled."""
+        mock_session.config._jux_enabled = True
         mock_session.config._jux_sign = False
         mock_session.config.option.xmlpath = str(test_junit_xml)
 
@@ -286,13 +450,16 @@ class TestPytestSessionfinish:
         self, mock_session: Mock, test_junit_xml: Path
     ) -> None:
         """Test that hook handles invalid key path gracefully."""
+        mock_session.config._jux_enabled = True
         mock_session.config._jux_sign = True
         mock_session.config._jux_key_path = "/nonexistent/key.pem"
         mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = None
+        mock_session.config._jux_storage_path = None
         mock_session.config.option.xmlpath = str(test_junit_xml)
 
         # Should issue a warning but not fail the test run
-        with pytest.warns(UserWarning, match="Failed to sign JUnit XML report"):
+        with pytest.warns(UserWarning, match="Failed to process JUnit XML report"):
             pytest_sessionfinish(mock_session, 0)
 
     def test_handles_invalid_xml(
@@ -302,13 +469,170 @@ class TestPytestSessionfinish:
         invalid_xml = tmp_path / "invalid.xml"
         invalid_xml.write_text("not valid xml")
 
+        mock_session.config._jux_enabled = True
         mock_session.config._jux_sign = True
         mock_session.config._jux_key_path = str(test_key_path)
         mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = None
+        mock_session.config._jux_storage_path = None
         mock_session.config.option.xmlpath = str(invalid_xml)
 
         # Should issue a warning but not fail the test run
-        with pytest.warns(UserWarning, match="Failed to sign JUnit XML report"):
+        with pytest.warns(UserWarning, match="Failed to process JUnit XML report"):
+            pytest_sessionfinish(mock_session, 0)
+
+
+class TestPytestSessionfinishWithStorage:
+    """Tests for pytest_sessionfinish with storage integration."""
+
+    def test_stores_report_with_local_storage_mode(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        test_key_path: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Test that reports are stored when storage_mode is LOCAL."""
+        storage_path = tmp_path / "reports"
+
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = StorageMode.LOCAL
+        mock_session.config._jux_storage_path = storage_path
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Execute hook
+        pytest_sessionfinish(mock_session, 0)
+
+        # Verify report was stored
+        assert storage_path.exists()
+        reports_dir = storage_path / "reports"
+        assert reports_dir.exists()
+
+        # Should have at least one report file
+        report_files = list(reports_dir.glob("*.xml"))
+        assert len(report_files) > 0
+
+        # Should have matching metadata file
+        metadata_dir = storage_path / "metadata"
+        assert metadata_dir.exists()
+        metadata_files = list(metadata_dir.glob("*.json"))
+        assert len(metadata_files) > 0
+
+    def test_stores_report_with_cache_storage_mode(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        test_key_path: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Test that reports are stored when storage_mode is CACHE."""
+        storage_path = tmp_path / "cache"
+
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = StorageMode.CACHE
+        mock_session.config._jux_storage_path = storage_path
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Execute hook
+        pytest_sessionfinish(mock_session, 0)
+
+        # Verify report was stored
+        reports_dir = storage_path / "reports"
+        assert reports_dir.exists()
+        assert len(list(reports_dir.glob("*.xml"))) > 0
+
+    def test_does_not_store_with_api_storage_mode(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        test_key_path: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Test that reports are NOT stored locally when storage_mode is API."""
+        storage_path = tmp_path / "api"
+
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = StorageMode.API
+        mock_session.config._jux_storage_path = storage_path
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Execute hook
+        pytest_sessionfinish(mock_session, 0)
+
+        # Verify report was NOT stored locally
+        # Storage path might be created but should not have reports
+        if storage_path.exists():
+            reports_dir = storage_path / "reports"
+            if reports_dir.exists():
+                assert len(list(reports_dir.glob("*.xml"))) == 0
+
+    def test_captures_metadata_with_storage(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        test_key_path: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Test that environment metadata is captured and stored."""
+        import json
+
+        storage_path = tmp_path / "reports"
+
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = StorageMode.LOCAL
+        mock_session.config._jux_storage_path = storage_path
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Execute hook
+        pytest_sessionfinish(mock_session, 0)
+
+        # Find metadata file
+        metadata_dir = storage_path / "metadata"
+        metadata_files = list(metadata_dir.glob("*.json"))
+        assert len(metadata_files) > 0
+
+        # Verify metadata content
+        metadata_content = json.loads(metadata_files[0].read_text())
+        assert "hostname" in metadata_content
+        assert "platform" in metadata_content
+        assert "python_version" in metadata_content
+        assert "pytest_version" in metadata_content
+        assert "timestamp" in metadata_content
+
+    def test_handles_storage_error_gracefully(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        test_key_path: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Test that storage errors don't fail the test run."""
+        # Use invalid storage path (e.g., file instead of directory)
+        invalid_storage = tmp_path / "invalid.txt"
+        invalid_storage.write_text("not a directory")
+
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = True
+        mock_session.config._jux_key_path = str(test_key_path)
+        mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = StorageMode.LOCAL
+        mock_session.config._jux_storage_path = invalid_storage
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Should issue a warning but not fail
+        with pytest.warns(UserWarning, match="Failed to process JUnit XML report"):
             pytest_sessionfinish(mock_session, 0)
 
 
@@ -396,16 +720,17 @@ class TestEdgeCases:
         """Test that sessionfinish doesn't corrupt XML on signing error."""
         original_content = test_junit_xml.read_text()
 
+        mock_session.config._jux_enabled = True
         mock_session.config._jux_sign = True
         mock_session.config._jux_key_path = "/nonexistent/key.pem"
         mock_session.config._jux_cert_path = None
+        mock_session.config._jux_storage_mode = None
+        mock_session.config._jux_storage_path = None
         mock_session.config.option.xmlpath = str(test_junit_xml)
 
-        # Attempt to sign (will fail)
-        try:
+        # Attempt to sign (will fail but issue warning)
+        with pytest.warns(UserWarning, match="Failed to process JUnit XML report"):
             pytest_sessionfinish(mock_session, 0)
-        except Exception:
-            pass
 
         # Original XML should be preserved
         assert test_junit_xml.read_text() == original_content
