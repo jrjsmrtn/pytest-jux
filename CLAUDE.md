@@ -77,61 +77,60 @@ podman run --rm -p 8080:8080 \
 # Create virtual environment (using uv)
 uv venv
 
-# Activate virtual environment
-source .venv/bin/activate  # Linux/macOS
-# or: .venv\Scripts\activate  # Windows
-
 # Install dependencies (development mode, using uv)
 uv pip install -e ".[dev]"
 
 # Install pre-commit hooks
-pre-commit install
+uv run pre-commit install
 ```
 
 **Why uv?**
 - Faster package installation (10-100x faster than pip)
 - Better dependency resolution
 - Consistent environment management
-- Recommended by the project maintainer
+- Automatic virtual environment handling with `uv run`
+- No need to manually activate `.venv`
+
+**Note:** Use `uv run <command>` to execute tools in the virtual environment without manual activation.
 
 ### Code Quality
 
 ```bash
 # Format code with ruff
-ruff format .
+uv run ruff format .
 
 # Lint code
-ruff check .
-ruff check --fix .  # Auto-fix where possible
+uv run ruff check .
+uv run ruff check --fix .  # Auto-fix where possible
 
 # Type checking
-mypy pytest_jux
-mypy --strict pytest_jux  # Strict mode for crypto code
+uv run mypy pytest_jux
+uv run mypy --strict pytest_jux  # Strict mode for crypto code
 
 # Run all quality checks
-make quality  # or: ruff check . && mypy pytest_jux
+uv run ruff check . && uv run mypy pytest_jux
 ```
 
 ### Testing
 
 ```bash
 # Run all tests
-pytest
+uv run pytest
 
 # Run with coverage
-pytest --cov=pytest_jux --cov-report=term-missing --cov-report=html
+uv run pytest --cov=pytest_jux --cov-report=term-missing --cov-report=html
 
 # Run specific test file
-pytest tests/test_plugin.py
+uv run pytest tests/test_plugin.py
 
 # Run tests in parallel
-pytest -n auto
+uv run pytest -n auto
 
 # Run tests with verbose output
-pytest -v
+uv run pytest -v
 
 # Watch mode (requires pytest-watch)
-ptw
+uv run ptw
 ```
 
 ### Git Workflow
@@ -393,7 +392,7 @@ pytest-jux/
 Before committing crypto-related changes:
 
 - [ ] 100% test coverage for new crypto code
-- [ ] mypy passes in strict mode
+- [ ] mypy passes in strict mode (`uv run mypy --strict pytest_jux`)
 - [ ] Manual code review completed
 - [ ] Security implications documented
 - [ ] Test with invalid/malicious inputs
@@ -427,19 +426,19 @@ Each sprint should have:
 1. **Write Test** (Red): Test that fails for new behavior
 2. **Implement** (Green): Minimal code to pass test
 3. **Refactor**: Improve code quality
-4. **Type Check**: Ensure mypy passes
-5. **Format**: Run ruff format
+4. **Type Check**: Ensure mypy passes (`uv run mypy pytest_jux`)
+5. **Format**: Run ruff format (`uv run ruff format .`)
 6. **Coverage**: Verify >85% coverage (100% for crypto)
 7. **Commit**: Use conventional commit format
 8. **Update Docs**: If needed (Diátaxis structure)
 
 ### Pull Request Checklist
 
-- [ ] All tests pass (`pytest`)
+- [ ] All tests pass (`uv run pytest`)
 - [ ] Code coverage >85% (100% for crypto)
-- [ ] Type checking passes (`mypy pytest_jux`)
-- [ ] Code formatted (`ruff format --check .`)
-- [ ] Linting clean (`ruff check .`)
+- [ ] Type checking passes (`uv run mypy pytest_jux`)
+- [ ] Code formatted (`uv run ruff format --check .`)
+- [ ] Linting clean (`uv run ruff check .`)
 - [ ] Documentation updated (if needed)
 - [ ] CHANGELOG.md updated
 - [ ] Conventional commit format used
