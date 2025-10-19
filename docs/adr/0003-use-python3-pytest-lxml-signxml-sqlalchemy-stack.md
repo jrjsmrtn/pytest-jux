@@ -4,7 +4,16 @@ Date: 2025-10-15
 
 ## Status
 
-Accepted
+**Partially Superseded** (2025-10-20)
+
+The database-related sections (SQLAlchemy, Alembic, psycopg) were superseded by [ADR-0010](0010-remove-database-dependencies.md). Database functionality resides in the Jux API Server (separate project), not in pytest-jux.
+
+The following sections **remain valid**:
+- XML processing stack (lxml, signxml, cryptography)
+- pytest integration
+- REST API client (requests, pydantic)
+- CLI tools and user experience
+- Development tools
 
 ## Context
 

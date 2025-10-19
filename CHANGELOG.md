@@ -15,10 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 372 lines of boilerplate removed (14 lines → 2 lines per file)
   - 31 Python files converted to REUSE format
   - Prepares for Sprint 6 SBOM generation with license compliance
+- ADR-0010 documenting removal of unused database dependencies
 
 ### Changed
 - Copyright headers modernized from traditional Apache 2.0 format to REUSE/SPDX format
 - All source files now use 2-line headers instead of 14-line headers
+- **BREAKING**: Removed unused database dependencies (SQLAlchemy, Alembic, psycopg)
+  - These were never used in pytest-jux (client-side plugin)
+  - Database functionality resides in Jux API Server (separate project)
+  - Reduces installation size by ~15MB
+  - No functional impact (dependencies were not used)
+  - ADR-0003 partially superseded by ADR-0010
 
 ## [0.1.8] - 2025-10-19
 

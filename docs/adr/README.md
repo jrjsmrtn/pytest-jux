@@ -6,13 +6,14 @@ This directory contains Architecture Decision Records for the pytest-jux project
 
 - [ADR-0001](0001-record-architecture-decisions.md): Record architecture decisions
 - [ADR-0002](0002-adopt-development-best-practices.md): Adopt development best practices
-- [ADR-0003](0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md): Use Python 3 with pytest, lxml, signxml, and SQLAlchemy stack
+- [ADR-0003](0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md): Use Python 3 with pytest, lxml, signxml, and SQLAlchemy stack (**Partially Superseded** - see ADR-0010)
 - [ADR-0004](0004-adopt-apache-license-2.0.md): Adopt Apache License 2.0
 - [ADR-0005](0005-adopt-python-ecosystem-security-framework.md): Adopt Python Ecosystem Security Framework
 - [ADR-0006](0006-adopt-slsa-build-level-2-compliance.md): Adopt SLSA Build Level 2 Compliance
 - [ADR-0007](0007-adopt-test-coverage-visibility-standards.md): Adopt Test Coverage Visibility Standards
 - [ADR-0008](0008-adopt-openssf-best-practices-badge-program.md): Adopt OpenSSF Best Practices Badge Program
 - [ADR-0009](0009-adopt-reuse-spdx-license-identifiers.md): Adopt REUSE/SPDX License Identifiers
+- [ADR-0010](0010-remove-database-dependencies.md): Remove Database Dependencies from pytest-jux
 
 ## About ADRs
 
