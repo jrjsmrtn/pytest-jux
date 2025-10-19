@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- REUSE/SPDX license identifiers in all source files
+  - Machine-readable copyright: `SPDX-FileCopyrightText: 2025 Georges Martin`
+  - Machine-readable license: `SPDX-License-Identifier: Apache-2.0`
+  - ADR-0009 documenting REUSE/SPDX adoption
+  - 372 lines of boilerplate removed (14 lines → 2 lines per file)
+  - 31 Python files converted to REUSE format
+  - Prepares for Sprint 6 SBOM generation with license compliance
+
+### Changed
+- Copyright headers modernized from traditional Apache 2.0 format to REUSE/SPDX format
+- All source files now use 2-line headers instead of 14-line headers
+
 ## [0.1.8] - 2025-10-19
 
 ### Fixed

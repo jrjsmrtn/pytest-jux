@@ -12,6 +12,7 @@ This directory contains Architecture Decision Records for the pytest-jux project
 - [ADR-0006](0006-adopt-slsa-build-level-2-compliance.md): Adopt SLSA Build Level 2 Compliance
 - [ADR-0007](0007-adopt-test-coverage-visibility-standards.md): Adopt Test Coverage Visibility Standards
 - [ADR-0008](0008-adopt-openssf-best-practices-badge-program.md): Adopt OpenSSF Best Practices Badge Program
+- [ADR-0009](0009-adopt-reuse-spdx-license-identifiers.md): Adopt REUSE/SPDX License Identifiers
 
 ## About ADRs
 
@@ -63,6 +64,7 @@ Security-related decisions are particularly important for pytest-jux due to its 
 - **ADR-0006**: SLSA Build Level 2 compliance (supply chain security)
 - **ADR-0007**: Test coverage visibility standards (quality assurance)
 - **ADR-0008**: OpenSSF Best Practices Badge program (security certification)
+- **ADR-0009**: REUSE/SPDX license identifiers (machine-readable licensing)
 
 See [docs/security/](../security/) for detailed security documentation.
 
