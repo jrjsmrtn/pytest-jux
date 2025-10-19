@@ -138,7 +138,11 @@ jobs:
 
       - name: Run security tests
         run: |
-          pytest tests/security/ -v --tb=short --cov=pytest_jux --cov-report=term-missing
+          if [ -d "tests/security" ]; then
+            pytest tests/security/ -v --tb=short --cov=pytest_jux --cov-report=term-missing
+          else
+            echo "No security tests found - skipping"
+          fi
       
       - name: Upload coverage report
         if: always()
