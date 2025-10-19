@@ -139,7 +139,7 @@ jobs:
       - name: Run security tests
         run: |
           if [ -d "tests/security" ]; then
-            pytest tests/security/ -v --tb=short --cov=pytest_jux --cov-report=term-missing
+            pytest tests/security/ -v --tb=short
           else
             echo "No security tests found - skipping"
           fi
