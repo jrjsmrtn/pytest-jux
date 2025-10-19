@@ -617,3 +617,193 @@ class TestReportStorage:
         assert stats["queued_reports"] == 1
         assert stats["total_size"] > 0
         assert stats["oldest_report"] is not None
+
+
+class TestStorageErrorPaths:
+    """Tests for storage error handling and edge cases."""
+
+    def test_get_default_storage_path_windows(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should handle Windows path with LOCALAPPDATA."""
+        monkeypatch.setattr("platform.system", lambda: "Windows")
+        monkeypatch.setenv("LOCALAPPDATA", "C:\\Users\\Test\\AppData\\Local")
+
+        path = get_default_storage_path()
+
+        # Check path parts (platform-independent)
+        assert path.name == "jux"
+        assert "AppData" in str(path) or "Local" in str(path)
+
+    def test_get_default_storage_path_windows_fallback(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """Should fallback to AppData/Local when LOCALAPPDATA not set."""
+        monkeypatch.setattr("platform.system", lambda: "Windows")
+        monkeypatch.delenv("LOCALAPPDATA", raising=False)
+        monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+
+        path = get_default_storage_path()
+
+        assert path == tmp_path / "AppData" / "Local" / "jux"
+
+    def test_get_default_storage_path_linux_xdg(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should use XDG_DATA_HOME on Linux when set."""
+        monkeypatch.setattr("platform.system", lambda: "Linux")
+        monkeypatch.setenv("XDG_DATA_HOME", "/custom/xdg/data")
+
+        path = get_default_storage_path()
+
+        assert path.name == "jux"
+        assert "xdg" in str(path)
+
+    def test_get_default_storage_path_linux_fallback(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """Should fallback to .local/share on Linux when XDG_DATA_HOME not set."""
+        monkeypatch.setattr("platform.system", lambda: "Linux")
+        monkeypatch.delenv("XDG_DATA_HOME", raising=False)
+        monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+
+        path = get_default_storage_path()
+
+        assert path == tmp_path / ".local" / "share" / "jux"
+
+    def test_write_file_atomic_error_cleanup(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should clean up temp file on write error."""
+        from unittest.mock import MagicMock, patch
+
+        storage = ReportStorage(storage_path=tmp_path)
+        test_file = tmp_path / "reports" / "test.xml"
+
+        # Mock os.write to raise an error
+        with patch("os.write", side_effect=OSError("Write error")):
+            with pytest.raises(StorageError, match="Failed to write file"):
+                storage._write_file_atomic(test_file, b"<test/>")
+
+        # Verify no temp files left behind
+        temp_files = list(tmp_path.glob("**/.tmp_*"))
+        assert len(temp_files) == 0
+
+    def test_write_file_atomic_unlink_fails(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should handle unlink failure during cleanup."""
+        from unittest.mock import MagicMock, patch, call
+
+        storage = ReportStorage(storage_path=tmp_path)
+        test_file = tmp_path / "reports" / "test.xml"
+
+        # Mock os.write to fail, then mock os.unlink to also fail
+        with patch("os.write", side_effect=OSError("Write error")):
+            with patch("os.unlink", side_effect=OSError("Unlink error")):
+                with pytest.raises(StorageError, match="Failed to write file"):
+                    storage._write_file_atomic(test_file, b"<test/>")
+
+    def test_get_report_read_error(self, tmp_path: Path) -> None:
+        """Should handle read errors when retrieving report."""
+        from unittest.mock import patch
+
+        storage = ReportStorage(storage_path=tmp_path)
+
+        # Create a report file first
+        metadata = EnvironmentMetadata(
+            hostname="test",
+            username="test",
+            platform="test",
+            python_version="3.11",
+            pytest_version="8.0",
+            pytest_jux_version="0.1.4",
+            timestamp="2025-10-19T10:00:00Z",
+        )
+        test_hash = "sha256:test123"
+        storage.store_report(b"<testsuite name='test'/>", test_hash, metadata)
+
+        # Mock read_bytes to raise an error
+        with patch("pathlib.Path.read_bytes", side_effect=PermissionError("Access denied")):
+            with pytest.raises(StorageError, match="Failed to read report"):
+                storage.get_report(test_hash)
+
+    def test_get_metadata_parse_error(self, tmp_path: Path) -> None:
+        """Should handle JSON parse errors when retrieving metadata."""
+        storage = ReportStorage(storage_path=tmp_path)
+
+        # Create a corrupted metadata file
+        test_hash = "sha256:corrupted"
+        metadata_file = tmp_path / "metadata" / f"{test_hash}.json"
+        metadata_file.write_text("invalid json {{{")
+
+        with pytest.raises(StorageError, match="Failed to read metadata"):
+            storage.get_metadata(test_hash)
+
+    def test_list_reports_empty_dir(self, tmp_path: Path) -> None:
+        """Should return empty list when reports directory doesn't exist."""
+        # Create storage but delete reports directory
+        storage = ReportStorage(storage_path=tmp_path)
+        reports_dir = tmp_path / "reports"
+        reports_dir.rmdir()
+
+        reports = storage.list_reports()
+
+        assert reports == []
+
+    def test_list_queued_reports_empty_dir(self, tmp_path: Path) -> None:
+        """Should return empty list when queue directory doesn't exist."""
+        storage = ReportStorage(storage_path=tmp_path)
+        queue_dir = tmp_path / "queue"
+        queue_dir.rmdir()
+
+        queued = storage.list_queued_reports()
+
+        assert queued == []
+
+    def test_dequeue_report_error(self, tmp_path: Path) -> None:
+        """Should handle errors during dequeue operation."""
+        from unittest.mock import patch
+
+        storage = ReportStorage(storage_path=tmp_path)
+
+        # Queue a report first
+        metadata = EnvironmentMetadata(
+            hostname="test",
+            username="test",
+            platform="test",
+            python_version="3.11",
+            pytest_version="8.0",
+            pytest_jux_version="0.1.4",
+            timestamp="2025-10-19T10:00:00Z",
+        )
+        test_hash = "sha256:queued"
+        storage.queue_report(b"<testsuite name='test'/>", test_hash, metadata)
+
+        # Mock read_bytes to raise an error
+        with patch("pathlib.Path.read_bytes", side_effect=IOError("Read error")):
+            with pytest.raises(StorageError, match="Failed to dequeue report"):
+                storage.dequeue_report(test_hash)
+
+    def test_report_exists_false(self, tmp_path: Path) -> None:
+        """Should return False when report doesn't exist."""
+        storage = ReportStorage(storage_path=tmp_path)
+
+        exists = storage.report_exists("sha256:nonexistent")
+
+        assert exists is False
+
+    def test_get_stats_empty_storage(self, tmp_path: Path) -> None:
+        """Should return zero stats for empty storage."""
+        # Create storage but delete all subdirectories
+        storage = ReportStorage(storage_path=tmp_path)
+        (tmp_path / "reports").rmdir()
+        (tmp_path / "metadata").rmdir()
+        (tmp_path / "queue").rmdir()
+
+        stats = storage.get_stats()
+
+        assert stats["total_reports"] == 0
+        assert stats["queued_reports"] == 0
+        assert stats["total_size"] == 0
+        assert stats["oldest_report"] is None
