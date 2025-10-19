@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![pytest](https://img.shields.io/badge/pytest-7.4%2B%20%7C%208.x-blue.svg)](https://pytest.org/)
+[![SLSA 2](https://slsa.dev/images/gh-badge-level2.svg)](https://slsa.dev/spec/v1.0/levels#build-l2)
 [![Security](https://img.shields.io/badge/security-framework-green.svg)](docs/security/SECURITY.md)
 
 _A pytest plugin for signing and publishing JUnit XML test reports to the Jux REST API_
@@ -50,12 +51,42 @@ The following features are provided by the **Jux API Server** (separate project)
 
 ## Security
 
-pytest-jux implements a comprehensive security framework:
+pytest-jux implements a comprehensive security framework with **SLSA Build Level 2** compliance:
+
+### Supply Chain Security (SLSA L2)
+
+[![SLSA 2](https://slsa.dev/images/gh-badge-level2.svg)](https://slsa.dev/spec/v1.0/levels#build-l2)
+
+All pytest-jux releases include cryptographic provenance attestations:
+
+- ✅ **Build Integrity**: Packages built on GitHub Actions (not developer workstations)
+- ✅ **Source Traceability**: Cryptographic link to exact source code commit
+- ✅ **Tamper Detection**: Any modification invalidates the signature
+- ✅ **Independent Verification**: Verify packages with `slsa-verifier`
+
+**Verify a release:**
+```bash
+# Install SLSA verifier
+go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
+
+# Download and verify
+pip download pytest-jux==0.1.5 --no-deps
+curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
+
+slsa-verifier verify-artifact \
+  --provenance-path pytest-jux-0.1.5.intoto.jsonl \
+  --source-uri github.com/jrjsmrtn/pytest-jux \
+  pytest_jux-0.1.5-py3-none-any.whl
+```
+
+See [SLSA Verification Guide](docs/security/SLSA_VERIFICATION.md) for complete instructions.
+
+### Security Framework
 
 - **Automated Scanning**: pip-audit, Ruff (security rules), Safety, Trivy
 - **Threat Modeling**: STRIDE methodology with 19 identified threats
 - **Cryptographic Standards**: NIST-compliant algorithms (RSA-SHA256, ECDSA-SHA256)
-- **Supply Chain**: Dependabot, OpenSSF Scorecard, planned Sigstore signing
+- **Supply Chain**: SLSA L2, Dependabot, OpenSSF Scorecard
 - **Vulnerability Reporting**: Coordinated disclosure with 48-hour response time
 
 See [Security Policy](docs/security/SECURITY.md) for vulnerability reporting and [Security Framework](docs/security/IMPLEMENTATION_SUMMARY.md) for complete details.
@@ -69,6 +100,7 @@ This project uses Architecture Decision Records (ADRs) to track significant arch
 - **[ADR-0003](docs/adr/0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md)**: Use Python 3 with pytest, lxml, signxml, and SQLAlchemy stack
 - **[ADR-0004](docs/adr/0004-adopt-apache-license-2.0.md)**: Adopt Apache License 2.0
 - **[ADR-0005](docs/adr/0005-adopt-python-ecosystem-security-framework.md)**: Adopt Python Ecosystem Security Framework
+- **[ADR-0006](docs/adr/0006-adopt-slsa-build-level-2-compliance.md)**: Adopt SLSA Build Level 2 Compliance
 
 See the [docs/adr/](docs/adr/) directory for complete decision history.
 
