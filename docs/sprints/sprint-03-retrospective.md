@@ -1,9 +1,9 @@
 # Sprint 3 Retrospective: Configuration, Storage & Caching
 
-**Sprint Duration**: 2025-10-15 to 2025-10-18 (4 days)
+**Sprint Duration**: 2025-10-15 to 2025-10-19 (5 days)
 **Sprint Goal**: Implement configuration management, local storage/caching, and CLI tools
 **Final Status**: ✅ Complete (API client postponed)
-**Releases**: v0.1.3 (2025-10-17), v0.1.4 (2025-10-18)
+**Releases**: v0.1.3 (2025-10-17), v0.1.4 (2025-10-18), v0.1.5 (2025-10-19)
 
 ---
 
@@ -375,7 +375,33 @@ The comprehensive multi-environment configuration guide (766 lines) demonstrates
 
 ---
 
+## Post-Sprint Polish (v0.1.5 - 2025-10-19)
+
+After Sprint 3 completion, additional work was done to improve test coverage quality:
+
+**Test Coverage Improvements**:
+- Overall coverage: 89.96% → 91.92% (+1.96%, exceeds 92% target)
+- Added 8 new tests for exception handlers and error paths
+- Module improvements:
+  - commands/verify.py: 84.51% → 100% (+15.49%)
+  - commands/inspect.py: 88.73% → 100% (+11.27%)
+  - plugin.py: 91.74% → 97.25% (+5.51%)
+  - signer.py: 89.09% → 92.73% (+3.64%)
+
+**New Tests** (tests/commands/test_verify.py, test_inspect.py, test_plugin.py, test_signer.py):
+- 3 exception handler tests for verify.py (JSON, quiet, normal output)
+- 2 exception handler tests for inspect.py (JSON, normal output)
+- 4 edge case tests for plugin.py (config loading, missing files, user config)
+- 2 exception handler tests for signer.py (sign/verify failures)
+
+**Test Suite**: 346 passed, 9 skipped, 8 xfailed
+
+This polish work ensures high code quality and robust error handling before moving to Sprint 4.
+
+---
+
 **Sprint Lead**: AI-Assisted Development
 **Reviewed By**: Georges Martin
 **Retrospective Date**: 2025-10-18
+**Post-Sprint Polish**: 2025-10-19 (v0.1.5)
 **Next Sprint Planning**: TBD (pending Jux API Server availability)

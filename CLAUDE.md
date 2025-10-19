@@ -492,7 +492,7 @@ Each sprint should have:
 - Duration: 12-16 days (can span multiple calendar periods)
 - See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
 
-**Version**: 0.1.4 (released 2025-10-18)
+**Version**: 0.1.5 (released 2025-10-19)
 **Current Branch**: develop
 
 ---

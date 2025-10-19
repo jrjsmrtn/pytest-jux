@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2025-10-19
+
 ### Added
+- Test coverage improvements to 91.92% (exceeds 92% target):
+  - 8 new tests for exception handlers and error paths
+  - commands/verify.py: 84.51% → 100% (+15.49%)
+  - commands/inspect.py: 88.73% → 100% (+11.27%)
+  - plugin.py: 91.74% → 97.25% (+5.51%)
+  - signer.py: 89.09% → 92.73% (+3.64%)
 - pytest-metadata integration for custom metadata in JUnit XML reports:
   - pytest-metadata>=3.0 added as required dependency
   - Automatic preservation of property tags during XMLDSig signing
@@ -18,11 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - docs/howto/add-metadata-to-reports.md (323 lines) - Complete guide for adding metadata
   - examples/with-metadata/ - Working example with conftest.py and test files
   - README.md updated with metadata support mention and examples
-- Environment metadata now includes pytest-jux version (pytest_jux_version field)
 
 ### Changed
 - EnvironmentMetadata dataclass: Added pytest_jux_version field
 - All existing tests updated to include pytest_jux_version in metadata constructions
+
+### Tests
+- Total: 346 passed, 9 skipped, 8 xfailed
+- New exception handler tests:
+  - test_verify.py: 3 tests for generic exception handling (JSON, quiet, normal output)
+  - test_inspect.py: 2 tests for generic exception handling (JSON, normal output)
+  - test_plugin.py: 4 tests for edge cases (config loading, missing files)
+  - test_signer.py: 2 tests for exception handlers (sign/verify failures)
 
 ## [0.1.4] - 2025-10-18
 
