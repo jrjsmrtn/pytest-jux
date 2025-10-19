@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- GitHub Actions CI/CD workflows (multiple improvements):
+  - Plugin auto-enables when CLI options provided (fixes test failures)
+  - Moved dogfooding config to `.jux-dogfood/` directory (isolated from CI)
+  - Security scanning workflow adapted for private repositories
+  - Replaced Safety scanner with pip-audit (no auth required)
+  - Disabled OpenSSF Scorecard for private repos (API limitations)
+  - Made Trivy SARIF upload non-blocking (Code Scanning requires GitHub Advanced Security)
+  - Added `--no-cov` to security tests (placeholder stubs don't need coverage)
+
+### Changed
+- Security scanning tools updated:
+  - Removed Safety CLI (now requires authentication)
+  - Using pip-audit as primary dependency vulnerability scanner (official PyPA tool)
+  - Trivy results now uploaded as artifacts for manual review
+
 ## [0.1.5] - 2025-10-19
 
 ### Added
