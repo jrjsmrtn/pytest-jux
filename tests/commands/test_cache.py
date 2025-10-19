@@ -588,3 +588,131 @@ class TestCacheCommand:
         assert result == 1
         captured = capsys.readouterr()
         assert "Error" in captured.err or "error" in captured.err.lower()
+
+    def test_list_json_with_storage_error(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Should skip reports with missing metadata in JSON output."""
+        storage = ReportStorage(storage_path=tmp_path)
+
+        # Store a report first
+        metadata = EnvironmentMetadata(
+            hostname="test-host",
+            username="test-user",
+            platform="Test-Platform",
+            python_version="3.11.0",
+            pytest_version="8.0.0",
+            pytest_jux_version="0.1.0",
+            timestamp="2025-10-19T10:00:00Z",
+        )
+        report_xml = b"<testsuites><testsuite name='test'/></testsuites>"
+
+        # Compute canonical hash
+        tree = load_xml(report_xml)
+        report_hash = compute_canonical_hash(tree)
+
+        storage.store_report(report_xml, report_hash, metadata)
+
+        # Corrupt metadata file
+        metadata_path = tmp_path / "metadata" / f"{report_hash}.json"
+        metadata_path.write_text("invalid json {{{")
+
+        with patch(
+            "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
+        ):
+            result = main(["list", "--json"])
+
+        # Should succeed but skip corrupted report in JSON output
+        assert result == 0
+        captured = capsys.readouterr()
+        # JSON should show empty reports list since corrupted one is skipped
+        assert '"reports": []' in captured.out or '"reports":[]' in captured.out
+
+    def test_list_generic_error(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Should handle generic errors in list command."""
+        from unittest.mock import patch
+
+        with patch(
+            "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
+        ):
+            with patch(
+                "pytest_jux.commands.cache.ReportStorage",
+                side_effect=Exception("Unexpected error"),
+            ):
+                result = main(["list"])
+
+        # Should fail with error code 1
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "Error listing reports" in captured.err
+
+    def test_show_generic_error(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Should handle generic errors in show command."""
+        from unittest.mock import patch
+
+        with patch(
+            "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
+        ):
+            with patch(
+                "pytest_jux.commands.cache.ReportStorage",
+                side_effect=Exception("Unexpected error"),
+            ):
+                result = main(["show", "sha256:test"])
+
+        # Should fail with error code 1
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "Error showing report" in captured.err
+
+    def test_stats_generic_error(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Should handle generic errors in stats command."""
+        from unittest.mock import patch
+
+        with patch(
+            "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
+        ):
+            with patch(
+                "pytest_jux.commands.cache.ReportStorage",
+                side_effect=Exception("Unexpected error"),
+            ):
+                result = main(["stats"])
+
+        # Should fail with error code 1
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "Error getting statistics" in captured.err
+
+    def test_clean_generic_error(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Should handle generic errors in clean command."""
+        from unittest.mock import patch
+
+        with patch(
+            "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
+        ):
+            with patch(
+                "pytest_jux.commands.cache.ReportStorage",
+                side_effect=Exception("Unexpected error"),
+            ):
+                result = main(["clean", "--days", "30"])
+
+        # Should fail with error code 1
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "Error cleaning cache" in captured.err
+
+    def test_format_size_pb(self) -> None:
+        """Should format very large sizes in petabytes."""
+        from pytest_jux.commands.cache import _format_size
+
+        # Test PB range (> 1024 TB)
+        size_pb = 1024 * 1024 * 1024 * 1024 * 1024 * 2  # 2 PB
+        result = _format_size(size_pb)
+        assert "PB" in result

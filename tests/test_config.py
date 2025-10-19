@@ -320,3 +320,102 @@ class TestConfigValidation:
 
         config.load_from_dict({"jux_storage_mode": "Cache"})
         assert config.get("jux_storage_mode") == StorageMode.CACHE
+
+
+class TestConfigErrorPaths:
+    """Tests for config error handling and edge cases."""
+
+    def test_parse_bool_invalid_string(self) -> None:
+        """Should raise error for invalid boolean string."""
+        config = ConfigurationManager()
+
+        with pytest.raises(ConfigValidationError, match="Invalid boolean value"):
+            config.set("jux_enabled", "maybe")
+
+    def test_parse_bool_invalid_type(self) -> None:
+        """Should raise error for invalid boolean type."""
+        config = ConfigurationManager()
+
+        with pytest.raises(ConfigValidationError, match="Invalid boolean value type"):
+            config.set("jux_enabled", 123)
+
+    def test_parse_enum_invalid_type(self) -> None:
+        """Should raise error for invalid enum type."""
+        config = ConfigurationManager()
+
+        with pytest.raises(ConfigValidationError, match="Invalid value type"):
+            config.set("jux_storage_mode", 123)
+
+    def test_parse_path_invalid_type(self) -> None:
+        """Should raise error for invalid path type."""
+        config = ConfigurationManager()
+
+        with pytest.raises(ConfigValidationError, match="Invalid path value type"):
+            config.set("jux_key_path", 123)
+
+    def test_set_unknown_key(self) -> None:
+        """Should raise error for unknown configuration key."""
+        config = ConfigurationManager()
+
+        with pytest.raises(KeyError, match="Unknown configuration key"):
+            config.set("unknown_key", "value")
+
+    def test_get_source_nonexistent_key(self) -> None:
+        """Should raise error when getting source for nonexistent key."""
+        config = ConfigurationManager()
+
+        with pytest.raises(KeyError, match="Configuration key not found"):
+            config.get_source("nonexistent_key")
+
+    def test_load_from_env_invalid_value(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should skip invalid env var values."""
+        config = ConfigurationManager()
+
+        # Set invalid boolean value in env
+        monkeypatch.setenv("JUX_ENABLED", "invalid")
+
+        # Should not raise error, just skip the invalid value
+        config.load_from_env()
+
+        # Should still have default value
+        assert config.get("jux_enabled") is False
+
+    def test_load_from_dict_invalid_value(self) -> None:
+        """Should skip invalid values during batch load."""
+        config = ConfigurationManager()
+
+        # Invalid enum value should be skipped
+        config.load_from_dict({"jux_storage_mode": "invalid_mode"})
+
+        # Should still have default value
+        assert config.get("jux_storage_mode") == StorageMode.LOCAL
+
+    def test_load_from_file_nonexistent(self, tmp_path: Path) -> None:
+        """Should handle nonexistent config file gracefully."""
+        config = ConfigurationManager()
+        nonexistent_file = tmp_path / "nonexistent.ini"
+
+        # Should not raise error
+        config.load_from_file(nonexistent_file)
+
+        # Should still have defaults
+        assert config.get("jux_enabled") is False
+
+    def test_load_from_file_invalid_value(self, tmp_path: Path) -> None:
+        """Should skip invalid values in config file."""
+        config_file = tmp_path / "config.ini"
+        config_file.write_text(
+            """[jux]
+enabled = invalid_bool
+storage_mode = invalid_mode
+"""
+        )
+
+        config = ConfigurationManager()
+        config.load_from_file(config_file)
+
+        # Should still have default values (invalid ones skipped)
+        assert config.get("jux_enabled") is False
+        assert config.get("jux_storage_mode") == StorageMode.LOCAL
