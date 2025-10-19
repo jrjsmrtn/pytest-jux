@@ -27,7 +27,7 @@ from lxml import etree
 from signxml import XMLSigner, XMLVerifier
 
 # Type alias for private keys
-PrivateKey = rsa.RSAPrivateKey | ec.EllipticCurvePrivateKey
+PrivateKey = rsa.RSAPrivateKey | ec.EllipticCurvePrivateKey  # pragma: no cover
 
 
 def load_private_key(source: str | bytes | Path) -> PrivateKey:

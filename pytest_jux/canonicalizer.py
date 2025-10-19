@@ -21,7 +21,7 @@ of the canonical form for duplicate detection.
 
 import hashlib
 from pathlib import Path
-from typing import cast
+from typing import cast  # pragma: no cover
 
 from lxml import etree
 

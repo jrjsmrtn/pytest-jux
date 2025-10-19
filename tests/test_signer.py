@@ -126,9 +126,67 @@ class TestLoadPrivateKey:
         with pytest.raises(ValueError):
             load_private_key("not a valid PEM key")
 
+    def test_load_unsupported_key_type(self, tmp_path: Path) -> None:
+        """Test loading unsupported key type raises ValueError."""
+        # DSA keys are not supported - only RSA and ECDSA
+        from cryptography.hazmat.primitives.asymmetric import dsa
+        from cryptography.hazmat.primitives import serialization
+
+        # Generate DSA key (unsupported)
+        dsa_key = dsa.generate_private_key(key_size=2048)
+
+        # Serialize to PEM
+        pem_bytes = dsa_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+
+        # Should raise ValueError for unsupported key type
+        with pytest.raises(ValueError, match="Unsupported key type"):
+            load_private_key(pem_bytes)
+
 
 class TestSignXML:
     """Tests for XML signing functionality."""
+
+    def test_sign_xml_invalid_tree_type(self, rsa_key_path: Path) -> None:
+        """Test that sign_xml raises TypeError for invalid tree type."""
+        key = load_private_key(rsa_key_path)
+
+        # Pass a non-Element object
+        with pytest.raises(TypeError, match="Expected lxml Element"):
+            sign_xml("not an element", key)
+
+    def test_sign_xml_without_cert(
+        self, sample_xml_tree: etree._Element, rsa_key_path: Path
+    ) -> None:
+        """Test signing XML without a certificate."""
+        key = load_private_key(rsa_key_path)
+
+        # Sign without certificate (cert=None)
+        signed_tree = sign_xml(sample_xml_tree, key, cert=None)
+
+        assert signed_tree is not None
+        signatures = signed_tree.findall(
+            ".//{http://www.w3.org/2000/09/xmldsig#}Signature"
+        )
+        assert len(signatures) == 1
+
+    def test_sign_xml_with_cert_as_string(
+        self, sample_xml_tree: etree._Element, rsa_key_path: Path, rsa_cert_path: Path
+    ) -> None:
+        """Test signing XML with certificate as string."""
+        key = load_private_key(rsa_key_path)
+        cert_str = rsa_cert_path.read_text()
+
+        signed_tree = sign_xml(sample_xml_tree, key, cert_str)
+
+        assert signed_tree is not None
+        signatures = signed_tree.findall(
+            ".//{http://www.w3.org/2000/09/xmldsig#}Signature"
+        )
+        assert len(signatures) == 1
 
     def test_sign_xml_with_rsa(
         self, sample_xml_tree: etree._Element, rsa_key_path: Path, rsa_cert_path: Path
@@ -401,6 +459,27 @@ class TestSignatureFormats:
         else:
             # If no KeyInfo, that's also valid XMLDSig
             assert True
+
+
+class TestErrorHandling:
+    """Tests for error handling in signing operations."""
+
+    def test_verify_signature_with_non_element(self) -> None:
+        """Test verify_signature returns False for non-Element input."""
+        from pytest_jux.signer import verify_signature as signer_verify
+
+        # Pass a non-Element object
+        result = signer_verify("not an element")
+        assert result is False
+
+    def test_verify_signature_without_signature(
+        self, sample_xml_tree: etree._Element
+    ) -> None:
+        """Test verify_signature returns False for unsigned XML."""
+        from pytest_jux.signer import verify_signature as signer_verify
+
+        result = signer_verify(sample_xml_tree)
+        assert result is False
 
 
 class TestEdgeCases:

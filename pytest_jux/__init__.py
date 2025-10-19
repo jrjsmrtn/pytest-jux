@@ -26,10 +26,10 @@ __author__ = "Georges Martin"
 __email__ = "jrjsmrtn@gmail.com"
 
 # Import plugin hooks when plugin module is available
-try:
+try:  # pragma: no cover
     from pytest_jux.plugin import pytest_addoption, pytest_configure
 
     __all__ = ["pytest_addoption", "pytest_configure", "__version__"]
-except ImportError:
+except ImportError:  # pragma: no cover
     # Plugin module not yet implemented
     __all__ = ["__version__"]

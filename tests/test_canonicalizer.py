@@ -332,6 +332,40 @@ class TestDuplicateDetection:
         assert hash1 != hash2
 
 
+class TestErrorHandling:
+    """Tests for error handling in canonicalization."""
+
+    def test_canonicalize_invalid_tree_type(self) -> None:
+        """Test that canonicalize_xml raises TypeError for non-Element input."""
+        with pytest.raises(TypeError, match="Expected lxml Element"):
+            canonicalize_xml("not an element")
+
+    def test_compute_hash_unsupported_algorithm(self) -> None:
+        """Test that unsupported hash algorithm raises ValueError."""
+        tree = load_xml("<root/>")
+
+        with pytest.raises(ValueError, match="Unsupported hash algorithm"):
+            compute_canonical_hash(tree, algorithm="invalid_algorithm_xyz")
+
+    def test_compute_hash_with_md5(self) -> None:
+        """Test hash computation with MD5 algorithm."""
+        tree = load_xml("<root>test</root>")
+        hash_value = compute_canonical_hash(tree, algorithm="md5")
+
+        # MD5 produces 32 hex characters
+        assert len(hash_value) == 32
+        assert all(c in "0123456789abcdef" for c in hash_value)
+
+    def test_compute_hash_with_sha512(self) -> None:
+        """Test hash computation with SHA-512 algorithm."""
+        tree = load_xml("<root>test</root>")
+        hash_value = compute_canonical_hash(tree, algorithm="sha512")
+
+        # SHA-512 produces 128 hex characters
+        assert len(hash_value) == 128
+        assert all(c in "0123456789abcdef" for c in hash_value)
+
+
 class TestEdgeCases:
     """Tests for edge cases and error conditions."""
 

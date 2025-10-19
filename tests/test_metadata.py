@@ -295,3 +295,38 @@ class TestEnvironmentMetadata:
         data = json.loads(json_str)
         assert data["env"]["COMPLEX_VAR"] == "value with spaces"
         assert data["env"]["UNICODE_VAR"] == "unicode: 你好"
+
+    def test_direct_dataclass_construction(self) -> None:
+        """Should allow direct construction of EnvironmentMetadata."""
+        # This tests the dataclass definition itself
+        metadata = EnvironmentMetadata(
+            hostname="test.example.com",
+            username="testuser",
+            platform="Linux-5.10.0",
+            python_version="3.11.0",
+            pytest_version="8.0.0",
+            pytest_jux_version="0.1.0",
+            timestamp="2025-10-19T10:00:00Z",
+            env={"CI": "true"},
+        )
+
+        assert metadata.hostname == "test.example.com"
+        assert metadata.username == "testuser"
+        assert metadata.env == {"CI": "true"}
+
+    def test_dataclass_with_none_env(self) -> None:
+        """Should handle None env in dataclass."""
+        metadata = EnvironmentMetadata(
+            hostname="test.example.com",
+            username="testuser",
+            platform="Linux-5.10.0",
+            python_version="3.11.0",
+            pytest_version="8.0.0",
+            pytest_jux_version="0.1.0",
+            timestamp="2025-10-19T10:00:00Z",
+            env=None,
+        )
+
+        assert metadata.env is None
+        data = metadata.to_dict()
+        assert "env" not in data or data.get("env") is None
