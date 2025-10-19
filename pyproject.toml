@@ -120,6 +120,7 @@ omit = [
     "*/venv/*",
     "*/.venv/*",
     "*/site-packages/*",
+    "pytest_jux/__init__.py",  # Exclude package init (module-level only)
 ]
 
 [tool.coverage.report]

@@ -21,6 +21,7 @@ from unittest.mock import patch
 
 import pytest
 
+from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
 from pytest_jux.commands.cache import main
 from pytest_jux.metadata import EnvironmentMetadata
 from pytest_jux.storage import ReportStorage
@@ -469,3 +470,121 @@ class TestCacheCommand:
         assert "show" in captured.out
         assert "stats" in captured.out
         assert "clean" in captured.out
+
+    def test_list_with_storage_error(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Should handle StorageError in list command."""
+        from pytest_jux.storage import StorageError
+        from unittest.mock import MagicMock
+
+        storage = ReportStorage(storage_path=tmp_path)
+
+        # Store a report first
+        metadata = EnvironmentMetadata(
+            hostname="test-host",
+            username="test-user",
+            platform="Test-Platform",
+            python_version="3.11.0",
+            pytest_version="8.0.0",
+            pytest_jux_version="0.1.0",
+            timestamp="2025-10-19T10:00:00Z",
+        )
+        report_xml = b"<testsuites><testsuite name='test'/></testsuites>"
+
+        # Compute canonical hash
+        tree = load_xml(report_xml)
+        report_hash = compute_canonical_hash(tree)
+
+        storage.store_report(report_xml, report_hash, metadata)
+
+        # Corrupt metadata file to cause StorageError
+        metadata_path = tmp_path / "metadata" / f"{report_hash}.json"
+        metadata_path.write_text("invalid json {{{")
+
+        with patch(
+            "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
+        ):
+            result = main(["list"])
+
+        # Should succeed and show report with metadata missing indicator
+        assert result == 0
+        captured = capsys.readouterr()
+        # Should show the report hash with "(metadata missing)" message
+        assert "1 total" in captured.out
+        assert "metadata missing" in captured.out.lower()
+
+    def test_show_with_env_vars(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Should display environment variables in show command."""
+        storage = ReportStorage(storage_path=tmp_path)
+
+        # Store a report with environment variables
+        metadata = EnvironmentMetadata(
+            hostname="test-host",
+            username="test-user",
+            platform="Test-Platform",
+            python_version="3.11.0",
+            pytest_version="8.0.0",
+            pytest_jux_version="0.1.0",
+            timestamp="2025-10-19T10:00:00Z",
+            env={"CI": "true", "BUILD_ID": "12345"},
+        )
+        report_xml = b"<testsuites><testsuite name='test'/></testsuites>"
+
+        # Compute canonical hash
+        tree = load_xml(report_xml)
+        report_hash = compute_canonical_hash(tree)
+
+        storage.store_report(report_xml, report_hash, metadata)
+
+        with patch(
+            "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
+        ):
+            result = main(["show", report_hash])
+
+        assert result == 0
+        captured = capsys.readouterr()
+        # Should display environment variables
+        assert "Environment:" in captured.out
+        assert "CI: true" in captured.out
+        assert "BUILD_ID: 12345" in captured.out
+
+    def test_show_with_storage_error(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Should handle StorageError in show command when metadata is corrupted."""
+        storage = ReportStorage(storage_path=tmp_path)
+
+        # Store a report first
+        metadata = EnvironmentMetadata(
+            hostname="test-host",
+            username="test-user",
+            platform="Test-Platform",
+            python_version="3.11.0",
+            pytest_version="8.0.0",
+            pytest_jux_version="0.1.0",
+            timestamp="2025-10-19T10:00:00Z",
+        )
+        report_xml = b"<testsuites><testsuite name='test'/></testsuites>"
+
+        # Compute canonical hash
+        tree = load_xml(report_xml)
+        report_hash = compute_canonical_hash(tree)
+
+        storage.store_report(report_xml, report_hash, metadata)
+
+        # Corrupt metadata file to cause StorageError
+        metadata_path = tmp_path / "metadata" / f"{report_hash}.json"
+        metadata_path.write_text("invalid json {{{")
+
+        with patch(
+            "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
+        ):
+            result = main(["show", report_hash])
+
+        # Should fail with error code 1
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "Error" in captured.err or "error" in captured.err.lower()

@@ -322,3 +322,121 @@ class TestVerifyCommand:
         assert exit_code == 1
         output = captured_stdout.getvalue()
         assert '"valid": false' in output or '"valid":false' in output
+
+    def test_missing_input_file_with_json(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test missing input file with JSON output."""
+        _, cert_path = signed_xml
+
+        captured_stdout = StringIO()
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", "/nonexistent.xml", "--cert", str(cert_path), "--json"],
+            ),
+            patch("sys.stdout", captured_stdout),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_missing_cert_with_json(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test missing certificate with JSON output."""
+        signed_path, _ = signed_xml
+
+        captured_stdout = StringIO()
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(signed_path), "--cert", "/nonexistent.crt", "--json"],
+            ),
+            patch("sys.stdout", captured_stdout),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_verification_value_error_with_json(self, tmp_path: Path) -> None:
+        """Test ValueError from verification with JSON output."""
+        # Create unsigned XML (will raise ValueError: No signature found)
+        xml_content = """<?xml version="1.0"?>
+<testsuites>
+    <testsuite name="test" tests="1">
+        <testcase name="test_example"/>
+    </testsuite>
+</testsuites>
+"""
+        xml_path = tmp_path / "unsigned.xml"
+        xml_path.write_text(xml_content)
+
+        # Generate certificate
+        key = generate_rsa_key(2048)
+        cert_path = tmp_path / "cert.crt"
+        generate_self_signed_cert(key, cert_path)
+
+        captured_stdout = StringIO()
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(xml_path), "--cert", str(cert_path), "--json"],
+            ),
+            patch("sys.stdout", captured_stdout),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        output = captured_stdout.getvalue()
+        assert "error" in output.lower()
+
+    def test_verification_value_error_quiet_mode(self, tmp_path: Path) -> None:
+        """Test ValueError from verification with quiet mode."""
+        # Create unsigned XML (will raise ValueError: No signature found)
+        xml_content = """<?xml version="1.0"?>
+<testsuites>
+    <testsuite name="test" tests="1">
+        <testcase name="test_example"/>
+    </testsuite>
+</testsuites>
+"""
+        xml_path = tmp_path / "unsigned.xml"
+        xml_path.write_text(xml_content)
+
+        # Generate certificate
+        key = generate_rsa_key(2048)
+        cert_path = tmp_path / "cert.crt"
+        generate_self_signed_cert(key, cert_path)
+
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", str(xml_path), "--cert", str(cert_path), "-q"],
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_success_with_quiet_and_json(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test successful verification with both quiet and JSON flags."""
+        signed_path, cert_path = signed_xml
+
+        captured_stdout = StringIO()
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "-q", "--json"],
+            ),
+            patch("sys.stdout", captured_stdout),
+        ):
+            exit_code = main()
+
+        assert exit_code == 0
+        # Even with quiet, JSON output should be produced
+        output = captured_stdout.getvalue()
+        assert '"valid": true' in output or '"valid":true' in output

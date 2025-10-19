@@ -16,7 +16,9 @@
 
 import json
 import re
+import sys
 from datetime import UTC, datetime
+from unittest.mock import patch
 
 import pytest
 
@@ -330,3 +332,29 @@ class TestEnvironmentMetadata:
         assert metadata.env is None
         data = metadata.to_dict()
         assert "env" not in data or data.get("env") is None
+
+    def test_pytest_version_attribute_error(self) -> None:
+        """Should handle pytest version AttributeError gracefully."""
+        # Mock pytest module without __version__ attribute
+        import types
+
+        mock_pytest = types.ModuleType("pytest")
+        # Don't set __version__ to trigger AttributeError
+
+        with patch.dict(sys.modules, {"pytest": mock_pytest}):
+            metadata = capture_metadata()
+            # Should default to "unknown" when __version__ is missing
+            assert metadata.pytest_version == "unknown"
+
+    def test_pytest_jux_version_attribute_error(self) -> None:
+        """Should handle pytest_jux version AttributeError gracefully."""
+        # Mock pytest_jux module without __version__ attribute
+        import types
+
+        mock_jux = types.ModuleType("pytest_jux")
+        # Don't set __version__ to trigger AttributeError
+
+        with patch.dict(sys.modules, {"pytest_jux": mock_jux}):
+            metadata = capture_metadata()
+            # Should default to "unknown" when __version__ is missing
+            assert metadata.pytest_jux_version == "unknown"
