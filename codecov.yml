@@ -1,0 +1,36 @@
+# Codecov configuration for pytest-jux
+# See: https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  status:
+    project:
+      default:
+        target: 85%                # Overall project coverage target
+        threshold: 5%              # Allow 5% drop before failing
+        informational: false       # Fail CI if target not met
+    patch:
+      default:
+        target: 80%                # New code must be 80% covered
+        threshold: 10%             # More lenient for new code
+        informational: false       # Fail CI if new code poorly tested
+
+comment:
+  layout: "diff, flags, files"     # Show diff, flags, and file list
+  behavior: default                # Comment on every PR
+  require_changes: false           # Comment even if no coverage changes
+  require_base: false              # Comment even on first PR
+  require_head: true               # Require head report to comment
+
+ignore:
+  - "tests/**/*"                   # Exclude test files from coverage
+  - "**/__pycache__/**/*"         # Exclude Python cache
+  - "**/site-packages/**/*"       # Exclude dependencies
+
+# Flag-based coverage tracking (future: separate unit/integration)
+# flags:
+#   unit:
+#     paths:
+#       - pytest_jux/
+#   integration:
+#     paths:
+#       - tests/integration/

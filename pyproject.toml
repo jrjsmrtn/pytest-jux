@@ -101,6 +101,8 @@ addopts = [
     "--cov=pytest_jux",
     "--cov-report=term-missing",
     "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=85",
 ]
 testpaths = ["tests"]
 pythonpath = ["."]
@@ -113,7 +115,10 @@ markers = [
 source = ["pytest_jux"]
 branch = true
 omit = [
-    "tests/*",
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
     "*/site-packages/*",
 ]
 
