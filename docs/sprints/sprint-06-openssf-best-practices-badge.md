@@ -45,26 +45,40 @@ Sprint 6 focuses on obtaining the OpenSSF Best Practices Badge at the Passing le
 **So that** I can identify untested code and maintain quality standards
 
 **Acceptance Criteria**:
-- [ ] pytest-cov generates coverage reports
-- [ ] Coverage reports uploaded to Codecov or Coveralls
+- [ ] pytest-cov generates coverage reports (statement + branch)
+- [ ] Coverage reports uploaded to Codecov (primary) or Coveralls (fallback)
 - [ ] Coverage badge displayed on README
-- [ ] Coverage ≥85% for all modules
-- [ ] Coverage ≥90% for cryptographic code
-- [ ] Coverage metrics visible in pull requests
+- [ ] Coverage ≥85% statement coverage overall
+- [ ] Coverage ≥90% for cryptographic modules (signer, verifier, canonicalizer)
+- [ ] Coverage ≥70% branch coverage overall
+- [ ] Coverage metrics visible in pull requests (diff coverage)
+- [ ] Coverage trends tracked over time (Codecov dashboard)
+- [ ] HTML reports generated for local analysis
 
 **Technical Tasks**:
-- [ ] Configure pytest-cov in pyproject.toml
-- [ ] Create Codecov/Coveralls account
-- [ ] Add coverage upload to GitHub Actions
+- [ ] Configure pytest-cov in pyproject.toml with thresholds
+- [ ] Enable branch coverage tracking (`branch = true`)
+- [ ] Configure coverage exclusions (TYPE_CHECKING, pragma: no cover)
+- [ ] Create Codecov account and obtain token
+- [ ] Add CODECOV_TOKEN to GitHub Secrets
+- [ ] Create codecov.yml configuration (project/patch targets)
+- [ ] Add coverage upload to .github/workflows/test.yml
+- [ ] Configure PR comment behavior (diff, flags, files)
 - [ ] Add coverage badge to README.md
-- [ ] Set coverage thresholds in CI
-- [ ] Add coverage reports to .gitignore
+- [ ] Add htmlcov/ to .gitignore
+- [ ] Document coverage standards in ADR-0007
+- [ ] Test coverage locally: pytest --cov=pytest_jux
+- [ ] Verify coverage ≥85% (write tests if gaps identified)
 
 **Definition of Done**:
-- Coverage reports generated on every CI run
-- Coverage visible on external service (Codecov/Coveralls)
-- Badge shows >85% coverage
-- PR comments show coverage changes
+- Coverage reports generated on every CI run (main, develop, PRs)
+- Coverage visible on Codecov with trends
+- Badge shows ≥85% (green status)
+- PR comments show coverage changes (+/- diff)
+- CI fails if coverage drops >5%
+- HTML reports browsable locally
+- All modules meet thresholds (85% overall, 90% crypto)
+- ADR-0007 documents coverage standards
 
 ---
 
@@ -162,23 +176,49 @@ Sprint 6 focuses on obtaining the OpenSSF Best Practices Badge at the Passing le
 
 **Goal**: Establish test coverage reporting and SBOM generation
 
-**Tasks**:
-- [ ] Configure pytest-cov with coverage thresholds
-- [ ] Create Codecov account and integrate
-- [ ] Add coverage upload to GitHub Actions
-- [ ] Verify coverage meets thresholds (≥85%)
+**Day 1-2: Coverage Configuration**
+- [ ] Configure pytest-cov in pyproject.toml (statement + branch)
+- [ ] Add coverage exclusions (TYPE_CHECKING, pragmas)
+- [ ] Create codecov.yml with project/patch targets
+- [ ] Add htmlcov/ to .gitignore
+- [ ] Test coverage locally: `pytest --cov=pytest_jux`
+- [ ] Document coverage standards in ADR-0007
+
+**Day 3: Codecov Integration**
+- [ ] Create Codecov account (login with GitHub)
+- [ ] Obtain CODECOV_TOKEN
+- [ ] Add CODECOV_TOKEN to GitHub Secrets
+- [ ] Update .github/workflows/test.yml with coverage upload
+- [ ] Push test commit to verify upload works
+- [ ] Verify Codecov dashboard populates
+
+**Day 4: Coverage Analysis**
+- [ ] Review coverage report (identify gaps)
+- [ ] Verify overall coverage ≥85%
+- [ ] Verify crypto modules ≥90% (signer, verifier, canonicalizer)
+- [ ] Write additional tests if needed (target gaps)
+- [ ] Add coverage badge to README.md
+
+**Day 5: SBOM Infrastructure**
 - [ ] Add cyclonedx-bom to build dependencies
-- [ ] Implement SBOM generation in workflow
+- [ ] Update .github/workflows/build-release.yml with SBOM generation
 - [ ] Test SBOM generation locally
+- [ ] Verify SBOM validates (cyclonedx-cli or online validator)
+- [ ] Document SBOM usage in SLSA_VERIFICATION.md
 
 **Deliverables**:
+- ADR-0007: Test Coverage Visibility Standards
 - Coverage reports on Codecov
-- Coverage badge on README
+- Coverage badge on README (≥85%, green)
 - SBOM generation pipeline
+- codecov.yml configuration
 
 **Success Criteria**:
-- Coverage ≥85% overall
+- Coverage ≥85% statement overall
 - Coverage ≥90% for crypto modules
+- Coverage ≥70% branch overall
+- Codecov dashboard shows trends
+- PR comments enabled
 - SBOM validates successfully
 
 ---
