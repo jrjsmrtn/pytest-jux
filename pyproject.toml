@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytest-jux"
-version = "0.1.0"
+version = "0.1.5"
 description = "A pytest plugin for signing and publishing JUnit XML test reports to the Jux REST API"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -44,7 +44,8 @@ dependencies = [
     "alembic>=1.12",
     "psycopg[binary]>=3.1",
     "pytest>=7.4",
-    "click>=8.1",
+    "pytest-metadata>=3.0",
+    "configargparse>=1.7",
     "rich>=13.0",
     "requests>=2.31",
     "pydantic>=2.5",
@@ -65,7 +66,6 @@ dev = [
 
 security = [
     "pip-audit>=2.6",
-    "bandit[toml]>=1.7",
     "safety>=3.0",
 ]
 
@@ -78,6 +78,14 @@ Security = "https://github.com/jrjsmrtn/pytest-jux/blob/main/docs/security/SECUR
 
 [project.entry-points.pytest11]
 jux_publisher = "pytest_jux.plugin"
+
+[project.scripts]
+jux-keygen = "pytest_jux.commands.keygen:main"
+jux-sign = "pytest_jux.commands.sign:main"
+jux-verify = "pytest_jux.commands.verify:main"
+jux-inspect = "pytest_jux.commands.inspect:main"
+jux-cache = "pytest_jux.commands.cache:main"
+jux-config = "pytest_jux.commands.config_cmd:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -93,6 +101,8 @@ addopts = [
     "--cov=pytest_jux",
     "--cov-report=term-missing",
     "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=85",
 ]
 testpaths = ["tests"]
 pythonpath = ["."]
@@ -105,8 +115,12 @@ markers = [
 source = ["pytest_jux"]
 branch = true
 omit = [
-    "tests/*",
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
     "*/site-packages/*",
+    "pytest_jux/__init__.py",  # Exclude package init (module-level only)
 ]
 
 [tool.coverage.report]
@@ -121,6 +135,12 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
     "@abstractmethod",
+    # Exclude import statements (standard practice)
+    "^import ",
+    "^from .* import",
+    # Exclude dataclass and type alias definitions
+    "@dataclass",
+    "^\\s*\\.\\.\\.$",  # Ellipsis in protocol definitions
 ]
 
 [tool.coverage.html]
@@ -177,8 +197,3 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "lf"
-
-[tool.bandit]
-exclude_dirs = ["tests", "venv", ".venv"]
-skips = []
-tests = ["B201", "B301", "B302", "B303", "B304", "B305", "B306", "B307", "B308", "B309", "B310", "B311", "B312", "B313", "B314", "B315", "B316", "B317", "B318", "B319", "B320", "B321", "B323", "B324", "B325", "B401", "B402", "B403", "B404", "B405", "B406", "B407", "B408", "B409", "B410", "B411", "B412", "B413", "B501", "B502", "B503", "B504", "B505", "B506", "B507", "B508", "B509", "B601", "B602", "B603", "B604", "B605", "B606", "B607", "B608", "B609", "B610", "B611", "B701", "B702", "B703"]

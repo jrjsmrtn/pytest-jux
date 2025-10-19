@@ -4,7 +4,26 @@ _AI-assisted development context and guidelines for pytest-jux_
 
 ## Project Overview
 
-pytest-jux is a pytest plugin for signing and publishing JUnit XML test reports to the Jux REST API. This document provides context for AI-assisted development sessions and human developers.
+pytest-jux is a **client-side pytest plugin** for signing and publishing JUnit XML test reports to the Jux REST API. This document provides context for AI-assisted development sessions and human developers.
+
+### Client-Server Architecture
+
+pytest-jux is part of a **client-server architecture**:
+
+- **pytest-jux (this project)**: Client-side plugin responsible for:
+  - Signing JUnit XML reports with XMLDSig
+  - Computing canonical hashes (C14N + SHA-256)
+  - Capturing environment metadata
+  - Publishing signed reports to Jux REST API via HTTP
+
+- **Jux API Server (separate project)**: Server-side backend responsible for:
+  - Receiving signed reports via REST API
+  - Verifying XMLDSig signatures
+  - Detecting duplicate reports (canonical hash comparison)
+  - Storing reports in database (SQLite/PostgreSQL)
+  - Providing query API and Web UI
+
+**IMPORTANT**: This project does **NOT** include database models, SQLAlchemy integration, or duplicate detection logic. These are handled by the Jux API Server.
 
 ## Architecture Documentation
 
@@ -21,11 +40,11 @@ This project uses ADRs to track significant architectural decisions. Current dec
   - C4 DSL architecture documentation
   - Sprint-based development lifecycle
   - Diátaxis documentation framework
-- **[ADR-0003](docs/adr/0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md)**: Use Python 3 with pytest, lxml, signxml, and SQLAlchemy stack
-  - Core libraries: lxml, signxml, cryptography, SQLAlchemy, click, rich
+- **[ADR-0003](docs/adr/0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md)**: Use Python 3 with pytest, lxml, signxml stack
+  - Core libraries: lxml, signxml, cryptography, requests, configargparse, rich
   - Target Python 3.11+ on Debian 12/13, openSUSE, Fedora
   - pytest plugin architecture with hook integration
-  - Database abstraction for SQLite and PostgreSQL
+  - **Note**: SQLAlchemy mentioned in ADR-0003 is implemented in the Jux API Server, not in pytest-jux
 
 See [docs/adr/README.md](docs/adr/README.md) for the complete ADR index.
 
@@ -50,58 +69,68 @@ podman run --rm -p 8080:8080 \
 
 ## Development Commands
 
+**IMPORTANT: This project uses `uv` for package and virtual environment management. Do NOT use `pip` or `python -m venv` directly.**
+
 ### Environment Setup
 
 ```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+# Create virtual environment (using uv)
+uv venv
 
-# Install dependencies (development mode)
-pip install -e ".[dev]"
+# Install dependencies (development mode, using uv)
+uv pip install -e ".[dev]"
 
 # Install pre-commit hooks
-pre-commit install
+uv run pre-commit install
 ```
+
+**Why uv?**
+- Faster package installation (10-100x faster than pip)
+- Better dependency resolution
+- Consistent environment management
+- Automatic virtual environment handling with `uv run`
+- No need to manually activate `.venv`
+
+**Note:** Use `uv run <command>` to execute tools in the virtual environment without manual activation.
 
 ### Code Quality
 
 ```bash
 # Format code with ruff
-ruff format .
+uv run ruff format .
 
 # Lint code
-ruff check .
-ruff check --fix .  # Auto-fix where possible
+uv run ruff check .
+uv run ruff check --fix .  # Auto-fix where possible
 
 # Type checking
-mypy pytest_jux
-mypy --strict pytest_jux  # Strict mode for crypto code
+uv run mypy pytest_jux
+uv run mypy --strict pytest_jux  # Strict mode for crypto code
 
 # Run all quality checks
-make quality  # or: ruff check . && mypy pytest_jux
+uv run ruff check . && uv run mypy pytest_jux
 ```
 
 ### Testing
 
 ```bash
 # Run all tests
-pytest
+uv run pytest
 
 # Run with coverage
-pytest --cov=pytest_jux --cov-report=term-missing --cov-report=html
+uv run pytest --cov=pytest_jux --cov-report=term-missing --cov-report=html
 
 # Run specific test file
-pytest tests/test_plugin.py
+uv run pytest tests/test_plugin.py
 
 # Run tests in parallel
-pytest -n auto
+uv run pytest -n auto
 
 # Run tests with verbose output
-pytest -v
+uv run pytest -v
 
 # Watch mode (requires pytest-watch)
-ptw
+uv run ptw
 ```
 
 ### Git Workflow
@@ -153,14 +182,21 @@ git merge main
 
 ### Core Dependencies
 
+**IMPORTANT**: pytest-jux is a **client-side only** plugin. Database models, persistence, and server-side logic are handled by the separate Jux API Server project.
+
 - **lxml** (5.x): XML parsing, XPath, C14N canonicalization
 - **signxml** (3.x): XMLDSig digital signatures
 - **cryptography** (41.x+): RSA/ECDSA key management
-- **SQLAlchemy** (2.x): ORM for SQLite and PostgreSQL
 - **pytest** (7.4+/8.x): Plugin host and test framework
-- **click** (8.x): CLI interfaces
+- **configargparse** (1.x): Configuration management (CLI, environment, files)
+- **pydantic** (2.5+): Configuration validation and metadata schemas
 - **rich** (13.x): Terminal output formatting
-- **requests** (2.x): REST API client
+- **requests** (2.x): REST API client (HTTP POST to Jux API) - **postponed in Sprint 3**
+
+**Note**: This project does NOT include:
+- SQLAlchemy or database models (server-side only)
+- Database migrations (server-side only)
+- Hardware Security Module (HSM) support (future consideration)
 
 ### Development Tools
 
@@ -192,9 +228,19 @@ Following ADR-0002, this project uses **TDD-only** (no BDD) because it's a techn
 tests/
 ├── test_plugin.py           # pytest hook integration
 ├── test_signer.py          # XML signature generation
+├── test_verifier.py        # Signature verification
 ├── test_canonicalizer.py   # C14N operations
-├── test_api_client.py      # REST API integration
-├── test_models.py          # SQLAlchemy models
+├── test_config.py          # Configuration management (Sprint 3)
+├── test_metadata.py        # Environment metadata (Sprint 3)
+├── test_storage.py         # Local storage & caching (Sprint 3)
+├── commands/               # CLI command tests
+│   ├── test_keygen.py      # Key generation tests
+│   ├── test_sign.py        # Signing command tests
+│   ├── test_verify.py      # Verification command tests
+│   ├── test_inspect.py     # Inspection command tests
+│   ├── test_cache.py       # Cache management tests (Sprint 3)
+│   └── test_config_cmd.py  # Config management tests (Sprint 3)
+├── security/               # Security tests
 └── fixtures/
     ├── junit_xml/          # Sample JUnit XML files
     └── keys/               # Test signing keys
@@ -215,7 +261,7 @@ This project follows the **AI-Assisted Project Orchestration** pattern language.
 ### Using AI for Development
 
 **Appropriate AI Tasks**:
-- Boilerplate generation (pytest hooks, SQLAlchemy models, CLI commands)
+- Boilerplate generation (pytest hooks, configuration schemas, CLI commands)
 - Test generation following TDD patterns
 - Documentation writing (following Diátaxis structure)
 - Code refactoring suggestions
@@ -255,11 +301,38 @@ pytest-jux/
 │   ├── __init__.py         # Package initialization
 │   ├── plugin.py           # pytest hook integration
 │   ├── signer.py           # XMLDSig signing
+│   ├── verifier.py         # Signature verification
 │   ├── canonicalizer.py    # C14N canonicalization
-│   ├── api_client.py       # REST API client
-│   ├── models.py           # SQLAlchemy models
-│   └── cli.py              # Optional CLI commands
+│   ├── config.py           # Configuration management (Sprint 3 ✓)
+│   ├── metadata.py         # Environment metadata (Sprint 3 ✓)
+│   ├── storage.py          # Local storage & caching (Sprint 3 ✓)
+│   ├── api_client.py       # REST API client (Sprint 3 - postponed)
+│   └── commands/           # CLI commands
+│       ├── __init__.py
+│       ├── keygen.py       # Key generation (Sprint 2 ✓)
+│       ├── sign.py         # Offline signing (Sprint 2 ✓)
+│       ├── verify.py       # Signature verification (Sprint 2 ✓)
+│       ├── inspect.py      # Report inspection (Sprint 2 ✓)
+│       ├── cache.py        # Cache management (Sprint 3 ✓)
+│       ├── config_cmd.py   # Config management (Sprint 3 ✓)
+│       └── publish.py      # Manual publishing (Sprint 3 - postponed)
 ├── tests/                   # Test suite (TDD)
+│   ├── test_plugin.py      # Sprint 1 ✓
+│   ├── test_signer.py      # Sprint 1 ✓
+│   ├── test_verifier.py    # Sprint 2 ✓
+│   ├── test_canonicalizer.py  # Sprint 1 ✓
+│   ├── test_config.py      # Sprint 3 ✓
+│   ├── test_metadata.py    # Sprint 3 ✓
+│   ├── test_storage.py     # Sprint 3 ✓
+│   ├── commands/           # CLI command tests
+│   │   ├── test_keygen.py  # Sprint 2 ✓
+│   │   ├── test_sign.py    # Sprint 2 ✓
+│   │   ├── test_verify.py  # Sprint 2 ✓
+│   │   ├── test_inspect.py # Sprint 2 ✓
+│   │   ├── test_cache.py   # Sprint 3 ✓
+│   │   └── test_config_cmd.py  # Sprint 3 ✓
+│   ├── security/           # Security tests
+│   └── fixtures/           # Test fixtures
 ├── docs/                    # Documentation
 │   ├── tutorials/          # Getting started guides
 │   ├── howto/             # Problem-solving guides
@@ -267,10 +340,10 @@ pytest-jux/
 │   ├── explanation/       # Architecture and design
 │   ├── adr/              # Architecture decisions
 │   ├── architecture/     # C4 DSL models
-│   └── sprints/          # Sprint documentation
+│   ├── sprints/          # Sprint documentation
+│   └── security/         # Security documentation
 ├── .github/                # GitHub workflows (CI/CD)
 ├── pyproject.toml          # Project metadata and dependencies
-├── setup.py                # Setup configuration
 ├── .editorconfig           # Editor formatting rules
 ├── .pre-commit-config.yaml # Pre-commit hooks
 ├── .gitignore             # Git ignore patterns
@@ -278,6 +351,8 @@ pytest-jux/
 ├── README.md              # Project overview
 └── CLAUDE.md              # This file
 ```
+
+**Note**: Database models (`models.py`) and SQLAlchemy integration are **NOT** part of this project. These are implemented in the Jux API Server.
 
 ## Documentation Framework (Diátaxis)
 
@@ -317,7 +392,7 @@ pytest-jux/
 Before committing crypto-related changes:
 
 - [ ] 100% test coverage for new crypto code
-- [ ] mypy passes in strict mode
+- [ ] mypy passes in strict mode (`uv run mypy --strict pytest_jux`)
 - [ ] Manual code review completed
 - [ ] Security implications documented
 - [ ] Test with invalid/malicious inputs
@@ -351,19 +426,19 @@ Each sprint should have:
 1. **Write Test** (Red): Test that fails for new behavior
 2. **Implement** (Green): Minimal code to pass test
 3. **Refactor**: Improve code quality
-4. **Type Check**: Ensure mypy passes
-5. **Format**: Run ruff format
+4. **Type Check**: Ensure mypy passes (`uv run mypy pytest_jux`)
+5. **Format**: Run ruff format (`uv run ruff format .`)
 6. **Coverage**: Verify >85% coverage (100% for crypto)
 7. **Commit**: Use conventional commit format
 8. **Update Docs**: If needed (Diátaxis structure)
 
 ### Pull Request Checklist
 
-- [ ] All tests pass (`pytest`)
+- [ ] All tests pass (`uv run pytest`)
 - [ ] Code coverage >85% (100% for crypto)
-- [ ] Type checking passes (`mypy pytest_jux`)
-- [ ] Code formatted (`ruff format --check .`)
-- [ ] Linting clean (`ruff check .`)
+- [ ] Type checking passes (`uv run mypy pytest_jux`)
+- [ ] Code formatted (`uv run ruff format --check .`)
+- [ ] Linting clean (`uv run ruff check .`)
 - [ ] Documentation updated (if needed)
 - [ ] CHANGELOG.md updated
 - [ ] Conventional commit format used
@@ -392,9 +467,33 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Project Initialization (Sprint 0)
-**Next Milestone**: Sprint 1 - Core plugin infrastructure and XML signing
-**Version**: 0.1.0-dev (pre-release)
+**Current Phase**: Sprint 3 Complete - Ready for Sprint 4
+**Completed Sprints**:
+- ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
+- ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
+- ✅ Sprint 2: CLI Tools (jux-keygen, jux-sign, jux-verify, jux-inspect)
+- ✅ Sprint 3: Configuration, Storage & Caching (v0.1.3, v0.1.4)
+
+**Sprint 3 Completed** (Configuration, Storage & Caching):
+- ✅ Configuration management (config.py, 25 tests, 85.05% coverage)
+- ✅ Environment metadata (metadata.py, 19 tests, 92.98% coverage)
+- ✅ Local storage & caching (storage.py, 33 tests, 80.33% coverage)
+- ✅ Cache management CLI (cache.py, 16 tests, 84.13% coverage)
+- ✅ Config management CLI (config_cmd.py, 25 tests, 91.32% coverage)
+- ✅ Multi-environment configuration guide (766 lines)
+- ✅ CLAUDE.md updated with uv run best practices
+- ⏸️ REST API client & publishing (postponed - no API server yet)
+
+**Total Sprint 3**: 5 modules, 118 tests, 86.76% average coverage
+
+**Next Sprint**: Sprint 4 - REST API Client & Plugin Integration
+- 📋 Planned (awaiting Jux API Server availability)
+- Target: v0.2.0 (Beta Milestone)
+- Duration: 12-16 days (can span multiple calendar periods)
+- See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
+
+**Version**: 0.1.5 (released 2025-10-19)
+**Current Branch**: develop
 
 ---
 

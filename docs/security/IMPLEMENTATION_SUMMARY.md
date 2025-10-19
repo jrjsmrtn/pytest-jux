@@ -48,7 +48,7 @@ Created `docs/security/` with complete security documentation:
 
 #### GitHub Actions Workflow (`.github/workflows/security.yml`)
 - **pip-audit**: PyPA official vulnerability scanner
-- **Bandit**: Static security analysis for Python
+- **Ruff**: Static security analysis (flake8-bandit rules)
 - **Safety**: Dependency vulnerability database
 - **Trivy**: Filesystem and container scanning
 - **Dependency Review**: Pull request dependency analysis
@@ -71,7 +71,7 @@ Created `docs/security/` with complete security documentation:
 Updated `.pre-commit-config.yaml` with security tools:
 - **gitleaks**: Secret scanning
 - **detect-private-key**: Prevent key commits
-- **bandit**: Security linting on commit
+- **ruff**: Security linting on commit (flake8-bandit rules)
 - **safety**: Dependency vulnerability check
 - **mypy**: Strict type checking
 
@@ -93,7 +93,6 @@ make security-full    # Complete security validation
 
 #### pyproject.toml Updates
 - `security` optional dependency group
-- Bandit configuration
 - Security-related pytest markers
 - Ruff security rules (flake8-bandit)
 
@@ -101,7 +100,6 @@ make security-full    # Complete security validation
 
 - Security keywords in package metadata
 - Security URL in project links
-- Bandit test configuration
 - Coverage exclusions for security tests
 
 ## Security Framework Overview
@@ -110,7 +108,7 @@ make security-full    # Complete security validation
 
 **Automated Scanning**:
 - ✅ pip-audit (PyPA official)
-- ✅ Bandit (static analysis)
+- ✅ Ruff (static security analysis via flake8-bandit)
 - ✅ Safety (vulnerability database)
 - ✅ Trivy (filesystem scanning)
 - ✅ OpenSSF Scorecard
@@ -254,7 +252,7 @@ pytest-jux aims to comply with:
 
 - ✅ ADR-0005 documented and accepted
 - ✅ Security documentation complete (SECURITY.md, THREAT_MODEL.md, CRYPTO_STANDARDS.md)
-- ✅ Automated scanning configured (pip-audit, bandit, safety, trivy)
+- ✅ Automated scanning configured (pip-audit, ruff, safety, trivy)
 - ✅ CI/CD security workflow active
 - ✅ Pre-commit security hooks installed
 - ✅ Dependabot configured

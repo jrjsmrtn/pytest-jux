@@ -148,10 +148,10 @@ Each advisory includes:
 **For Users**:
 ```bash
 # Check for updates
-pip list --outdated | grep pytest-jux
+uv pip list --outdated | grep pytest-jux
 
 # Update to latest version
-pip install --upgrade pytest-jux
+uv pip install --upgrade pytest-jux
 
 # Verify installation
 pytest-jux --version
@@ -220,7 +220,7 @@ We use the following tools to maintain security:
 
 ### Automated Scanning
 - **pip-audit**: Vulnerability scanning (PyPA official)
-- **bandit**: Static security analysis
+- **ruff**: Static security analysis (flake8-bandit rules)
 - **safety**: Dependency vulnerability database
 - **Trivy**: Container and filesystem scanning
 

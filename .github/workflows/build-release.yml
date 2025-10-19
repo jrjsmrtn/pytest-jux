@@ -1,0 +1,221 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v0.1.5)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Python Package
+    runs-on: ubuntu-latest
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install build dependencies
+        run: |
+          uv pip install build wheel setuptools
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION="${VERSION#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Building version: ${VERSION}"
+
+      - name: Build package
+        run: |
+          python -m build
+          ls -lh dist/
+
+      - name: Generate artifact hashes
+        id: hash
+        run: |
+          cd dist
+          echo "Generating SHA256 hashes for artifacts..."
+          sha256sum * | tee checksums.txt
+          echo "hashes=$(sha256sum * | base64 -w0)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+          retention-days: 90
+
+  provenance:
+    name: Generate SLSA Provenance
+    needs: [build]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      upload-assets: true
+      provenance-name: "pytest-jux-${{ needs.build.outputs.version }}.intoto.jsonl"
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [build, provenance]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pytest-jux
+    permissions:
+      id-token: write  # Required for PyPI Trusted Publishing
+      contents: read
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Download provenance
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.provenance.outputs.provenance-name }}
+          path: dist/
+
+      - name: Publish to PyPI with attestations
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
+          print-hash: true
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build, provenance, publish-pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Download provenance
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.provenance.outputs.provenance-name }}
+          path: dist/
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION_NUM="${VERSION#v}"
+
+          # Extract changelog section for this version
+          awk "/## \[${VERSION_NUM}\]/,/## \[/" CHANGELOG.md | \
+            sed '$d' | \
+            tail -n +2 > release_notes.md
+
+          # Add SLSA verification instructions
+          cat >> release_notes.md <<'EOF'
+
+          ---
+
+          ## 🔒 SLSA Level 2 Compliance
+
+          This release includes SLSA Build Level 2 provenance attestations.
+
+          **Verify this release:**
+
+          ```bash
+          # Install slsa-verifier
+          go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
+
+          # Download package and provenance
+          pip download pytest-jux==${VERSION_NUM} --no-deps
+          curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/${VERSION}/pytest-jux-${VERSION_NUM}.intoto.jsonl
+
+          # Verify provenance
+          slsa-verifier verify-artifact \
+            --provenance-path pytest-jux-${VERSION_NUM}.intoto.jsonl \
+            --source-uri github.com/jrjsmrtn/pytest-jux \
+            pytest_jux-${VERSION_NUM}-py3-none-any.whl
+          ```
+
+          See [SLSA Verification Guide](docs/security/SLSA_VERIFICATION.md) for details.
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: "Release ${{ steps.version.outputs.version }}"
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'rc') }}
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/*.intoto.jsonl
+            dist/checksums.txt
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## ✅ Release Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**PyPI:** https://pypi.org/project/pytest-jux/${{ needs.build.outputs.version }}/" >> $GITHUB_STEP_SUMMARY
+          echo "**GitHub Release:** https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔒 SLSA Provenance" >> $GITHUB_STEP_SUMMARY
+          echo "- Provenance signed by GitHub Actions" >> $GITHUB_STEP_SUMMARY
+          echo "- Verification instructions in release notes" >> $GITHUB_STEP_SUMMARY

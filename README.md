@@ -3,33 +3,91 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![pytest](https://img.shields.io/badge/pytest-7.4%2B%20%7C%208.x-blue.svg)](https://pytest.org/)
+[![codecov](https://codecov.io/gh/jrjsmrtn/pytest-jux/branch/main/graph/badge.svg)](https://codecov.io/gh/jrjsmrtn/pytest-jux)
+[![SLSA 2](https://slsa.dev/images/gh-badge-level2.svg)](https://slsa.dev/spec/v1.0/levels#build-l2)
 [![Security](https://img.shields.io/badge/security-framework-green.svg)](docs/security/SECURITY.md)
 
 _A pytest plugin for signing and publishing JUnit XML test reports to the Jux REST API_
 
 ## Overview
 
-pytest-jux is a pytest plugin that automatically signs JUnit XML test reports using XML digital signatures (XMLDSig) and publishes them to a Jux REST API for storage and analysis. It enables system administrators, integrators, and infrastructure engineers to maintain a chain-of-trust for test results across local and distributed environments.
+pytest-jux is a **client-side pytest plugin** that automatically signs JUnit XML test reports using XML digital signatures (XMLDSig) and publishes them to a Jux REST API backend for storage and analysis. It enables system administrators, integrators, and infrastructure engineers to maintain a chain-of-trust for test results across local and distributed environments.
+
+### Architecture
+
+pytest-jux is the **client component** in a client-server architecture:
+
+- **pytest-jux (this project)**: Client-side plugin for signing and publishing test reports
+- **Jux API Server** (separate project): Server-side backend for storing, querying, and visualizing reports
+
+This separation allows pytest-jux to be lightweight and focused on test report signing, while the Jux API Server handles data persistence, deduplication, and web interfaces.
 
 ## Features
 
+### Client-Side Features (pytest-jux)
+
 - **Automatic Report Signing**: Signs JUnit XML reports with XML digital signatures after test execution
-- **XML Canonicalization**: Uses C14N for detecting duplicate reports via canonical hash
-- **Chain-of-Trust**: Cryptographic verification ensures report integrity and provenance
-- **REST API Integration**: Publishes signed reports to Jux backend (SQLite or PostgreSQL)
+- **XML Canonicalization**: Uses C14N for generating canonical hashes
+- **Chain-of-Trust**: Cryptographic signatures ensure report integrity and provenance
+- **REST API Publishing**: Publishes signed reports to Jux API backend
+- **Local Storage & Caching**: XDG-compliant storage with offline queue for unreliable networks
+- **Flexible Storage Modes**: LOCAL (filesystem only), API (server only), BOTH (dual), CACHE (offline queue)
+- **Configuration Management**: Multi-source configuration (CLI, environment, files) with precedence
 - **pytest Integration**: Seamless integration via pytest hooks (post-session processing)
-- **Duplicate Detection**: Canonical hash-based deduplication prevents redundant storage
+- **Standalone CLI Tools**: Key generation, signing, verification, inspection, cache, and config utilities
 - **Environment Metadata**: Captures test environment context (hostname, user, platform)
+- **Custom Metadata Support**: Add custom metadata to reports via pytest-metadata integration
 - **Security Framework**: Comprehensive security with automated scanning and threat modeling
+
+### Server-Side Features (Jux API Server)
+
+The following features are provided by the **Jux API Server** (separate project):
+
+- **Report Storage**: Persistent storage in SQLite (local) or PostgreSQL (distributed)
+- **Duplicate Detection**: Canonical hash-based deduplication prevents redundant storage
+- **Signature Verification**: Server-side validation of XMLDSig signatures
+- **Query API**: REST API for retrieving and filtering stored reports
+- **Web UI**: Browser-based interface for visualizing test results
+- **Multi-tenancy**: Support for multiple projects and users
 
 ## Security
 
-pytest-jux implements a comprehensive security framework:
+pytest-jux implements a comprehensive security framework with **SLSA Build Level 2** compliance:
 
-- **Automated Scanning**: pip-audit, Bandit, Safety, Trivy
+### Supply Chain Security (SLSA L2)
+
+[![SLSA 2](https://slsa.dev/images/gh-badge-level2.svg)](https://slsa.dev/spec/v1.0/levels#build-l2)
+
+All pytest-jux releases include cryptographic provenance attestations:
+
+- ✅ **Build Integrity**: Packages built on GitHub Actions (not developer workstations)
+- ✅ **Source Traceability**: Cryptographic link to exact source code commit
+- ✅ **Tamper Detection**: Any modification invalidates the signature
+- ✅ **Independent Verification**: Verify packages with `slsa-verifier`
+
+**Verify a release:**
+```bash
+# Install SLSA verifier
+go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
+
+# Download and verify
+pip download pytest-jux==0.1.5 --no-deps
+curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
+
+slsa-verifier verify-artifact \
+  --provenance-path pytest-jux-0.1.5.intoto.jsonl \
+  --source-uri github.com/jrjsmrtn/pytest-jux \
+  pytest_jux-0.1.5-py3-none-any.whl
+```
+
+See [SLSA Verification Guide](docs/security/SLSA_VERIFICATION.md) for complete instructions.
+
+### Security Framework
+
+- **Automated Scanning**: pip-audit, Ruff (security rules), Safety, Trivy
 - **Threat Modeling**: STRIDE methodology with 19 identified threats
 - **Cryptographic Standards**: NIST-compliant algorithms (RSA-SHA256, ECDSA-SHA256)
-- **Supply Chain**: Dependabot, OpenSSF Scorecard, planned Sigstore signing
+- **Supply Chain**: SLSA L2, Dependabot, OpenSSF Scorecard
 - **Vulnerability Reporting**: Coordinated disclosure with 48-hour response time
 
 See [Security Policy](docs/security/SECURITY.md) for vulnerability reporting and [Security Framework](docs/security/IMPLEMENTATION_SUMMARY.md) for complete details.
@@ -43,6 +101,7 @@ This project uses Architecture Decision Records (ADRs) to track significant arch
 - **[ADR-0003](docs/adr/0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md)**: Use Python 3 with pytest, lxml, signxml, and SQLAlchemy stack
 - **[ADR-0004](docs/adr/0004-adopt-apache-license-2.0.md)**: Adopt Apache License 2.0
 - **[ADR-0005](docs/adr/0005-adopt-python-ecosystem-security-framework.md)**: Adopt Python Ecosystem Security Framework
+- **[ADR-0006](docs/adr/0006-adopt-slsa-build-level-2-compliance.md)**: Adopt SLSA Build Level 2 Compliance
 
 See the [docs/adr/](docs/adr/) directory for complete decision history.
 
@@ -56,11 +115,11 @@ See the [docs/adr/](docs/adr/) directory for complete decision history.
 
 ```bash
 # From PyPI (when published)
-pip install pytest-jux
+uv pip install pytest-jux
 
 # From source (development)
 cd pytest-jux
-pip install -e ".[dev,security]"
+uv pip install -e ".[dev,security]"
 ```
 
 ## Usage
@@ -89,6 +148,318 @@ jux_key_path = ~/.jux/private_key.pem
 - `--jux-publish`: Enable pytest-jux plugin (default: disabled)
 - `--jux-api-url URL`: Jux REST API endpoint
 - `--jux-key PATH`: Path to private key for signing (PEM format)
+- `--jux-storage-mode MODE`: Storage mode (local, api, both, cache)
+- `--jux-storage-path PATH`: Custom storage directory path
+
+### Adding Custom Metadata
+
+pytest-jux integrates with pytest-metadata to add custom metadata to your test reports:
+
+```bash
+# Add metadata via command line
+pytest --junit-xml=report.xml \
+       --jux-sign \
+       --jux-key ~/.jux/signing_key.pem \
+       --metadata ci_build_id 12345 \
+       --metadata environment production
+```
+
+The metadata appears as property tags in the JUnit XML:
+
+```xml
+<testsuite>
+  <properties>
+    <property name="ci_build_id" value="12345"/>
+    <property name="environment" value="production"/>
+  </properties>
+  ...
+</testsuite>
+```
+
+See [How to Add Metadata to Reports](docs/howto/add-metadata-to-reports.md) for complete documentation including CI/CD integration, JSON metadata, and programmatic usage.
+
+## Storage & Caching
+
+pytest-jux provides flexible storage options for test reports, supporting both local filesystem storage and API publishing. This enables offline operation, network-resilient workflows, and local inspection of test results.
+
+### Storage Modes
+
+pytest-jux supports four storage modes:
+
+- **LOCAL**: Store reports locally only (no API publishing)
+- **API**: Publish to API only (no local storage)
+- **BOTH**: Store locally AND publish to API
+- **CACHE**: Store locally, publish when API available (offline queue)
+
+### Storage Location
+
+Reports are stored in XDG-compliant directories:
+
+- **macOS**: `~/Library/Application Support/jux/reports/`
+- **Linux**: `~/.local/share/jux/reports/`
+- **Windows**: `%LOCALAPPDATA%\jux\reports\`
+
+Custom storage paths can be specified via `--jux-storage-path` or `JUX_STORAGE_PATH` environment variable.
+
+### Storage Examples
+
+**Local storage only** (no API required):
+```bash
+pytest --junit-xml=report.xml \
+       --jux-enabled \
+       --jux-sign \
+       --jux-key=~/.jux/private_key.pem \
+       --jux-storage-mode=local
+```
+
+**API publishing with local backup**:
+```bash
+pytest --junit-xml=report.xml \
+       --jux-enabled \
+       --jux-sign \
+       --jux-key=~/.jux/private_key.pem \
+       --jux-api-url=https://jux.example.com/api \
+       --jux-storage-mode=both
+```
+
+**Offline queue mode** (auto-publish when API available):
+```bash
+pytest --junit-xml=report.xml \
+       --jux-enabled \
+       --jux-sign \
+       --jux-key=~/.jux/private_key.pem \
+       --jux-api-url=https://jux.example.com/api \
+       --jux-storage-mode=cache
+```
+
+### Cache Management
+
+The `jux-cache` command provides tools for inspecting and managing cached reports.
+
+**List cached reports**:
+```bash
+# Text output
+jux-cache list
+
+# JSON output
+jux-cache list --json
+```
+
+**Show report details**:
+```bash
+# View specific report
+jux-cache show sha256:abc123...
+
+# JSON output
+jux-cache show sha256:abc123... --json
+```
+
+**View cache statistics**:
+```bash
+# Text output
+jux-cache stats
+
+# JSON output
+jux-cache stats --json
+```
+
+**Clean old reports**:
+```bash
+# Dry run (preview what would be deleted)
+jux-cache clean --days 30 --dry-run
+
+# Actually delete reports older than 30 days
+jux-cache clean --days 30
+```
+
+**Custom storage path**:
+```bash
+jux-cache --storage-path /custom/path list
+```
+
+## Configuration Management
+
+pytest-jux supports multi-source configuration with precedence: CLI arguments > environment variables > configuration files > defaults.
+
+### Configuration Sources
+
+Configuration can be loaded from:
+
+1. **Command-line arguments** (highest precedence)
+2. **Environment variables** (prefixed with `JUX_`)
+3. **Configuration files**:
+   - `~/.jux/config` (user-level)
+   - `.jux.conf` (project-level)
+   - `pytest.ini` (pytest configuration)
+   - `/etc/jux/config` (system-level, Linux/Unix)
+
+### Configuration File Format
+
+Configuration files use INI format with a `[jux]` section:
+
+```ini
+[jux]
+# Core settings
+enabled = true
+sign = true
+publish = false
+
+# Storage settings
+storage_mode = local
+# storage_path = ~/.local/share/jux/reports
+
+# Signing settings
+# key_path = ~/.jux/signing_key.pem
+# cert_path = ~/.jux/signing_key.crt
+
+# API settings
+# api_url = https://jux.example.com/api/v1/reports
+# api_key = your-api-key-here
+```
+
+### Configuration Management Commands
+
+The `jux-config` command provides tools for managing configuration.
+
+**List all configuration options**:
+```bash
+# Text output
+jux-config list
+
+# JSON output
+jux-config list --json
+```
+
+**Dump current effective configuration**:
+```bash
+# Text output (shows sources)
+jux-config dump
+
+# JSON output
+jux-config dump --json
+```
+
+**View configuration files**:
+```bash
+# View specific file
+jux-config view ~/.jux/config
+
+# View all configuration files
+jux-config view --all
+```
+
+**Initialize configuration file**:
+```bash
+# Create minimal config at default path (~/.jux/config)
+jux-config init
+
+# Create full config with all options
+jux-config init --template full
+
+# Create at custom path
+jux-config init --path /custom/path/config
+
+# Force overwrite existing file
+jux-config init --force
+```
+
+**Validate configuration**:
+```bash
+# Basic validation
+jux-config validate
+
+# Strict validation (check dependencies)
+jux-config validate --strict
+
+# JSON output
+jux-config validate --json
+```
+
+### Environment Variables
+
+All configuration options can be set via environment variables:
+
+```bash
+export JUX_ENABLED=true
+export JUX_SIGN=true
+export JUX_KEY_PATH=~/.jux/private_key.pem
+export JUX_STORAGE_MODE=local
+export JUX_API_URL=https://jux.example.com/api
+export JUX_API_KEY=your-api-key-here
+```
+
+### Configuration Examples
+
+**Minimal configuration** (local storage only):
+```ini
+[jux]
+enabled = true
+sign = false
+storage_mode = local
+```
+
+**Development configuration** (local storage + API publishing):
+```ini
+[jux]
+enabled = true
+sign = true
+key_path = ~/.jux/dev_key.pem
+storage_mode = both
+api_url = http://localhost:4000/api/v1/reports
+```
+
+**Production configuration** (signed reports with offline queue):
+```ini
+[jux]
+enabled = true
+sign = true
+key_path = ~/.jux/prod_key.pem
+cert_path = ~/.jux/prod_key.crt
+storage_mode = cache
+api_url = https://jux.example.com/api/v1/reports
+```
+
+## CLI Tools
+
+pytest-jux provides standalone CLI commands for key management, signing, verification, and administration:
+
+**Key generation**:
+```bash
+jux-keygen --output ~/.jux/private_key.pem --algorithm rsa
+```
+
+**Offline signing**:
+```bash
+jux-sign report.xml --key ~/.jux/private_key.pem --output signed_report.xml
+```
+
+**Signature verification**:
+```bash
+jux-verify signed_report.xml
+```
+
+**Report inspection**:
+```bash
+jux-inspect report.xml
+```
+
+**Cache management**:
+```bash
+jux-cache list
+jux-cache show sha256:abc123...
+jux-cache stats
+jux-cache clean --days 30
+```
+
+**Configuration management**:
+```bash
+jux-config list
+jux-config dump
+jux-config init
+jux-config validate
+```
+
+See CLI tool documentation for complete usage details.
 
 ## Development
 
@@ -100,11 +471,11 @@ git clone https://github.com/jrjsmrtn/pytest-jux.git
 cd pytest-jux
 
 # Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # or: venv\Scripts\activate on Windows
+uv venv
+source .venv/bin/activate  # or: .venv\Scripts\activate on Windows
 
 # Install development dependencies
-pip install -e ".[dev,security]"
+uv pip install -e ".[dev,security]"
 
 # Install pre-commit hooks
 pre-commit install
@@ -175,14 +546,33 @@ pytest-jux/
 │   ├── __init__.py
 │   ├── plugin.py           # pytest hooks
 │   ├── signer.py           # XML signing
+│   ├── verifier.py         # Signature verification
 │   ├── canonicalizer.py    # C14N operations
-│   ├── api_client.py       # REST API client
-│   └── models.py           # SQLAlchemy models
+│   ├── config.py           # Configuration management (Sprint 3)
+│   ├── metadata.py         # Environment metadata (Sprint 3)
+│   ├── storage.py          # Local storage & caching (Sprint 3)
+│   ├── api_client.py       # REST API client (Sprint 3 - postponed)
+│   └── commands/           # CLI commands
+│       ├── keygen.py       # Key generation
+│       ├── sign.py         # Offline signing
+│       ├── verify.py       # Signature verification
+│       ├── inspect.py      # Report inspection
+│       ├── cache.py        # Cache management (Sprint 3)
+│       ├── config_cmd.py   # Config management (Sprint 3)
+│       └── publish.py      # Manual publishing (Sprint 3 - postponed)
 ├── tests/                   # Test suite
 │   ├── test_plugin.py
 │   ├── test_signer.py
+│   ├── test_verifier.py
+│   ├── test_canonicalizer.py
+│   ├── test_config.py      # Config tests (Sprint 3)
+│   ├── test_metadata.py    # Metadata tests (Sprint 3)
+│   ├── test_storage.py     # Storage tests (Sprint 3)
+│   ├── commands/           # CLI command tests
+│   │   ├── test_cache.py   # Cache command tests (Sprint 3)
+│   │   └── test_config_cmd.py  # Config command tests (Sprint 3)
 │   ├── security/           # Security tests
-│   └── fixtures/           # JUnit XML fixtures
+│   └── fixtures/           # JUnit XML fixtures & test keys
 ├── docs/                    # Documentation
 │   ├── tutorials/          # Learning-oriented
 │   ├── howto/             # Problem-oriented
@@ -190,6 +580,7 @@ pytest-jux/
 │   ├── explanation/       # Understanding-oriented
 │   ├── adr/              # Architecture decisions
 │   ├── architecture/     # C4 DSL models
+│   ├── sprints/          # Sprint documentation
 │   └── security/         # Security documentation
 ├── .github/
 │   └── workflows/
@@ -201,19 +592,49 @@ pytest-jux/
 └── README.md              # This file
 ```
 
+**Note**: This project does **not** include database models (`models.py`) or database integration. These are handled by the Jux API Server.
+
 ## Architecture Overview
+
+### Client-Server Architecture
+
+```
+┌─────────────────────────────────┐         ┌──────────────────────────┐
+│   pytest-jux (Client)           │         │  Jux API Server          │
+│                                 │         │                          │
+│  1. Run tests                   │         │  6. Receive signed XML   │
+│  2. Generate JUnit XML          │         │  7. Verify signature     │
+│  3. Canonicalize (C14N)         │  HTTP   │  8. Check for duplicates │
+│  4. Sign with XMLDSig           │ ─POST─> │  9. Store in database    │
+│  5. Publish to API              │         │ 10. Return status        │
+│                                 │         │                          │
+│  • XML signing                  │         │  • Report storage        │
+│  • Environment metadata         │         │  • Duplicate detection   │
+│  • API client                   │         │  • Signature verification│
+│                                 │         │  • Query API             │
+│                                 │         │  • Web UI                │
+└─────────────────────────────────┘         └──────────────────────────┘
+```
 
 ### pytest Plugin Integration
 
 pytest-jux integrates with pytest via the `pytest_sessionfinish` hook, processing JUnit XML reports after test execution completes.
 
-### XML Signature Workflow
+### Client-Side Workflow
 
 1. **Generate**: pytest creates JUnit XML report (`--junit-xml`)
-2. **Canonicalize**: Convert XML to canonical form (C14N)
-3. **Hash**: Calculate SHA-256 hash of canonical XML (for deduplication)
-4. **Sign**: Generate XMLDSig signature using private key
-5. **Publish**: POST signed report to Jux REST API
+2. **Canonicalize**: Convert XML to canonical form (C14N) and compute SHA-256 hash
+3. **Sign**: Generate XMLDSig signature using private key
+4. **Capture Metadata**: Collect environment information (hostname, platform, etc.)
+5. **Publish**: POST signed report + metadata to Jux REST API
+
+### Server-Side Processing (Jux API Server)
+
+6. **Receive**: Accept signed XML report via REST API
+7. **Verify**: Validate XMLDSig signature
+8. **Deduplicate**: Check canonical hash against existing reports
+9. **Store**: Save to database (SQLite or PostgreSQL)
+10. **Index**: Make report queryable via API and Web UI
 
 ### C4 DSL Architecture Models
 
@@ -272,10 +693,33 @@ See [LICENSE](LICENSE) for the full license text.
 
 ## Related Projects
 
-- **Jux**: JUnit XML toolkit (Elixir/Phoenix)
-  - Parent project providing REST API backend
-  - SQLite (local) and PostgreSQL (distributed) storage
-  - Web and CLI interfaces for browsing test reports
+### Jux API Server (Separate Project)
+
+The **Jux API Server** is the server-side component that works with pytest-jux. It is a separate project that provides:
+
+**Core Functionality:**
+- REST API endpoints for receiving signed test reports
+- XMLDSig signature verification
+- Report storage in SQLite (local) or PostgreSQL (distributed)
+- Canonical hash-based duplicate detection
+- Query API for retrieving stored reports
+
+**User Interfaces:**
+- Web UI for browsing and visualizing test results
+- CLI tools for querying reports
+- API documentation (OpenAPI/Swagger)
+
+**Technology Stack:**
+- Elixir/Phoenix framework
+- PostgreSQL or SQLite database
+- RESTful API design
+
+**Deployment Options:**
+- Local development (SQLite)
+- Single-server deployment (PostgreSQL)
+- Distributed/multi-tenant deployment (PostgreSQL cluster)
+
+For more information about the Jux API Server, refer to its separate repository and documentation.
 
 ## Support
 

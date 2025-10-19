@@ -31,10 +31,10 @@ help:
 
 # Installation
 install:
-	pip install -e .
+	uv pip install -e .
 
 install-dev:
-	pip install -e ".[dev,security]"
+	uv pip install -e ".[dev,security]"
 	pre-commit install
 
 # Testing
@@ -65,8 +65,8 @@ security-scan:
 	@echo "Running security scanners..."
 	@echo "\n=== pip-audit ==="
 	pip-audit || true
-	@echo "\n=== Bandit ==="
-	bandit -r pytest_jux/ -f screen -ll || true
+	@echo "\n=== Ruff Security Rules ==="
+	ruff check --select S pytest_jux/ || true
 	@echo "\n=== Safety ==="
 	safety check --short-report || true
 
