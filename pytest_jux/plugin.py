@@ -100,11 +100,13 @@ def pytest_configure(config: pytest.Config) -> None:
     cli_publish = config.getoption("jux_publish")
 
     # Merge configuration (CLI takes precedence)
-    jux_enabled = config_manager.get("jux_enabled")
     jux_sign = cli_sign if cli_sign else config_manager.get("jux_sign")
     jux_key = cli_key if cli_key else config_manager.get("jux_key_path")
     jux_cert = cli_cert if cli_cert else config_manager.get("jux_cert_path")
     jux_publish = cli_publish if cli_publish else config_manager.get("jux_publish")
+
+    # Enable plugin if any functionality is requested (CLI or config file)
+    jux_enabled = config_manager.get("jux_enabled") or jux_sign or jux_publish
 
     # Storage configuration (from config files only, no CLI options yet)
     jux_storage_mode = config_manager.get("jux_storage_mode")
