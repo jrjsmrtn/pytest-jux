@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Build and Release workflow: Also exclude SLSA provenance file from PyPI upload
+
 ## [0.1.7] - 2025-10-19
 
 ### Fixed
