@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2025-10-20
+
+### Added
+- REUSE/SPDX license identifiers in all source files
+  - Machine-readable copyright: `SPDX-FileCopyrightText: 2025 Georges Martin`
+  - Machine-readable license: `SPDX-License-Identifier: Apache-2.0`
+  - ADR-0009 documenting REUSE/SPDX adoption
+  - 372 lines of boilerplate removed (14 lines → 2 lines per file)
+  - 31 Python files converted to REUSE format
+  - Prepares for Sprint 6 SBOM generation with license compliance
+- ADR-0010 documenting removal of unused database dependencies
+- C4 DSL architecture model in `docs/architecture/workspace.dsl`
+  - System context, container, and component views
+  - Dynamic views for test execution and offline signing workflows
+  - Validated with Structurizr CLI
+  - Visualizable with Structurizr Lite
+
+### Changed
+- Copyright headers modernized from traditional Apache 2.0 format to REUSE/SPDX format
+- All source files now use 2-line headers instead of 14-line headers
+- **BREAKING**: Removed unused database dependencies (SQLAlchemy, Alembic, psycopg)
+  - These were never used in pytest-jux (client-side plugin)
+  - Database functionality resides in Jux API Server (separate project)
+  - Reduces installation size by ~15MB
+  - No functional impact (dependencies were not used)
+  - ADR-0003 partially superseded by ADR-0010
+- Renamed `codecov.yml` to `.codecov.yml` (dotfile convention)
+- CLAUDE.md updated with foundational ADRs (ADR-0004, ADR-0005, ADR-0009, ADR-0010)
+- ROADMAP.md updated to v0.1.8 status with recent improvements
+- ADR-0003 marked as "Partially Superseded" (database sections only)
+
+### Removed
+- Obsolete initialization files: `init-git.sh`, `PROJECT_INIT_SUMMARY.md`, `QUICKSTART.md`, `SECURITY_FRAMEWORK_COMPLETE.md`
+- Redundant `examples/` directory (documentation already covers examples)
+- Moved dogfooding artifacts to `.jux-dogfood/` (DOGFOODING.md, dogfood-output.txt)
+
 ## [0.1.8] - 2025-10-19
 
 ### Fixed
@@ -57,7 +93,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 6 comprehensive tests for metadata preservation, 100% passing
 - Documentation for pytest-metadata integration:
   - docs/howto/add-metadata-to-reports.md (323 lines) - Complete guide for adding metadata
-  - examples/with-metadata/ - Working example with conftest.py and test files
   - README.md updated with metadata support mention and examples
 
 ### Changed
@@ -259,7 +294,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.5...v0.1.6

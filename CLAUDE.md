@@ -40,11 +40,29 @@ This project uses ADRs to track significant architectural decisions. Current dec
   - C4 DSL architecture documentation
   - Sprint-based development lifecycle
   - Diátaxis documentation framework
-- **[ADR-0003](docs/adr/0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md)**: Use Python 3 with pytest, lxml, signxml stack
+- **[ADR-0003](docs/adr/0003-use-python3-pytest-lxml-signxml-sqlalchemy-stack.md)**: Use Python 3 with pytest, lxml, signxml stack (**Partially Superseded** - see [ADR-0010](docs/adr/0010-remove-database-dependencies.md))
   - Core libraries: lxml, signxml, cryptography, requests, configargparse, rich
   - Target Python 3.11+ on Debian 12/13, openSUSE, Fedora
   - pytest plugin architecture with hook integration
-  - **Note**: SQLAlchemy mentioned in ADR-0003 is implemented in the Jux API Server, not in pytest-jux
+  - **Note**: Database-related sections superseded by ADR-0010. SQLAlchemy removed from pytest-jux dependencies.
+- **[ADR-0004](docs/adr/0004-adopt-apache-license-2.0.md)**: Adopt Apache License 2.0
+  - Explicit patent grant for cryptographic code
+  - Enterprise-friendly for target users (sysadmins, integrators)
+  - Ecosystem alignment (signxml, cryptography use Apache 2.0)
+- **[ADR-0005](docs/adr/0005-adopt-python-ecosystem-security-framework.md)**: Adopt Python Ecosystem Security Framework
+  - 3-tier implementation (Essential → Supply Chain → Cryptographic Assurance)
+  - Automated scanning (pip-audit, ruff, safety, trivy)
+  - SLSA Build Level 2 compliance (ADR-0006)
+  - OpenSSF Best Practices Badge program (ADR-0008)
+- **[ADR-0009](docs/adr/0009-adopt-reuse-spdx-license-identifiers.md)**: Adopt REUSE/SPDX License Identifiers
+  - Machine-readable copyright and licensing
+  - 372 lines of boilerplate removed (14 lines → 2 lines per file)
+  - REUSE Specification 3.0 compliant
+  - Prepares for Sprint 6 SBOM generation
+- **[ADR-0010](docs/adr/0010-remove-database-dependencies.md)**: Remove Database Dependencies from pytest-jux
+  - SQLAlchemy, Alembic, psycopg removed (not used in client-side plugin)
+  - Database functionality resides in Jux API Server (separate project)
+  - Reduces installation size by ~15MB
 
 See [docs/adr/README.md](docs/adr/README.md) for the complete ADR index.
 
@@ -284,9 +302,12 @@ git branch -d hotfix/0.1.x
 - **requests** (2.x): REST API client (HTTP POST to Jux API) - **postponed in Sprint 3**
 
 **Note**: This project does NOT include:
-- SQLAlchemy or database models (server-side only)
-- Database migrations (server-side only)
+- Database functionality (server-side only - Jux API Server)
+- Database models or migrations (server-side only)
 - Hardware Security Module (HSM) support (future consideration)
+
+**Dependencies Removed** (ADR-0010):
+- SQLAlchemy, Alembic, psycopg (not used, removed in v0.1.9)
 
 ### Development Tools
 
@@ -442,7 +463,7 @@ pytest-jux/
 └── CLAUDE.md              # This file
 ```
 
-**Note**: Database models (`models.py`) and SQLAlchemy integration are **NOT** part of this project. These are implemented in the Jux API Server.
+**Note**: Database models and database integration are **NOT** part of this project. These are implemented in the Jux API Server (separate project). SQLAlchemy, Alembic, and psycopg dependencies were removed in v0.1.9 (see [ADR-0010](docs/adr/0010-remove-database-dependencies.md)).
 
 ## Documentation Framework (Diátaxis)
 
@@ -549,7 +570,6 @@ Each sprint should have:
 - [pytest Plugin Development](https://docs.pytest.org/en/stable/how-to/writing_plugins.html)
 - [lxml Documentation](https://lxml.de/)
 - [signxml Documentation](https://signxml.readthedocs.io/)
-- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
 - [JUnit XML Schema](https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd)
 - [C4 Model](https://c4model.com/)
 - [Structurizr DSL](https://docs.structurizr.com/dsl)
