@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![pytest](https://img.shields.io/badge/pytest-7.4%2B%20%7C%208.x-blue.svg)](https://pytest.org/)
+[![codecov](https://codecov.io/gh/jrjsmrtn/pytest-jux/branch/main/graph/badge.svg)](https://codecov.io/gh/jrjsmrtn/pytest-jux)
 [![SLSA 2](https://slsa.dev/images/gh-badge-level2.svg)](https://slsa.dev/spec/v1.0/levels#build-l2)
 [![Security](https://img.shields.io/badge/security-framework-green.svg)](docs/security/SECURITY.md)
 
