@@ -57,7 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 6 comprehensive tests for metadata preservation, 100% passing
 - Documentation for pytest-metadata integration:
   - docs/howto/add-metadata-to-reports.md (323 lines) - Complete guide for adding metadata
-  - examples/with-metadata/ - Working example with conftest.py and test files
   - README.md updated with metadata support mention and examples
 
 ### Changed
