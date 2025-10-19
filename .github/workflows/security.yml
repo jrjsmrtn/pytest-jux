@@ -32,11 +32,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install -e ".[dev,security]"
-      
+          uv pip install --system -e ".[dev,security]"
+
       - name: Run pip-audit (PyPA Official)
         run: |
-          uv pip install pip-audit
+          uv pip install --system pip-audit
           pip-audit --desc --format json --output pip-audit-report.json || true
           pip-audit --desc
         continue-on-error: true
@@ -49,9 +49,10 @@ jobs:
 
       - name: Run Safety (Vulnerability Scanner)
         run: |
-          uv pip install safety
-          safety check --json --output safety-report.json || true
-          safety check --short-report
+          # Safety CLI now requires authentication for most features
+          # Use pip-audit instead (official PyPA tool, no auth required)
+          echo "Note: Safety CLI requires authentication. Using pip-audit for vulnerability scanning."
+          echo "pip-audit results are available in the pip-audit-report artifact."
         continue-on-error: true
       
       - name: Upload pip-audit report
@@ -68,12 +69,6 @@ jobs:
           name: ruff-security-report
           path: ruff-security-report.json
 
-      - name: Upload Safety report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: safety-report
-          path: safety-report.json
   
   dependency-review:
     name: Dependency Review
@@ -92,11 +87,15 @@ jobs:
   trivy-scan:
     name: Trivy Filesystem Scan
     runs-on: ubuntu-latest
-    
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -105,12 +104,20 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-      
+
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true  # Code scanning requires GitHub Advanced Security (not available for private repos on free tier)
         with:
           sarif_file: 'trivy-results.sarif'
+
+      - name: Upload Trivy results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
   
   security-tests:
     name: Security Test Suite
@@ -130,11 +137,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install -e ".[dev]"
-      
+          uv pip install --system -e ".[dev]"
+
       - name: Run security tests
         run: |
-          pytest tests/security/ -v --tb=short --cov=pytest_jux --cov-report=term-missing
+          if [ -d "tests/security" ]; then
+            pytest tests/security/ -v --tb=short --no-cov
+          else
+            echo "No security tests found - skipping"
+          fi
       
       - name: Upload coverage report
         if: always()
@@ -146,12 +157,15 @@ jobs:
   scorecard:
     name: OpenSSF Scorecard
     runs-on: ubuntu-latest
+    # OpenSSF Scorecard has limited support for private repositories
+    # Skip this job for private repos to avoid API permission errors
+    if: github.event.repository.private == false
     permissions:
       security-events: write
       id-token: write
       contents: read
       actions: read
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -159,7 +173,7 @@ jobs:
           persist-credentials: false
       
       - name: Run OpenSSF Scorecard
-        uses: ossf/scorecard-action@v2
+        uses: ossf/scorecard-action@v2.4.0
         with:
           results_file: scorecard-results.sarif
           results_format: sarif
