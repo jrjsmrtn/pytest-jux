@@ -49,9 +49,10 @@ jobs:
 
       - name: Run Safety (Vulnerability Scanner)
         run: |
-          uv pip install --system safety
-          safety scan --output json > safety-report.json || true
-          safety scan
+          # Safety CLI now requires authentication for most features
+          # Use pip-audit instead (official PyPA tool, no auth required)
+          echo "Note: Safety CLI requires authentication. Using pip-audit for vulnerability scanning."
+          echo "pip-audit results are available in the pip-audit-report artifact."
         continue-on-error: true
       
       - name: Upload pip-audit report
@@ -68,12 +69,6 @@ jobs:
           name: ruff-security-report
           path: ruff-security-report.json
 
-      - name: Upload Safety report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: safety-report
-          path: safety-report.json
   
   dependency-review:
     name: Dependency Review
