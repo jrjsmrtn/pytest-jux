@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2025-10-19
+
 ### Fixed
 - Build and Release workflow: Exclude checksums.txt from PyPI upload (fixes PyPI publish failure)
 
@@ -252,7 +254,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.3...v0.1.4
