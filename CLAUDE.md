@@ -159,23 +159,113 @@ git push origin develop
 
 ### Release Process
 
+**IMPORTANT**: The `main` branch contains ONLY tagged releases. All development happens on `develop`.
+
+#### Gitflow Release Workflow
+
+For releasing version `0.1.x`:
+
 ```bash
-# Create release branch
-git checkout -b release/0.1.0 develop
-
-# Update version and changelog
-# Edit pyproject.toml: version = "0.1.0"
-# Edit CHANGELOG.md: Add release notes
-
-# Tag release
-git checkout main
-git merge release/0.1.0
-git tag -a v0.1.0 -m "Release version 0.1.0"
-git push origin main --tags
-
-# Merge back to develop
+# 1. Ensure develop is up to date
 git checkout develop
-git merge main
+git pull home develop
+
+# 2. Create release branch from develop
+git checkout -b release/0.1.x develop
+
+# 3. Update version and changelog
+# Edit pyproject.toml: version = "0.1.x"
+# Edit CHANGELOG.md: Move [Unreleased] items to [0.1.x] section with date
+# Example CHANGELOG update:
+#   ## [Unreleased]
+#
+#   ## [0.1.x] - 2025-10-19
+#
+#   ### Added
+#   - Feature description
+
+# 4. Commit release preparation
+git add pyproject.toml CHANGELOG.md
+git commit -m "chore: bump version to 0.1.x"
+
+# 5. Merge release branch to main (no fast-forward to preserve history)
+git checkout main
+git merge --no-ff release/0.1.x -m "Release version 0.1.x"
+
+# 6. Tag the release on main
+git tag -a v0.1.x -m "Release version 0.1.x"
+
+# 7. Push main branch and tag to both remotes
+git push home main
+git push github main  # Note: May require temporarily disabling branch protection
+git push home v0.1.x
+git push github v0.1.x
+
+# 8. Merge release branch back to develop (to sync version/changelog changes)
+git checkout develop
+git merge --no-ff release/0.1.x -m "Merge release/0.1.x back to develop"
+git push home develop
+
+# 9. Delete release branch (local and remote)
+git branch -d release/0.1.x
+git push home --delete release/0.1.x  # If pushed to remote
+```
+
+#### Quick Reference: Remote Names
+
+- **home**: Primary remote (ssh://gm@yoda.local:2022/volume1/git/pytest-jux.git)
+  - All branches can be pushed here
+- **github**: Secondary remote (git@github.com:jrjsmrtn/pytest-jux.git)
+  - Only `main` branch allowed (enforced by pre-push hook)
+  - Branch protection may require temporary disabling for force pushes
+
+#### Emergency: Force Push to GitHub Main
+
+If GitHub branch protection prevents pushing to main:
+
+```bash
+# Option 1: Temporarily disable branch protection
+# 1. Go to GitHub Settings → Branches → Branch protection rules
+# 2. Temporarily disable protection for main
+# 3. Run: git push github main --force
+# 4. Re-enable branch protection
+
+# Option 2: Use GitHub web interface
+# 1. Create a temporary branch: git push github release/0.1.x:temp-main-update
+# 2. Open PR from temp-main-update to main
+# 3. Merge (may require admin override)
+# 4. Delete temp branch
+```
+
+#### Hotfix Releases
+
+For critical fixes to production (main):
+
+```bash
+# 1. Create hotfix branch from main
+git checkout main
+git checkout -b hotfix/0.1.x main
+
+# 2. Make and commit fix
+git commit -m "fix(critical): description"
+
+# 3. Update version (patch bump)
+# Edit pyproject.toml and CHANGELOG.md
+
+# 4. Merge to main and tag
+git checkout main
+git merge --no-ff hotfix/0.1.x -m "Hotfix version 0.1.x"
+git tag -a v0.1.x -m "Hotfix version 0.1.x"
+git push home main v0.1.x
+git push github main v0.1.x
+
+# 5. Merge back to develop
+git checkout develop
+git merge --no-ff hotfix/0.1.x
+git push home develop
+
+# 6. Delete hotfix branch
+git branch -d hotfix/0.1.x
 ```
 
 ## Technology Stack
