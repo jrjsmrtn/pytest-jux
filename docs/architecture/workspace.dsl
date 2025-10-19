@@ -76,6 +76,12 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
 
         cicdPipeline -> pytestJux "Executes tests with" "pytest --junit-xml --jux-publish"
 
+        # Container-level relationships (for dynamic views)
+        developer -> pytestPlugin "Executes tests" "pytest CLI"
+        developer -> cliTools "Uses offline tools" "CLI commands"
+        sysadmin -> pytestPlugin "Configures plugin" "Configuration files"
+        sysadmin -> cliTools "Manages keys and reports" "CLI commands"
+
         # External dependencies (shown as relationships)
         signer -> juxApiServer "References API endpoint" "Configuration only"
     }
@@ -109,30 +115,18 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
             description "Component diagram showing standalone CLI utilities"
         }
 
-        # Dynamic View - Test Execution Flow
+        # Dynamic View - Test Execution Flow (Container Level)
         dynamic pytestJux "TestExecutionFlow" "Test execution and report signing workflow" {
             developer -> pytestPlugin "1. Runs pytest --junit-xml --jux-publish"
-            pytestPlugin -> pluginHooks "2. pytest_sessionfinish hook triggered"
-            pluginHooks -> configManager "3. Load configuration"
-            pluginHooks -> metadataCollector "4. Capture environment metadata"
-            pluginHooks -> canonicalizer "5. Canonicalize JUnit XML"
-            pluginHooks -> signer "6. Sign with XMLDSig"
-            pluginHooks -> storageManager "7. Store locally (if enabled)"
-            pluginHooks -> apiClient "8. Publish to API (if enabled)"
-            apiClient -> juxApiServer "9. POST /api/v1/reports"
+            pytestPlugin -> juxApiServer "2. Publishes signed report"
             autolayout lr
         }
 
-        # Dynamic View - Offline Signing Flow
+        # Dynamic View - Offline Signing Flow (Container Level)
         dynamic pytestJux "OfflineSigningFlow" "Manual offline signing workflow" {
-            sysadmin -> keygenCmd "1. jux-keygen --output key.pem"
-            keygenCmd -> signer "2. Generate RSA/ECDSA keypair"
-            sysadmin -> signCmd "3. jux-sign report.xml --key key.pem"
-            signCmd -> canonicalizer "4. Canonicalize XML (C14N)"
-            signCmd -> signer "5. Sign with XMLDSig"
-            signCmd -> storageManager "6. Write signed report"
-            sysadmin -> verifyCmd "7. jux-verify signed_report.xml"
-            verifyCmd -> verifier "8. Verify signature"
+            sysadmin -> cliTools "1. Generate keys (jux-keygen)"
+            sysadmin -> cliTools "2. Sign report (jux-sign)"
+            sysadmin -> cliTools "3. Verify signature (jux-verify)"
             autolayout lr
         }
 
