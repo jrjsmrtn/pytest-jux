@@ -113,9 +113,11 @@ jobs:
 
       - name: Remove non-distribution files before PyPI upload
         run: |
-          # Remove checksums.txt - it's for GitHub Release only, not PyPI
+          # Remove checksums.txt and SLSA provenance - for GitHub Release only
           rm -f dist/checksums.txt
-          # Keep only .whl, .tar.gz, and .intoto.jsonl files
+          rm -f dist/*.intoto.jsonl
+          # Keep only .whl and .tar.gz files (PyPI distributions)
+          # Note: PyPI attestations are generated separately by gh-action-pypi-publish
           echo "Files to be uploaded to PyPI:"
           ls -lh dist/
 
