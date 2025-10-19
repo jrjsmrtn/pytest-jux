@@ -440,3 +440,72 @@ class TestVerifyCommand:
         # Even with quiet, JSON output should be produced
         output = captured_stdout.getvalue()
         assert '"valid": true' in output or '"valid":true' in output
+
+    def test_generic_exception_with_json(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test generic exception handling with JSON output."""
+        signed_path, cert_path = signed_xml
+
+        captured_stdout = StringIO()
+
+        # Mock load_xml to raise generic exception
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "--json"],
+            ),
+            patch("sys.stdout", captured_stdout),
+            patch("pytest_jux.commands.verify.load_xml", side_effect=RuntimeError("Unexpected error")),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        output = captured_stdout.getvalue()
+        assert "error" in output.lower()
+        assert "unexpected error" in output.lower()
+
+    def test_generic_exception_with_quiet(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test generic exception handling with quiet mode."""
+        signed_path, cert_path = signed_xml
+
+        captured_stderr = StringIO()
+
+        # Mock load_xml to raise generic exception
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "-q"],
+            ),
+            patch("sys.stderr", captured_stderr),
+            patch("pytest_jux.commands.verify.load_xml", side_effect=RuntimeError("Unexpected error")),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        # Quiet mode suppresses error output
+        output = captured_stderr.getvalue()
+        assert output == ""
+
+    def test_generic_exception_normal_output(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test generic exception handling with normal output."""
+        signed_path, cert_path = signed_xml
+
+        captured_stderr = StringIO()
+
+        # Mock load_xml to raise generic exception
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path)],
+            ),
+            patch("sys.stderr", captured_stderr),
+            patch("pytest_jux.commands.verify.load_xml", side_effect=RuntimeError("Unexpected error")),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        output = captured_stderr.getvalue()
+        assert "Error:" in output
+        assert "Unexpected error" in output

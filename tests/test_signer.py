@@ -613,3 +613,32 @@ class TestIntegrationWithCanonicalizer:
 
         # Hashes should be different (signature added content)
         assert hash_unsigned != hash_signed
+
+    def test_sign_xml_exception_handling(
+        self, sample_xml_tree: etree._Element, rsa_key_path: Path
+    ) -> None:
+        """Test that sign_xml raises ValueError on signing failure."""
+        from unittest.mock import patch
+
+        key = load_private_key(rsa_key_path)
+
+        # Mock XMLSigner.sign to raise an exception
+        with patch("pytest_jux.signer.XMLSigner.sign", side_effect=RuntimeError("Signing error")):
+            with pytest.raises(ValueError, match="Failed to sign XML"):
+                sign_xml(sample_xml_tree, key)
+
+    def test_verify_signature_exception_handling(
+        self, sample_xml_tree: etree._Element, rsa_key_path: Path, rsa_cert_path: Path
+    ) -> None:
+        """Test that verify_signature returns False on exception."""
+        from pytest_jux.signer import verify_signature
+        from unittest.mock import patch
+
+        key = load_private_key(rsa_key_path)
+        cert = rsa_cert_path.read_bytes()
+        signed_tree = sign_xml(sample_xml_tree, key, cert)
+
+        # Mock XMLVerifier.verify to raise an exception
+        with patch("pytest_jux.signer.XMLVerifier.verify", side_effect=RuntimeError("Verification error")):
+            result = verify_signature(signed_tree)
+            assert result is False

@@ -276,3 +276,37 @@ class TestInspectCommand:
         assert exit_code == 0
         output = captured_stdout.getvalue()
         assert "Tests" in output and "0" in output
+
+    def test_generic_exception_with_json(self, unsigned_xml: Path) -> None:
+        """Test generic exception handling with JSON output."""
+        captured_stdout = StringIO()
+
+        # Mock load_xml to raise generic exception
+        with (
+            patch.object(sys, "argv", ["jux-inspect", "-i", str(unsigned_xml), "--json"]),
+            patch("sys.stdout", captured_stdout),
+            patch("pytest_jux.commands.inspect.load_xml", side_effect=RuntimeError("Unexpected error")),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        output = captured_stdout.getvalue()
+        assert "error" in output.lower()
+        assert "unexpected error" in output.lower()
+
+    def test_generic_exception_normal_output(self, unsigned_xml: Path) -> None:
+        """Test generic exception handling with normal output."""
+        captured_stderr = StringIO()
+
+        # Mock load_xml to raise generic exception
+        with (
+            patch.object(sys, "argv", ["jux-inspect", "-i", str(unsigned_xml)]),
+            patch("sys.stderr", captured_stderr),
+            patch("pytest_jux.commands.inspect.load_xml", side_effect=RuntimeError("Unexpected error")),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        output = captured_stderr.getvalue()
+        assert "Error:" in output
+        assert "Unexpected error" in output

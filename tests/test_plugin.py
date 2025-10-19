@@ -941,3 +941,90 @@ class TestEdgeCases:
 
         # Original XML should be preserved
         assert test_junit_xml.read_text() == original_content
+
+    def test_configure_loads_project_ini_file(
+        self, mock_config: Mock, tmp_path: Path, monkeypatch
+    ) -> None:
+        """Test that pytest_configure loads from pytest.ini in current directory."""
+        monkeypatch.chdir(tmp_path)
+
+        # Create a pytest.ini file
+        pytest_ini = tmp_path / "pytest.ini"
+        pytest_ini.write_text("""[jux]
+enabled = true
+sign = true
+key_path = /path/to/key.pem
+""")
+
+        mock_config.getoption.side_effect = lambda x: {
+            "jux_sign": False,
+            "jux_key": None,
+            "jux_cert": None,
+            "jux_publish": False,
+        }.get(x)
+
+        # Configure should load from pytest.ini
+        # This will raise UsageError because key file doesn't exist, but it proves the file was loaded
+        with pytest.raises(pytest.UsageError, match="Key file not found"):
+            pytest_configure(mock_config)
+
+    def test_configure_with_nonexistent_key_file(
+        self, mock_config: Mock, tmp_path: Path
+    ) -> None:
+        """Test that pytest_configure raises error for nonexistent key file."""
+        mock_config.getoption.side_effect = lambda x: {
+            "jux_sign": True,
+            "jux_key": str(tmp_path / "nonexistent.pem"),
+            "jux_cert": None,
+            "jux_publish": False,
+        }.get(x)
+
+        with pytest.raises(pytest.UsageError, match="Key file not found"):
+            pytest_configure(mock_config)
+
+    def test_configure_loads_user_config_file(
+        self, mock_config: Mock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test that pytest_configure loads from ~/.jux/config."""
+        # Create a fake home directory
+        fake_home = tmp_path / "home"
+        fake_home.mkdir()
+        monkeypatch.setattr("pathlib.Path.home", lambda: fake_home)
+
+        # Change to tmp_path to avoid loading local config files
+        monkeypatch.chdir(tmp_path)
+
+        # Create user config file
+        user_jux_dir = fake_home / ".jux"
+        user_jux_dir.mkdir()
+        user_config = user_jux_dir / "config"
+        user_config.write_text("""[jux]
+enabled = true
+sign = true
+key_path = /path/to/key.pem
+""")
+
+        # CLI options don't override (all None/False)
+        mock_config.getoption.side_effect = lambda x: {
+            "jux_sign": None,  # None means not set on CLI
+            "jux_key": None,
+            "jux_cert": None,
+            "jux_publish": None,
+        }.get(x)
+
+        # Configure should load from user config file
+        # This will raise UsageError because key file doesn't exist, but it proves the file was loaded
+        with pytest.raises(pytest.UsageError, match="Key file not found"):
+            pytest_configure(mock_config)
+
+    def test_sessionfinish_with_nonexistent_xml(
+        self, mock_session: Mock, tmp_path: Path
+    ) -> None:
+        """Test sessionfinish when XML file doesn't exist."""
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = False
+        mock_session.config._jux_storage_mode = None
+        mock_session.config.option.xmlpath = str(tmp_path / "nonexistent.xml")
+
+        # Should handle gracefully (no error)
+        pytest_sessionfinish(mock_session, 0)
