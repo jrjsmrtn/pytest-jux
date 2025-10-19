@@ -1,8 +1,8 @@
 # pytest-jux Roadmap
 
-**Last Updated**: 2025-10-18
-**Current Version**: 0.1.4
-**Current Phase**: Sprint 3 Complete, Sprint 4 Planned
+**Last Updated**: 2025-10-20
+**Current Version**: 0.1.8
+**Current Phase**: Sprint 3 Complete, Sprint 4 Planned (awaiting Jux API Server)
 
 ---
 
@@ -23,7 +23,7 @@ This document outlines the development roadmap from the current state (v0.1.4) t
 
 ---
 
-## Current Status (v0.1.4)
+## Current Status (v0.1.8)
 
 ### Completed Features ✅
 
@@ -54,8 +54,17 @@ This document outlines the development roadmap from the current state (v0.1.4) t
 - `jux-config`: Configuration management CLI
 - Multi-environment configuration guide
 
-**Test Coverage**: 260 tests, 86.76% average coverage
-**Quality**: mypy/ruff warnings (to be resolved in Sprint 4)
+**Recent Improvements** (v0.1.5-0.1.8):
+- pytest-metadata integration for custom metadata in reports
+- Test coverage improvements: 91.92% (346 tests)
+- CI/CD workflow fixes (GitHub Actions, security scanning)
+- REUSE/SPDX license identifiers (ADR-0009) - machine-readable licensing
+- Database dependencies removed (ADR-0010) - clarifies client-side architecture
+- C4 DSL architecture model created
+- Metadata preservation during XMLDSig signing
+
+**Test Coverage**: 346 tests, 91.92% coverage
+**Quality**: Clean codebase (0 critical mypy/ruff errors)
 
 ---
 
@@ -242,6 +251,8 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 - [ ] Document cryptographic standards adherence
 - [ ] Supply chain security (SLSA levels)
 - [ ] SBOM generation (Software Bill of Materials)
+  - ✅ REUSE/SPDX license identifiers implemented (ADR-0009) - prepares for SBOM
+  - CycloneDX/SPDX SBOM generation pending
 
 **Security Hardening**:
 - [ ] Harden default configuration (secure by default)
