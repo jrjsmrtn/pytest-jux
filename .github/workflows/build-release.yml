@@ -111,6 +111,14 @@ jobs:
           name: ${{ needs.provenance.outputs.provenance-name }}
           path: dist/
 
+      - name: Remove non-distribution files before PyPI upload
+        run: |
+          # Remove checksums.txt - it's for GitHub Release only, not PyPI
+          rm -f dist/checksums.txt
+          # Keep only .whl, .tar.gz, and .intoto.jsonl files
+          echo "Files to be uploaded to PyPI:"
+          ls -lh dist/
+
       - name: Publish to PyPI with attestations
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
