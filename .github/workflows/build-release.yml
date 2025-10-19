@@ -85,6 +85,7 @@ jobs:
       base64-subjects: "${{ needs.build.outputs.hashes }}"
       upload-assets: false
       provenance-name: "pytest-jux-${{ needs.build.outputs.version }}.intoto.jsonl"
+      private-repository: true
 
   publish-pypi:
     name: Publish to PyPI
