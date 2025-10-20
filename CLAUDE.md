@@ -577,50 +577,46 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Sprint 5 Complete - Starting Sprint 6
+**Current Phase**: Sprint 6 Complete - OpenSSF Badge Ready
 **Completed Sprints**:
 - ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
 - ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
 - ✅ Sprint 2: CLI Tools (jux-keygen, jux-sign, jux-verify, jux-inspect)
 - ✅ Sprint 3: Configuration, Storage & Caching (v0.1.3, v0.1.4)
 - ✅ Sprint 5: Documentation & User Experience (v0.2.0)
+- ✅ Sprint 6: OpenSSF Best Practices Badge (v0.2.1)
 
-**Sprint 5 Completed** (Documentation & User Experience - v0.2.0):
-- ✅ Complete Diátaxis Documentation Framework (50+ documents, 30,000+ lines)
-  - 7 API Reference Pages (auto-generated + enhanced)
-  - 3 Complete Tutorials (beginner → intermediate → advanced)
-  - 10 How-To Guides (key management, storage, CI/CD, troubleshooting)
-  - 4 Explanation Documents (architecture, security, performance, testing)
-- ✅ User Experience Improvements
-  - Enhanced CLI help text (all 6 commands)
-  - Improved error messages (errors.py, 23 error codes)
-  - 5 configuration templates
-  - Shell completion scripts (bash, zsh, fish)
-- ✅ Development Tools
-  - Quick-start setup wizard (scripts/quickstart.sh)
-  - Documentation review checklist
-  - Documentation testing script
-- ✅ Test Coverage Improvements (89.70%, up from 86.09%)
-  - commands/keygen.py: 73.58% → 100.00%
-  - commands/verify.py: 72.99% → 88.32%
-  - Stricter codecov thresholds (88% project target)
+**Sprint 6 Completed** (OpenSSF Best Practices Badge - v0.2.1):
+- ✅ US-6.1: Test Coverage Visibility (89.70%, Codecov integrated)
+- ✅ US-6.2: Vulnerability Disclosure (SECURITY.md, GitHub Security Advisories)
+- ✅ US-6.3: SBOM Generation (CycloneDX, automated in releases)
+  - SBOM generation in build-release workflow
+  - Comprehensive SBOM documentation (369 lines)
+  - SBOM validation in security workflow
+- ✅ US-6.4: OpenSSF Badge Readiness (100% criteria met)
+  - Complete badge readiness assessment (342 lines)
+  - All MUST criteria documented and met
+  - Ready for manual application
+- ✅ US-6.5: Dependency Scanning (strict enforcement)
+  - pip-audit --strict (fails on vulnerabilities)
+  - Trivy exit-code enforcement
+  - SBOM-based dependency auditing
+- ✅ Bonus: XDG Base Directory compliance for config files
+- ✅ Bonus: Repository hygiene (.jux-dogfood cleanup)
 
-**Total Sprint 5**: 50+ documents, 30,000+ lines of documentation, 354 tests passing
+**Total Sprint 6**: 5 user stories, 700+ lines documentation, 10 commits, 100% badge criteria met
 
-**Current Sprint**: Sprint 6 - OpenSSF Best Practices Badge
-- 🚧 In Progress
-- Target: Achieve OpenSSF Best Practices Badge (Passing Level)
-- Focus: SBOM generation, dependency scanning, security posture
-- See: [Sprint 6 Plan](docs/sprints/sprint-06-openssf-best-practices-badge.md)
+**Next Steps**: Manual badge application at https://www.bestpractices.dev/
 
 **Postponed Sprint**: Sprint 4 - REST API Client & Plugin Integration
 - ⏸️ Postponed (awaiting Jux API Server availability)
 - Target: v0.3.0 (Beta Milestone)
 - See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
 
-**Version**: 0.2.0 (released 2025-10-20)
+**Version**: 0.2.1 (in preparation)
+**Previous Release**: 0.2.0 (released 2025-10-20)
 **Current Branch**: develop
-**Test Coverage**: 89.70% (354 tests passing, 9 skipped, 8 xfailed)
+**Test Coverage**: 89.70% (360 tests passing, 9 skipped, 8 xfailed)
 
 ---
 

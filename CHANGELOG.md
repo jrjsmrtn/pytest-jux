@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-10-20
+
+### Added
+- **Sprint 6 (OpenSSF Best Practices Badge) - Complete**
+- **SBOM Generation** (Software Bill of Materials):
+  - Automated CycloneDX 1.6 JSON SBOM generation in build-release workflow
+  - SBOM uploaded as release artifact for every release
+  - SBOM validation job in security workflow
+  - Comprehensive SBOM documentation (369 lines) in docs/security/SLSA_VERIFICATION.md
+  - SBOM validation with cyclonedx-cli
+  - SBOM-based dependency auditing with pip-audit
+- **OpenSSF Best Practices Badge Readiness**:
+  - Complete badge readiness assessment (342 lines) in docs/security/OPENSSF_BADGE_READINESS.md
+  - 100% of MUST criteria documented and met
+  - Evidence mapping for all badge requirements
+  - Step-by-step badge application guide
+- **Security Documentation**:
+  - Root SECURITY.md file for GitHub Security tab integration
+  - Updated docs/security/SECURITY.md with v0.2.0 status and current security practices
+  - 48-hour response time, 90-day coordinated disclosure timeline
+  - GitHub Security Advisories integration documented
+- **Enhanced Dependency Scanning**:
+  - pip-audit with --strict mode (fails CI on any vulnerabilities)
+  - Trivy with exit-code enforcement (fails on critical/high vulnerabilities)
+  - SBOM validation and dependency audit job in security workflow
+- **Sprint 6 Retrospective**: Complete sprint analysis with metrics, learnings, and recommendations
+
+### Changed
+- **BREAKING CHANGE**: Config file location changed from ~/.jux/config to ~/.config/jux/config
+  - Implements XDG Base Directory Specification compliance
+  - Respects $XDG_CONFIG_HOME environment variable
+  - Fallback to ~/.config/jux/config if XDG_CONFIG_HOME not set
+  - Updated all documentation to reflect XDG-compliant paths
+  - Updated tests to use new config path
+  - No migration needed (alpha release, no installed base)
+- Enhanced .github/workflows/security.yml with strict failure modes
+- Updated codecov configuration with stricter thresholds (88% project target)
+
+### Fixed
+- Repository hygiene: Removed .jux-dogfood/jux.conf from git tracking (kept local file)
+- XDG compliance: Config files now follow XDG Base Directory Specification
+- Documentation consistency: All config file path references updated
+
+### Security
+- Strict dependency scanning prevents merging code with known vulnerabilities
+- SBOM provides complete dependency transparency
+- Enhanced supply chain security (SLSA L2 + SBOM + PyPI attestations + dependency scanning)
+
 ## [0.2.0] - 2025-10-20
 
 ### Added
