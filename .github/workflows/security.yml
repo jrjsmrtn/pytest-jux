@@ -37,9 +37,14 @@ jobs:
       - name: Run pip-audit (PyPA Official)
         run: |
           uv pip install --system pip-audit
+          # Generate JSON report for artifact
           pip-audit --desc --format json --output pip-audit-report.json || true
-          pip-audit --desc
-        continue-on-error: true
+          # Run with human-readable output and fail on vulnerabilities
+          echo "Running pip-audit with vulnerability detection..."
+          pip-audit --desc --strict || {
+            echo "::warning::pip-audit found vulnerabilities in dependencies"
+            exit 1
+          }
 
       - name: Run Ruff Security Rules
         run: |
@@ -96,7 +101,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner (SARIF)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
@@ -104,6 +109,16 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+
+      - name: Run Trivy vulnerability scanner (Table)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'  # Fail build on critical/high vulnerabilities
+          ignore-unfixed: true  # Only fail on fixable issues
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
@@ -119,6 +134,92 @@ jobs:
           name: trivy-results
           path: trivy-results.sarif
   
+  sbom-validation:
+    name: SBOM Validation & Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install cyclonedx-bom
+        run: |
+          uv pip install --system cyclonedx-bom
+
+      - name: Generate SBOM
+        run: |
+          cyclonedx-py requirements \
+            --pyproject pyproject.toml \
+            --format json \
+            --output-file pytest-jux-sbom.cdx.json
+
+          echo "Generated SBOM:"
+          ls -lh pytest-jux-sbom.cdx.json
+
+      - name: Install CycloneDX CLI (via npm)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install cyclonedx-cli
+        run: |
+          npm install -g @cyclonedx/cyclonedx-cli
+
+      - name: Validate SBOM
+        run: |
+          cyclonedx-cli validate \
+            --input-file pytest-jux-sbom.cdx.json \
+            --fail-on-errors
+
+          echo "✓ SBOM validation passed"
+
+      - name: Analyze SBOM
+        run: |
+          echo "SBOM Analysis:"
+          cyclonedx-cli analyze \
+            --input-file pytest-jux-sbom.cdx.json || echo "Analysis command not available"
+
+          # Show component count
+          echo "Component count:"
+          cat pytest-jux-sbom.cdx.json | \
+            python -c "import sys, json; data=json.load(sys.stdin); print(f'Total components: {len(data.get(\"components\", []))}')"
+
+      - name: Audit dependencies from SBOM
+        run: |
+          uv pip install --system pip-audit
+
+          # Convert SBOM to requirements.txt format
+          cyclonedx-cli convert \
+            --input-file pytest-jux-sbom.cdx.json \
+            --output-format requirements.txt \
+            --output-file sbom-requirements.txt || {
+              echo "Warning: SBOM conversion not available in this version of cyclonedx-cli"
+              echo "Falling back to direct pip-audit scan"
+            }
+
+          # Audit dependencies
+          if [ -f sbom-requirements.txt ]; then
+            pip-audit -r sbom-requirements.txt --desc --strict
+          else
+            # Fallback: audit installed packages
+            pip-audit --desc --strict
+          fi
+
+      - name: Upload SBOM artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: pytest-jux-sbom.cdx.json
+
   security-tests:
     name: Security Test Suite
     runs-on: ubuntu-latest
@@ -146,7 +247,7 @@ jobs:
           else
             echo "No security tests found - skipping"
           fi
-      
+
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
