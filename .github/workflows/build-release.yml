@@ -101,7 +101,7 @@ jobs:
           VERSION="${{ needs.build.outputs.version }}"
           cyclonedx-py requirements \
             --pyproject pyproject.toml \
-            --format json \
+            --of JSON \
             --output-file "pytest-jux-${VERSION}-sbom.cdx.json"
 
           echo "Generated SBOM:"
