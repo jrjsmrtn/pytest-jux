@@ -3,10 +3,10 @@
 
 """jux-keygen: Generate cryptographic keys for signing JUnit XML reports."""
 
+import os
 import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Union
 
 import configargparse
 from cryptography import x509
@@ -15,8 +15,14 @@ from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.x509.oid import NameOID
 from rich.console import Console
 
+from pytest_jux.errors import (
+    FileAlreadyExistsError,
+    FilePermissionError,
+    InvalidArgumentError,
+)
+
 # Type alias for private keys
-PrivateKeyTypes = Union[rsa.RSAPrivateKey, ec.EllipticCurvePrivateKey]
+PrivateKeyTypes = rsa.RSAPrivateKey | ec.EllipticCurvePrivateKey
 
 console = Console()
 
@@ -146,30 +152,67 @@ def generate_self_signed_cert(
     cert_path.write_bytes(cert_pem)
 
 
-def main() -> int:
-    """Main entry point for jux-keygen command.
+def create_parser() -> configargparse.ArgumentParser:
+    """Create argument parser for jux-keygen command.
 
     Returns:
-        Exit code (0 for success, 1 for error)
+        Configured argument parser
+
+    Note:
+        This function is called by sphinx-argparse-cli for documentation generation.
     """
+    epilog = """
+examples:
+  Generate RSA-2048 key (development):
+    jux-keygen --type rsa --bits 2048 --output ~/.ssh/jux/dev-key.pem
+
+  Generate RSA-4096 key with certificate (production):
+    jux-keygen --type rsa --bits 4096 --output ~/.ssh/jux/prod-key.pem \\
+      --cert --subject "CN=My Organization CI/CD" --days-valid 365
+
+  Generate ECDSA-P256 key (performance-critical):
+    jux-keygen --type ecdsa --curve P-256 --output ~/.ssh/jux/ecdsa-key.pem
+
+  Generate key with auto-generated certificate:
+    jux-keygen --output ~/.ssh/jux/signing-key.pem --cert
+
+security notes:
+  - Private keys are saved with 0600 permissions (owner read/write only)
+  - Self-signed certificates are for development/testing only
+  - For production, use proper PKI/CA-signed certificates
+  - Never commit private keys to version control
+
+see also:
+  jux-sign    Sign JUnit XML reports
+  jux-verify  Verify signed reports
+  jux-config  Manage configuration
+
+For detailed documentation, see:
+  https://docs.pytest-jux.org/reference/cli/keygen/
+"""
+
     parser = configargparse.ArgumentParser(
-        description="Generate cryptographic keys for signing JUnit XML reports",
+        description="Generate cryptographic signing keys for JUnit XML reports.\n\n"
+        "Supports RSA (2048/3072/4096-bit) and ECDSA (P-256/P-384/P-521) keys. "
+        "Keys are saved in PEM format with secure file permissions (0600). "
+        "Optionally generates self-signed X.509 certificates for development use.",
         default_config_files=["~/.jux/config", "/etc/jux/config"],
-        formatter_class=configargparse.ArgumentDefaultsHelpFormatter,
+        formatter_class=configargparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
     )
 
     parser.add_argument(
         "-c",
         "--config",
         is_config_file=True,
-        help="Config file path",
+        help="Configuration file path (default: ~/.jux/config)",
     )
 
     parser.add_argument(
         "--type",
         choices=["rsa", "ecdsa"],
         default="rsa",
-        help="Key type (rsa or ecdsa)",
+        help="Key algorithm: 'rsa' (default, widely compatible) or 'ecdsa' (faster, smaller)",
     )
 
     parser.add_argument(
@@ -177,44 +220,92 @@ def main() -> int:
         type=int,
         choices=[2048, 3072, 4096],
         default=2048,
-        help="RSA key size in bits (for RSA keys only)",
+        help="RSA key size in bits (applies to RSA keys only). "
+        "Use 2048 for development, 4096 for production. Default: 2048",
     )
 
     parser.add_argument(
         "--curve",
         choices=["P-256", "P-384", "P-521"],
         default="P-256",
-        help="ECDSA curve (for ECDSA keys only)",
+        help="ECDSA curve name (applies to ECDSA keys only). "
+        "P-256 (default) provides 128-bit security, P-384 provides 192-bit security",
     )
 
     parser.add_argument(
         "--output",
         type=Path,
         required=True,
-        help="Output path for private key (PEM format)",
+        help="Output file path for private key (PEM format). "
+        "Parent directories will be created if they don't exist. "
+        "Example: ~/.ssh/jux/signing-key.pem",
+        metavar="PATH",
     )
 
     parser.add_argument(
         "--cert",
         action="store_true",
-        help="Generate self-signed X.509 certificate",
+        help="Generate a self-signed X.509 certificate alongside the private key. "
+        "Certificate will be saved as <output>.crt (e.g., signing-key.pem.crt). "
+        "Self-signed certificates are suitable for development/testing only",
     )
 
     parser.add_argument(
         "--subject",
         default="CN=pytest-jux",
-        help="Certificate subject (RFC 4514 format)",
+        help="X.509 certificate subject in RFC 4514 format (used with --cert). "
+        "Example: 'CN=My Organization CI/CD'. Default: 'CN=pytest-jux'",
+        metavar="DN",
     )
 
     parser.add_argument(
         "--days-valid",
         type=int,
         default=365,
-        help="Certificate validity period in days",
+        help="Certificate validity period in days (used with --cert). "
+        "Default: 365 days (1 year)",
+        metavar="DAYS",
     )
+
+    return parser
+
+
+def main() -> int:
+    """Main entry point for jux-keygen command.
+
+    Returns:
+        Exit code (0 for success, 1 for error)
+    """
+    parser = create_parser()
+
+    # Get debug mode from environment
+    debug = os.getenv("JUX_DEBUG") == "1"
 
     try:
         args = parser.parse_args()
+
+        # Check if output file already exists
+        if args.output.exists():
+            raise FileAlreadyExistsError(
+                args.output,
+                command_hint="Currently, jux-keygen does not support --force. "
+                "Remove the file manually or choose a different path.",
+            )
+
+        # Validate arguments
+        if args.type == "rsa" and args.bits not in (2048, 3072, 4096):
+            raise InvalidArgumentError(
+                "--bits",
+                f"Invalid RSA key size: {args.bits}",
+                valid_values=["2048", "3072", "4096"],
+            )
+
+        if args.type == "ecdsa" and args.curve not in ("P-256", "P-384", "P-521"):
+            raise InvalidArgumentError(
+                "--curve",
+                f"Invalid ECDSA curve: {args.curve}",
+                valid_values=["P-256", "P-384", "P-521"],
+            )
 
         # Generate key
         console.print(f"[bold]Generating {args.type.upper()} key...[/bold]")
@@ -243,20 +334,45 @@ def main() -> int:
         console.print("\n[green]Key generation complete![/green]")
         return 0
 
+    except FileAlreadyExistsError as e:
+        # File already exists
+        e.print_error()
+        return 1
+
+    except InvalidArgumentError as e:
+        # Invalid argument
+        e.print_error()
+        return 1
+
     except ValueError as e:
-        console.print(f"[red]Error:[/red] {e}", file=sys.stderr)
+        # Convert ValueError to InvalidArgumentError
+        InvalidArgumentError(
+            "key generation",
+            str(e),
+        ).print_error()
         return 1
-    except PermissionError as e:
-        console.print(
-            f"[red]Permission denied:[/red] {e}",
-            file=sys.stderr,
-        )
+
+    except PermissionError:
+        # Convert PermissionError to FilePermissionError
+        FilePermissionError(
+            args.output if hasattr(args, "output") else Path("."),
+            operation="write",
+        ).print_error()
         return 1
+
     except Exception as e:
-        console.print(
-            f"[red]Unexpected error:[/red] {e}",
-            file=sys.stderr,
-        )
+        # Handle unexpected errors in non-debug mode
+        if debug:
+            raise
+        from rich.console import Console
+        console_err = Console(stderr=True)
+        console_err.print("[red]Unexpected error:[/red]")
+        console_err.print(f"  {type(e).__name__}: {e}")
+        console_err.print("\n[yellow]This is likely a bug in pytest-jux[/yellow]")
+        console_err.print("Please report this at:")
+        console_err.print("  https://github.com/jrjsmrtn/pytest-jux/issues")
+        console_err.print("\nInclude the error message above and the command you ran.")
+        console_err.print("\n[dim]Tip: Run with JUX_DEBUG=1 for more details[/dim]")
         return 1
 
 

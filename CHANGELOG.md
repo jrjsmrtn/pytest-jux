@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-10-20
+
+### Added
+- **Sprint 5 (Documentation & User Experience) - Complete**
+- **Complete Diátaxis Documentation Framework** (50+ documents, 30,000+ lines):
+  - **7 API Reference Pages** (auto-generated + enhanced):
+    - canonicalizer.md (571 lines, hand-written with examples)
+    - signer.md (685 lines, hand-written with examples)
+    - verifier.md, storage.md, config.md, metadata.md, plugin.md (auto-generated + enhanced)
+  - **3 Complete Tutorials** (beginner → intermediate → advanced):
+    - First Signed Report (567 lines) - Beginner walkthrough with tamper detection
+    - Integration Testing (extensive) - Multi-environment setup and CI/CD integration
+    - Custom Signing Workflows (extensive) - Programmatic API usage and batch processing
+  - **10 Comprehensive How-To Guides**:
+    - Key Management: rotate-signing-keys.md (1,100+), secure-key-storage.md (1,200+), backup-restore-keys.md (1,100+)
+    - Storage: migrate-storage-paths.md (1,000+), manage-report-cache.md (1,100+)
+    - Configuration: multi-environment-config.md (766 lines, already existed)
+    - Integration: integrate-pytest-plugins.md (1,100+), CI/CD deployment (existing)
+    - Troubleshooting: troubleshooting.md (1,100+) - Comprehensive diagnostic guide
+  - **4 Explanation Documents**:
+    - Architecture (1,400+ lines) - System design, components, design decisions
+    - Security (1,500+ lines) - Threat model, security best practices, compliance
+    - Performance (1,400+ lines) - Benchmarks, scalability, optimization
+    - Understanding pytest-jux (existing)
+  - **Complete Reference Documentation**:
+    - Configuration Reference (450+ lines) - All options with precedence rules
+    - Error Code Reference (550+ lines) - Complete catalog with solutions
+    - CLI Reference (sphinx-argparse-cli auto-generated for all 6 commands)
+  - **Documentation Infrastructure**:
+    - INDEX.md (650+ lines) - Complete documentation map with 50+ links
+    - NAVIGATION.md (400+ lines) - Finding documentation by goal/topic
+    - README.md updated with comprehensive documentation section
+
+- **User Experience Improvements**:
+  - **Enhanced CLI Help Text** (all 6 commands):
+    - Rich descriptions with examples in epilog
+    - Practical usage patterns
+    - Cross-references to related commands
+    - Better option descriptions
+  - **Improved Error Messages** (errors.py module, 122 lines):
+    - 23 error codes for programmatic handling
+    - 13 specific error classes with actionable suggestions
+    - User-friendly formatted output (no stack traces)
+    - Debug mode support via JUX_DEBUG environment variable
+  - **5 Configuration Templates**:
+    - minimal - Basic options (10 lines)
+    - full - All options with comments (45 lines)
+    - development - Dev environment with RSA-2048 (25 lines)
+    - ci - CI/CD with GitHub Actions/GitLab CI examples (50 lines)
+    - production - Security requirements and RSA-4096 (60 lines)
+  - **Shell Completion Scripts**:
+    - completions/jux.bash (230 lines) - Bash completion
+    - completions/jux.zsh (170 lines) - Zsh completion
+    - completions/jux.fish (110 lines) - Fish completion
+    - completions/README.md (280 lines) - Installation guide
+
+- **Development Tools**:
+  - **Quick-Start Script** (scripts/quickstart.sh, 300+ lines):
+    - Interactive setup wizard with color-coded output
+    - Key generation (RSA-2048, RSA-4096, ECDSA-P256)
+    - Configuration creation from templates
+    - Sample report generation, signing, and verification
+    - Non-interactive mode (--non-interactive flag)
+  - **Documentation Review Checklist** (.github/DOC_REVIEW_CHECKLIST.md, 650+ lines):
+    - 10 major sections with detailed sub-checks
+    - Diátaxis framework compliance
+    - pytest-jux specific security checks
+  - **Documentation Testing Script** (scripts/test_docs.py, 400+ lines):
+    - Automatic code block extraction from Markdown
+    - Bash and Python example validation
+    - Color-coded test results
+    - Dry-run and verbose modes
+
+### Changed
+- Sprint 5 target version updated from v0.3.0 to v0.2.0 (Sprint 4 postponed)
+- Sphinx documentation infrastructure with autodoc and sphinx-argparse-cli
+- All CLI commands refactored with create_parser() functions for autodoc
+- README.md significantly expanded with documentation navigation
+
+### Documentation
+- **Time Saved**: ~5-7 days through Sphinx automation (autodoc + sphinx-argparse-cli)
+- **Total Documents**: 50+ documents across all Diátaxis categories
+- **Total Lines**: 30,000+ lines of documentation
+- **Coverage**: 100% of planned Diátaxis categories populated
+
+### Notes
+- Sprint 5 completed in 1 day (2025-10-20) thanks to Sphinx automation
+- All 6 epics complete (19 tasks total)
+- Documentation framework now complete and production-ready
+- Ready for v1.0.0 when Sprint 4 (API Integration) completes
+
 ## [0.1.9] - 2025-10-20
 
 ### Added
@@ -294,7 +385,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.9...v0.2.0
 [0.1.9]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.6...v0.1.7
