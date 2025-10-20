@@ -75,30 +75,126 @@ def is_signed(tree: etree._Element) -> bool:
     return signature is not None
 
 
-def main() -> int:
-    """Inspect JUnit XML report.
+def create_parser() -> configargparse.ArgumentParser:
+    """Create argument parser for jux-inspect command.
 
     Returns:
-        Exit code (0 for success, 1 for error)
+        Configured argument parser
+
+    Note:
+        This function is called by sphinx-argparse-cli for documentation generation.
     """
+    epilog = """
+examples:
+  Inspect test report (interactive):
+    jux-inspect --input junit.xml
+
+  Inspect signed report:
+    jux-inspect -i signed.xml
+
+  Inspect with JSON output (for automation):
+    jux-inspect -i junit.xml --json
+
+  Inspect from stdin:
+    cat junit.xml | jux-inspect
+
+  Extract canonical hash for duplicate detection:
+    jux-inspect -i junit.xml --json | jq -r '.canonical_hash'
+
+  Check if report is signed:
+    jux-inspect -i report.xml --json | jq -r '.signed'
+
+usage patterns:
+  Quick summary:
+    jux-inspect -i junit.xml
+    # Shows: tests, failures, errors, skipped, passed, hash, signature status
+
+  Automated processing:
+    hash=$(jux-inspect -i junit.xml --json | jq -r '.canonical_hash')
+    echo "Report hash: $hash"
+
+  Duplicate detection:
+    hash1=$(jux-inspect -i report1.xml --json | jq -r '.canonical_hash')
+    hash2=$(jux-inspect -i report2.xml --json | jq -r '.canonical_hash')
+    if [ "$hash1" = "$hash2" ]; then
+      echo "Reports are identical (duplicate)"
+    fi
+
+  Batch inspection:
+    for file in reports/*.xml; do
+      echo "=== $file ==="
+      jux-inspect -i "$file"
+    done
+
+output (interactive mode):
+  Test Report Summary
+    Tests:    100
+    Failures: 2
+    Errors:   0
+    Skipped:  5
+    Passed:   93
+
+  Canonical Hash: 1a2b3c4d...5e6f7g8h
+  Signature:      Present
+
+output (JSON mode):
+  {
+    "tests": 100,
+    "failures": 2,
+    "errors": 0,
+    "skipped": 5,
+    "passed": 93,
+    "canonical_hash": "1a2b3c4d5e6f7g8h...",
+    "signed": true
+  }
+
+see also:
+  jux-sign    Sign reports
+  jux-verify  Verify signatures
+  jux-cache   Manage report cache
+
+For detailed documentation, see:
+  https://docs.pytest-jux.org/reference/cli/inspect/
+"""
+
     parser = configargparse.ArgumentParser(
-        description="Inspect JUnit XML report",
+        description="Inspect JUnit XML test reports and display statistics.\n\n"
+        "Analyzes test reports to show test counts, pass/fail statistics, canonical hash "
+        "for duplicate detection, and signature status. Supports both signed and unsigned "
+        "reports. Outputs human-readable summary or JSON for automation.",
         default_config_files=["~/.jux/config", "/etc/jux/config"],
+        formatter_class=configargparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
     )
 
     parser.add_argument(
         "-i",
         "--input",
         type=Path,
-        help="Input XML file (default: stdin)",
+        help="Input JUnit XML report file to inspect. "
+        "If not specified, reads from standard input (stdin). "
+        "Can be signed or unsigned report",
+        metavar="FILE",
     )
 
     parser.add_argument(
         "--json",
         action="store_true",
-        help="Output result in JSON format",
+        help="Output inspection results in JSON format. "
+        "Returns test statistics, canonical hash, and signature status. "
+        "Useful for automated processing and duplicate detection",
     )
 
+    return parser
+
+
+def main() -> int:
+    """Inspect JUnit XML report.
+
+    Returns:
+        Exit code (0 for success, 1 for error)
+    """
+    parser = create_parser()
     args = parser.parse_args()
 
     try:

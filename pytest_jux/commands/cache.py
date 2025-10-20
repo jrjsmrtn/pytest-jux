@@ -254,59 +254,115 @@ def create_parser() -> argparse.ArgumentParser:
     Returns:
         Configured ArgumentParser
     """
+    epilog = """
+examples:
+  List all cached reports:
+    jux-cache list
+
+  Show cache statistics:
+    jux-cache stats
+
+  Show specific report details:
+    jux-cache show 1a2b3c4d5e6f...
+
+  Clean old reports (older than 30 days):
+    jux-cache clean --days 30
+
+  Dry-run cleanup (preview what would be deleted):
+    jux-cache clean --days 30 --dry-run
+
+  Use custom storage path:
+    jux-cache list --storage-path /mnt/data/pytest-jux
+
+For detailed documentation, see:
+  https://docs.pytest-jux.org/reference/cli/cache/
+"""
+
     parser = argparse.ArgumentParser(
         prog="jux-cache",
-        description="Manage pytest-jux cached reports",
+        description="Manage pytest-jux report cache.\n\n"
+        "View, inspect, and clean up locally cached signed test reports. "
+        "Reports are stored by canonical hash for duplicate detection. "
+        "Supports listing, statistics, cleanup, and detailed inspection.",
+        epilog=epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument(
         "--storage-path",
         type=str,
-        help="Custom storage directory path",
+        help="Custom storage directory path (default: ~/.local/share/pytest-jux). "
+        "Override default XDG storage location",
+        metavar="PATH",
     )
 
-    subparsers = parser.add_subparsers(dest="command", help="Subcommand to run")
+    subparsers = parser.add_subparsers(
+        dest="command",
+        help="Cache management subcommands",
+        metavar="COMMAND",
+    )
 
     # List subcommand
-    parser_list = subparsers.add_parser("list", help="List all cached reports")
+    parser_list = subparsers.add_parser(
+        "list",
+        help="List all cached reports with metadata",
+        description="Display all reports stored in the cache with their hashes, "
+        "timestamps, and metadata. Use --json for machine-readable output.",
+    )
     parser_list.add_argument(
         "--json",
         action="store_true",
-        help="Output in JSON format",
+        help="Output report list in JSON format for automation",
     )
 
     # Show subcommand
-    parser_show = subparsers.add_parser("show", help="Show report details")
+    parser_show = subparsers.add_parser(
+        "show",
+        help="Show detailed information for a specific report",
+        description="Display complete report contents and metadata for a given canonical hash.",
+    )
     parser_show.add_argument(
         "hash",
-        help="Report canonical hash",
+        help="Report canonical hash (SHA-256 hex string, can be abbreviated)",
+        metavar="HASH",
     )
     parser_show.add_argument(
         "--json",
         action="store_true",
-        help="Output in JSON format",
+        help="Output report details in JSON format",
     )
 
     # Stats subcommand
-    parser_stats = subparsers.add_parser("stats", help="Show cache statistics")
+    parser_stats = subparsers.add_parser(
+        "stats",
+        help="Display cache storage statistics",
+        description="Show cache size, report count, oldest/newest reports, and disk usage.",
+    )
     parser_stats.add_argument(
         "--json",
         action="store_true",
-        help="Output in JSON format",
+        help="Output statistics in JSON format",
     )
 
     # Clean subcommand
-    parser_clean = subparsers.add_parser("clean", help="Remove old reports")
+    parser_clean = subparsers.add_parser(
+        "clean",
+        help="Remove old reports from cache",
+        description="Delete reports older than the specified number of days. "
+        "Use --dry-run to preview what would be deleted without actually removing files.",
+    )
     parser_clean.add_argument(
         "--days",
         type=int,
         required=True,
-        help="Remove reports older than N days",
+        help="Remove reports older than N days (required)",
+        metavar="N",
     )
     parser_clean.add_argument(
         "--dry-run",
         action="store_true",
-        help="Show what would be removed without actually deleting",
+        help="Preview files that would be deleted without actually removing them. "
+        "Shows report hashes and timestamps for review",
     )
 
     return parser

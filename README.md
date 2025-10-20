@@ -71,13 +71,13 @@ All pytest-jux releases include cryptographic provenance attestations:
 go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
 
 # Download and verify
-pip download pytest-jux==0.1.5 --no-deps
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
+pip download pytest-jux==0.2.0 --no-deps
+curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.2.0/pytest-jux-0.2.0.intoto.jsonl
 
 slsa-verifier verify-artifact \
-  --provenance-path pytest-jux-0.1.5.intoto.jsonl \
+  --provenance-path pytest-jux-0.2.0.intoto.jsonl \
   --source-uri github.com/jrjsmrtn/pytest-jux \
-  pytest_jux-0.1.5-py3-none-any.whl
+  pytest_jux-0.2.0-py3-none-any.whl
 ```
 
 See [SLSA Verification Guide](docs/security/SLSA_VERIFICATION.md) for complete instructions.
@@ -460,6 +460,92 @@ jux-config validate
 ```
 
 See CLI tool documentation for complete usage details.
+
+## Documentation
+
+**Complete Documentation Index**: See **[docs/INDEX.md](docs/INDEX.md)** for a complete map of all available documentation.
+
+This project follows the [Diátaxis framework](https://diataxis.fr/), organizing documentation into four categories:
+
+### 📚 Tutorials (Learning-Oriented)
+
+Step-by-step guides to learn pytest-jux from beginner to advanced:
+
+- **[Quick Start](docs/tutorials/quick-start.md)** - Get started in 5 minutes
+- **[Setting Up Signing Keys](docs/tutorials/setting-up-signing-keys.md)** - Generate and configure cryptographic keys (10 minutes)
+- **[First Signed Report](docs/tutorials/first-signed-report.md)** - Complete beginner walkthrough with tamper detection (15-20 min)
+- **[Integration Testing](docs/tutorials/integration-testing.md)** - Multi-environment setup and CI/CD integration (30-45 min)
+- **[Custom Signing Workflows](docs/tutorials/custom-signing-workflows.md)** - Programmatic API usage and batch processing (30-40 min)
+
+### 🛠️ How-To Guides (Problem-Oriented)
+
+Practical solutions to specific problems:
+
+**Key Management:**
+- [Rotate Signing Keys](docs/howto/rotate-signing-keys.md)
+- [Secure Key Storage](docs/howto/secure-key-storage.md)
+- [Backup & Restore Keys](docs/howto/backup-restore-keys.md)
+
+**Storage & Configuration:**
+- [Migrate Storage Paths](docs/howto/migrate-storage-paths.md)
+- [Manage Report Cache](docs/howto/manage-report-cache.md)
+- [Choosing Storage Modes](docs/howto/choosing-storage-modes.md)
+- [Multi-Environment Configuration](docs/howto/multi-environment-config.md)
+
+**Integration:**
+- [CI/CD Deployment](docs/howto/ci-cd-deployment.md) - GitHub Actions, GitLab CI, Jenkins
+- [Integrate with pytest Plugins](docs/howto/integrate-pytest-plugins.md)
+- [Add Metadata to Reports](docs/howto/add-metadata-to-reports.md)
+
+**Troubleshooting:**
+- [Troubleshooting Guide](docs/howto/troubleshooting.md) - Diagnose and fix common issues
+
+### 📖 Reference (Information-Oriented)
+
+Complete technical reference documentation:
+
+**API Reference:**
+- [API Index](docs/reference/api/index.md) - Overview of all modules
+- [Canonicalizer API](docs/reference/api/canonicalizer.md) - XML canonicalization and hashing
+- [Signer API](docs/reference/api/signer.md) - XMLDSig signature generation
+- [Verifier API](docs/reference/api/verifier.md) - Signature verification
+- [Storage API](docs/reference/api/storage.md) - Report caching and storage
+- [Config API](docs/reference/api/config.md) - Configuration management
+- [Metadata API](docs/reference/api/metadata.md) - Environment metadata collection
+- [Plugin API](docs/reference/api/plugin.md) - pytest plugin hooks
+
+**CLI Reference:**
+- [CLI Index](docs/reference/cli/index.md) - All CLI commands with examples
+
+**Configuration:**
+- [Configuration Reference](docs/reference/configuration.md) - All configuration options
+- [Error Code Reference](docs/reference/error-codes.md) - Complete error catalog with solutions
+
+### 💡 Explanation (Understanding-Oriented)
+
+Conceptual understanding and design discussions:
+
+- [Understanding pytest-jux](docs/explanation/understanding-pytest-jux.md) - High-level overview and use cases
+- [Architecture](docs/explanation/architecture.md) - System design, components, and design decisions
+- [Security](docs/explanation/security.md) - Why sign test reports, threat model, security best practices
+- [Performance](docs/explanation/performance.md) - Performance characteristics, benchmarks, optimization
+
+### 🔒 Security Documentation
+
+- [Security Policy](docs/security/SECURITY.md) - Vulnerability reporting
+- [Threat Model](docs/security/THREAT_MODEL.md) - Threat analysis and mitigation
+- [Cryptographic Standards](docs/security/CRYPTO_STANDARDS.md) - Algorithms and standards
+- [SLSA Verification](docs/security/SLSA_VERIFICATION.md) - Supply chain security
+
+### 🆘 Quick Navigation
+
+**I want to...**
+- **Get started** → [Quick Start](docs/tutorials/quick-start.md) (5 minutes)
+- **Set up CI/CD** → [CI/CD Deployment](docs/howto/ci-cd-deployment.md)
+- **Troubleshoot issues** → [Troubleshooting Guide](docs/howto/troubleshooting.md)
+- **Look up CLI commands** → [CLI Reference](docs/reference/cli/index.md)
+- **Understand security** → [Security Explanation](docs/explanation/security.md)
+- **Browse all docs** → [Complete Documentation Index](docs/INDEX.md)
 
 ## Development
 
