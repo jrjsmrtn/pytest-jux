@@ -6,8 +6,9 @@ We provide security updates for the following versions:
 
 | Version | Supported          | Status            |
 | ------- | ------------------ | ----------------- |
-| 0.1.x   | :white_check_mark: | Development       |
-| < 0.1.0 | :x:                | Not yet released  |
+| 0.2.x   | :white_check_mark: | Current Release   |
+| 0.1.x   | :white_check_mark: | Security Fixes    |
+| < 0.1.0 | :x:                | Unsupported       |
 
 Once version 1.0.0 is released, we will support:
 - Latest major version (full support)
@@ -267,5 +268,5 @@ For vulnerability reports:
 
 ---
 
-**Last Updated**: 2025-10-15  
-**Next Review**: 2026-01-15 (quarterly review)
+**Last Updated**: 2025-10-20
+**Next Review**: 2026-01-20 (quarterly review)
