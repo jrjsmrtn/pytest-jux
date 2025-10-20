@@ -99,7 +99,7 @@ jobs:
       - name: Generate SBOM (CycloneDX JSON)
         run: |
           VERSION="${{ needs.build.outputs.version }}"
-          cyclonedx-py requirements \
+          cyclonedx-py requirements /dev/null \
             --pyproject pyproject.toml \
             --of JSON \
             --output-file "pytest-jux-${VERSION}-sbom.cdx.json"
