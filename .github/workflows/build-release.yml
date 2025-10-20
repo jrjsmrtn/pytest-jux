@@ -38,7 +38,7 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          uv pip install build wheel setuptools
+          uv pip install --system build wheel setuptools
 
       - name: Extract version from tag
         id: version
@@ -130,8 +130,9 @@ jobs:
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
       base64-subjects: "${{ needs.build.outputs.hashes }}"
-      upload-assets: true
+      upload-assets: false
       provenance-name: "pytest-jux-${{ needs.build.outputs.version }}.intoto.jsonl"
+      private-repository: true
 
   publish-pypi:
     name: Publish to PyPI
