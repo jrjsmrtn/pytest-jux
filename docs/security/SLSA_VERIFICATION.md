@@ -353,6 +353,371 @@ Usage:
 python verify_pytest_jux.py 0.1.5
 ```
 
+## Software Bill of Materials (SBOM)
+
+pytest-jux releases include a **CycloneDX SBOM** (Software Bill of Materials) that provides a complete inventory of all dependencies. This enables security auditing, vulnerability tracking, and compliance verification.
+
+### What is an SBOM?
+
+A Software Bill of Materials is a formal, machine-readable inventory of all components in a software package. The pytest-jux SBOM provides:
+
+- ✅ **Dependency Inventory**: Complete list of all direct and transitive dependencies
+- ✅ **Version Tracking**: Exact versions of all components
+- ✅ **License Information**: License identifiers for each component
+- ✅ **Vulnerability Scanning**: Enable automated security scanning
+- ✅ **Compliance Auditing**: Support supply chain compliance requirements
+
+### Quick SBOM Verification
+
+#### Prerequisites
+
+Install CycloneDX CLI tool:
+
+```bash
+# Using npm (recommended)
+npm install -g @cyclonedx/cyclonedx-cli
+
+# Using pip
+pip install cyclonedx-bom
+
+# Or download binary from: https://github.com/CycloneDX/cyclonedx-cli/releases
+```
+
+#### Download and Validate SBOM
+
+```bash
+# 1. Download SBOM from GitHub Release
+VERSION="0.2.0"
+curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
+
+# 2. Validate SBOM format
+cyclonedx-cli validate \
+  --input-file pytest-jux-${VERSION}-sbom.cdx.json \
+  --input-format json
+
+# 3. View SBOM summary
+cyclonedx-cli analyze \
+  --input-file pytest-jux-${VERSION}-sbom.cdx.json
+```
+
+### Expected Output
+
+```
+Validating pytest-jux-0.2.0-sbom.cdx.json
+✓ Valid CycloneDX BOM
+  - Spec version: 1.6
+  - Components: 42
+  - Dependencies: 38
+  - Format: JSON
+
+Analysis:
+  Total Components: 42
+  Direct Dependencies: 8
+  Transitive Dependencies: 34
+  Licenses Found: 12
+```
+
+### Auditing Dependencies
+
+#### Using pip-audit
+
+Scan the SBOM for known vulnerabilities:
+
+```bash
+# Install pip-audit
+pip install pip-audit
+
+# Audit dependencies from SBOM
+pip-audit --desc on -r <(cyclonedx-cli convert \
+  --input-file pytest-jux-0.2.0-sbom.cdx.json \
+  --output-format requirements.txt)
+```
+
+#### Using Grype
+
+Alternative vulnerability scanning with Grype:
+
+```bash
+# Install Grype
+brew install grype
+
+# Scan SBOM
+grype sbom:pytest-jux-0.2.0-sbom.cdx.json
+```
+
+#### Using OWASP Dependency-Check
+
+Enterprise-grade vulnerability scanning:
+
+```bash
+# Install Dependency-Check
+brew install dependency-check
+
+# Scan SBOM
+dependency-check \
+  --scan pytest-jux-0.2.0-sbom.cdx.json \
+  --format HTML \
+  --out dependency-check-report.html
+```
+
+### Inspecting SBOM Contents
+
+#### View Component List
+
+```bash
+# Pretty-print SBOM
+cat pytest-jux-0.2.0-sbom.cdx.json | jq .
+
+# List all components
+cat pytest-jux-0.2.0-sbom.cdx.json | jq '.components[] | {name, version, licenses}'
+
+# Count components
+cat pytest-jux-0.2.0-sbom.cdx.json | jq '.components | length'
+```
+
+#### Extract License Information
+
+```bash
+# List all licenses
+cat pytest-jux-0.2.0-sbom.cdx.json | \
+  jq '.components[] | .licenses[]?.license.id' | sort -u
+
+# Find components with specific license
+cat pytest-jux-0.2.0-sbom.cdx.json | \
+  jq '.components[] | select(.licenses[]?.license.id == "MIT")'
+```
+
+#### Find Specific Dependencies
+
+```bash
+# Search for a specific component
+cat pytest-jux-0.2.0-sbom.cdx.json | \
+  jq '.components[] | select(.name == "lxml")'
+
+# List components from specific author/vendor
+cat pytest-jux-0.2.0-sbom.cdx.json | \
+  jq '.components[] | select(.author? == "Python Software Foundation")'
+```
+
+### CI/CD Integration
+
+#### GitHub Actions
+
+```yaml
+# .github/workflows/sbom-audit.yml
+name: SBOM Audit
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly on Monday
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download SBOM
+        run: |
+          VERSION="0.2.0"
+          curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
+
+      - name: Install tools
+        run: |
+          npm install -g @cyclonedx/cyclonedx-cli
+          pip install pip-audit
+
+      - name: Validate SBOM
+        run: |
+          cyclonedx-cli validate \
+            --input-file pytest-jux-${VERSION}-sbom.cdx.json \
+            --fail-on-errors
+
+      - name: Audit vulnerabilities
+        run: |
+          cyclonedx-cli convert \
+            --input-file pytest-jux-${VERSION}-sbom.cdx.json \
+            --output-format requirements.txt \
+            --output-file requirements.txt
+          pip-audit -r requirements.txt --desc
+```
+
+#### GitLab CI
+
+```yaml
+# .gitlab-ci.yml
+sbom-audit:
+  stage: security
+  image: python:3.11
+  script:
+    - VERSION="0.2.0"
+    - curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
+
+    - npm install -g @cyclonedx/cyclonedx-cli
+    - pip install pip-audit
+
+    - cyclonedx-cli validate --input-file pytest-jux-${VERSION}-sbom.cdx.json
+    - cyclonedx-cli convert --input-file pytest-jux-${VERSION}-sbom.cdx.json --output-format requirements.txt --output-file requirements.txt
+    - pip-audit -r requirements.txt --desc
+  only:
+    - schedules
+    - merge_requests
+```
+
+### SBOM Generation (For Developers)
+
+If you're building from source and want to generate your own SBOM:
+
+```bash
+# Install cyclonedx-bom
+pip install cyclonedx-bom
+
+# Generate SBOM from pyproject.toml
+cyclonedx-py requirements \
+  --pyproject pyproject.toml \
+  --format json \
+  --output-file pytest-jux-custom-sbom.cdx.json
+
+# Validate generated SBOM
+cyclonedx-cli validate --input-file pytest-jux-custom-sbom.cdx.json
+```
+
+### Comparing SBOMs
+
+Compare SBOMs between versions to track dependency changes:
+
+```bash
+# Download two versions
+curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.8/pytest-jux-0.1.8-sbom.cdx.json
+curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.2.0/pytest-jux-0.2.0-sbom.cdx.json
+
+# Extract component names and versions
+jq '.components[] | "\(.name)@\(.version)"' pytest-jux-0.1.8-sbom.cdx.json | sort > v0.1.8-deps.txt
+jq '.components[] | "\(.name)@\(.version)"' pytest-jux-0.2.0-sbom.cdx.json | sort > v0.2.0-deps.txt
+
+# Show differences
+diff v0.1.8-deps.txt v0.2.0-deps.txt
+```
+
+### SBOM Use Cases
+
+#### Security Auditing
+
+```bash
+# Find all components with CVEs
+grype sbom:pytest-jux-0.2.0-sbom.cdx.json --only-fixed
+
+# Generate security report
+dependency-check --scan pytest-jux-0.2.0-sbom.cdx.json --format ALL
+```
+
+#### License Compliance
+
+```bash
+# Extract all licenses for review
+cat pytest-jux-0.2.0-sbom.cdx.json | \
+  jq '.components[] | {name, version, license: .licenses[]?.license.id}' | \
+  jq -s 'group_by(.license) | map({license: .[0].license, count: length, components: map(.name)})'
+
+# Find GPL-licensed components (example)
+cat pytest-jux-0.2.0-sbom.cdx.json | \
+  jq '.components[] | select(.licenses[]?.license.id | contains("GPL"))'
+```
+
+#### Supply Chain Verification
+
+```bash
+# Verify all components are from trusted sources
+cat pytest-jux-0.2.0-sbom.cdx.json | \
+  jq '.components[] | {name, version, purl: .purl}' | \
+  grep "pkg:pypi/"
+```
+
+### Troubleshooting
+
+#### SBOM Validation Failed
+
+**Error:**
+```
+ERROR: Invalid BOM: Missing required field 'version'
+```
+
+**Solution:**
+- Ensure you downloaded the complete SBOM file
+- Re-download from GitHub Releases
+- Check file integrity (not corrupted)
+
+#### CycloneDX CLI Not Found
+
+**Error:**
+```
+cyclonedx-cli: command not found
+```
+
+**Solution:**
+```bash
+# Install via npm
+npm install -g @cyclonedx/cyclonedx-cli
+
+# Verify installation
+cyclonedx-cli --version
+```
+
+#### pip-audit Incompatible SBOM Format
+
+**Error:**
+```
+ERROR: Cannot read CycloneDX JSON format
+```
+
+**Solution:**
+```bash
+# Convert SBOM to requirements.txt first
+cyclonedx-cli convert \
+  --input-file pytest-jux-0.2.0-sbom.cdx.json \
+  --output-format requirements.txt \
+  --output-file requirements.txt
+
+# Then run pip-audit
+pip-audit -r requirements.txt
+```
+
+#### Grype Fails to Parse SBOM
+
+**Error:**
+```
+ERROR: failed to parse SBOM
+```
+
+**Solution:**
+```bash
+# Ensure SBOM is valid JSON
+cat pytest-jux-0.2.0-sbom.cdx.json | jq . > /dev/null
+
+# Validate with CycloneDX CLI
+cyclonedx-cli validate --input-file pytest-jux-0.2.0-sbom.cdx.json
+
+# Use correct Grype syntax
+grype sbom:pytest-jux-0.2.0-sbom.cdx.json
+```
+
+### SBOM Best Practices
+
+#### For Consumers
+
+1. **Verify SBOM Integrity**: Always validate SBOM format before using
+2. **Automate Scanning**: Set up automated vulnerability scanning in CI/CD
+3. **Track Changes**: Compare SBOMs between versions to identify new dependencies
+4. **License Review**: Audit licenses for compliance with your organization's policies
+5. **Archive SBOMs**: Keep historical SBOMs for audit trail
+
+#### For Security Teams
+
+1. **Continuous Monitoring**: Scan SBOMs regularly for new vulnerabilities
+2. **Blocklist Components**: Identify and block problematic dependencies
+3. **Compliance Checks**: Automate license compliance verification
+4. **Incident Response**: Use SBOMs for rapid vulnerability impact assessment
+5. **Supply Chain Mapping**: Build dependency graphs from SBOM data
+
 ## Resources
 
 ### Official Documentation
@@ -361,11 +726,22 @@ python verify_pytest_jux.py 0.1.5
 - [SLSA Verifier](https://github.com/slsa-framework/slsa-verifier)
 - [SLSA GitHub Generator](https://github.com/slsa-framework/slsa-github-generator)
 - [PyPI Attestations](https://docs.pypi.org/attestations/)
+- [CycloneDX Specification](https://cyclonedx.org/specification/overview/)
+- [CycloneDX CLI](https://github.com/CycloneDX/cyclonedx-cli)
+- [NTIA SBOM Minimum Elements](https://www.ntia.gov/files/ntia/publications/sbom_minimum_elements_report.pdf)
+
+### Security Tools
+
+- [pip-audit](https://github.com/pypa/pip-audit) - PyPA vulnerability scanner
+- [Grype](https://github.com/anchore/grype) - Vulnerability scanner for containers and SBOMs
+- [OWASP Dependency-Check](https://owasp.org/www-project-dependency-check/) - Dependency vulnerability scanner
+- [Trivy](https://github.com/aquasecurity/trivy) - Comprehensive security scanner
 
 ### pytest-jux Security Documentation
 
 - [ADR-0006: Adopt SLSA Build Level 2](../adr/0006-adopt-slsa-build-level-2-compliance.md)
 - [Sprint 5: SLSA Compliance](../sprints/sprint-05-slsa-compliance.md)
+- [Sprint 6: OpenSSF Best Practices](../sprints/sprint-06-openssf-badge.md)
 - [Security Policy](SECURITY.md)
 - [Threat Model](THREAT_MODEL.md)
 
@@ -386,6 +762,7 @@ If you encounter issues with SLSA verification:
 
 ---
 
-**Last Updated**: 2025-10-19
+**Last Updated**: 2025-10-20
 **SLSA Level**: Build L2
 **Generator Version**: slsa-github-generator v2.0.0
+**SBOM Format**: CycloneDX 1.6 (JSON)
