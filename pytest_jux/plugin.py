@@ -7,6 +7,7 @@ This module implements the pytest plugin hooks for capturing JUnit XML
 reports, signing them with XMLDSig, and publishing them to the Jux API.
 """
 
+import os
 from pathlib import Path
 
 import pytest
@@ -71,8 +72,13 @@ def pytest_configure(config: pytest.Config) -> None:
     config_manager.load_from_env()
 
     # Load from config files (in precedence order)
-    # User-level config
-    user_config = Path.home() / ".jux" / "config"
+    # User-level config (XDG Base Directory compliant)
+    xdg_config_home = os.environ.get("XDG_CONFIG_HOME")
+    if xdg_config_home:
+        user_config = Path(xdg_config_home) / "jux" / "config"
+    else:
+        user_config = Path.home() / ".config" / "jux" / "config"
+
     if user_config.exists():
         config_manager.load_from_file(user_config)
 

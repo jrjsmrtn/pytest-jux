@@ -2,7 +2,39 @@
 
 **Sprint Duration**: 2-3 weeks
 **Sprint Goal**: Achieve OpenSSF Best Practices Badge (Passing Level) and establish SBOM generation
-**Status**: 📋 Planned
+**Status**: 🚧 In Progress (Week 2)
+
+## Sprint Progress
+
+**Started**: 2025-10-20
+**Current Phase**: Week 2 - Security & Badge Application
+
+### Completed (2025-10-20)
+
+**Week 1: Coverage & SBOM Infrastructure** ✅
+- US-6.1: Test Coverage Visibility (Already complete - 89.70% coverage, Codecov integrated)
+- US-6.2: Vulnerability Disclosure Process (SECURITY.md updated, GitHub Security Advisories enabled)
+- US-6.3: SBOM Generation (CycloneDX SBOM in build-release workflow, documentation added)
+- Additional: Enhanced dependency scanning (pip-audit --strict, Trivy exit-code enforcement, SBOM validation job)
+
+**Week 2: Security & Badge Application** 🚧
+- Badge readiness assessment completed (100% criteria met)
+- Comprehensive badge application guide created
+- Evidence documentation prepared
+
+### In Progress
+
+- US-6.4: OpenSSF Best Practices Badge Application
+  - ⏸️ Pending: Register project on bestpractices.dev
+  - ⏸️ Pending: Complete badge questionnaire
+  - ⏸️ Pending: Obtain Passing badge
+  - ⏸️ Pending: Add badge to README
+
+### Remaining
+
+- Display badge on README and documentation
+- Document badge maintenance process
+- Sprint retrospective
 
 ## Overview
 
@@ -690,6 +722,6 @@ Sprint 6 is complete when:
 
 ---
 
-**Sprint Start Date**: TBD (after Sprint 5 completion and SLSA L2 testing)
-**Sprint Owner**: TBD
-**Last Updated**: 2025-10-19
+**Sprint Start Date**: 2025-10-20
+**Sprint Owner**: jrjsmrtn
+**Last Updated**: 2025-10-20

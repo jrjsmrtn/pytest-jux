@@ -5,13 +5,13 @@ coverage:
   status:
     project:
       default:
-        target: 85%                # Overall project coverage target
-        threshold: 5%              # Allow 5% drop before failing
+        target: 88%                # Overall project coverage target (raised from 85%)
+        threshold: 3%              # Allow 3% drop before failing (stricter than 5%)
         informational: false       # Fail CI if target not met
     patch:
       default:
-        target: 80%                # New code must be 80% covered
-        threshold: 10%             # More lenient for new code
+        target: 85%                # New code must be 85% covered (raised from 80%)
+        threshold: 5%              # More lenient for new code (reduced from 10%)
         informational: false       # Fail CI if new code poorly tested
 
 comment:
@@ -26,11 +26,9 @@ ignore:
   - "**/__pycache__/**/*"         # Exclude Python cache
   - "**/site-packages/**/*"       # Exclude dependencies
 
-# Flag-based coverage tracking (future: separate unit/integration)
-# flags:
-#   unit:
-#     paths:
-#       - pytest_jux/
-#   integration:
-#     paths:
-#       - tests/integration/
+# Flag-based coverage tracking
+flags:
+  unittests:
+    paths:
+      - pytest_jux/
+    carryforward: true             # Carry forward previous results if missing

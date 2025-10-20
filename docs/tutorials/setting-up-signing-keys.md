@@ -382,7 +382,7 @@ chmod 600 ~/.jux/**/*.pem
 
 **Development:**
 ```ini
-# ~/.jux/config
+# ~/.config/jux/config
 [jux]
 key_path = ~/.jux/dev/signing_key.pem
 cert_path = ~/.jux/dev/signing_key.crt

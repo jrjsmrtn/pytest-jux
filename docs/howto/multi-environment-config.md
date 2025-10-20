@@ -20,7 +20,7 @@ pytest-jux loads configuration from multiple sources with the following preceden
 2. Environment variables
 3. Configuration files:
    a. Project: .jux.conf
-   b. User: ~/.jux/config
+   b. User: ~/.config/jux/config
    c. System: /etc/jux/config
 4. Defaults                    (lowest priority)
 ```
@@ -40,7 +40,7 @@ Higher priority sources override lower priority sources.
 
 **Configuration:**
 
-`~/.jux/config` (developer machine):
+`~/.config/jux/config` (developer machine):
 ```ini
 [jux]
 # Enable plugin
@@ -238,7 +238,7 @@ sign = true
 storage_mode = cache
 ```
 
-**User-level** (`~/.jux/config`):
+**User-level** (`~/.config/jux/config`):
 ```ini
 [jux]
 # Developer overrides

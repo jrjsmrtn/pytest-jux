@@ -197,10 +197,10 @@ jux-keygen \
 
 **Default**: `None` (searches default locations if not specified)
 
-**Default Search Locations**:
-1. `$XDG_CONFIG_HOME/pytest-jux/config.toml` (default: `~/.config/pytest-jux/config.toml`)
-2. `~/.jux/config.toml`
-3. `/etc/jux/config.toml`
+**Default Search Locations** (XDG Base Directory compliant):
+1. `$XDG_CONFIG_HOME/jux/config` (default: `~/.config/jux/config`)
+2. Project directory: `.jux.conf`
+3. Project directory: `pytest.ini` (in `[jux]` section)
 
 **Usage**:
 ```bash

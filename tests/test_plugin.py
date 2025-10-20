@@ -974,7 +974,7 @@ key_path = /path/to/key.pem
     def test_configure_loads_user_config_file(
         self, mock_config: Mock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test that pytest_configure loads from ~/.jux/config."""
+        """Test that pytest_configure loads from ~/.config/jux/config (XDG)."""
         # Create a fake home directory
         fake_home = tmp_path / "home"
         fake_home.mkdir()
@@ -983,10 +983,10 @@ key_path = /path/to/key.pem
         # Change to tmp_path to avoid loading local config files
         monkeypatch.chdir(tmp_path)
 
-        # Create user config file
-        user_jux_dir = fake_home / ".jux"
-        user_jux_dir.mkdir()
-        user_config = user_jux_dir / "config"
+        # Create user config file (XDG Base Directory compliant)
+        user_config_dir = fake_home / ".config" / "jux"
+        user_config_dir.mkdir(parents=True)
+        user_config = user_config_dir / "config"
         user_config.write_text("""[jux]
 enabled = true
 sign = true
