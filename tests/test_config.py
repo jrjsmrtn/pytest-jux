@@ -168,7 +168,7 @@ class TestConfigurationManager:
         config_file.write_text("""[jux]
 enabled = true
 sign = true
-key_path = ~/.jux/key.pem
+key_path = ~/.config/jux/keys/key.pem
 storage_mode = both
 """)
 

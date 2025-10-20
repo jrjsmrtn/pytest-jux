@@ -116,7 +116,7 @@ Configuration is loaded from multiple sources with the following precedence (hig
 
 Default locations (searched in order):
 1. `$XDG_CONFIG_HOME/pytest-jux/config.toml` (default: `~/.config/pytest-jux/config.toml`)
-2. `~/.jux/config.toml`
+2. `~/.config/jux/config.toml`
 3. `/etc/jux/config.toml`
 
 **Example config.toml**:

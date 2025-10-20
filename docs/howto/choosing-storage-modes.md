@@ -509,7 +509,7 @@ pytest --junit-xml=report.xml
 
 ```bash
 # 1. Update configuration
-jux-config dump > ~/.jux/config.backup
+jux-config dump > ~/.config/jux/config.backup
 jux-config init --force
 # Edit: storage_mode = cache
 
@@ -529,7 +529,7 @@ Different environments may need different modes:
 
 **Development:**
 ```ini
-# ~/.jux/config (developer laptop)
+# ~/.config/jux/config (developer laptop)
 [jux]
 storage_mode = local
 ```
@@ -605,7 +605,7 @@ jux-cache stats
 jux-cache clean --days 7
 
 # Or switch to API mode
-jux-config dump > ~/.jux/config.backup
+jux-config dump > ~/.config/jux/config.backup
 # Edit: storage_mode = api
 ```
 
