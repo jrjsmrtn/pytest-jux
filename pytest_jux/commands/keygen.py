@@ -292,15 +292,15 @@ def main() -> int:
                 "Remove the file manually or choose a different path.",
             )
 
-        # Validate arguments
-        if args.type == "rsa" and args.bits not in (2048, 3072, 4096):
+        # Validate arguments (defensive - argparse should already validate these)
+        if args.type == "rsa" and args.bits not in (2048, 3072, 4096):  # pragma: no cover
             raise InvalidArgumentError(
                 "--bits",
                 f"Invalid RSA key size: {args.bits}",
                 valid_values=["2048", "3072", "4096"],
             )
 
-        if args.type == "ecdsa" and args.curve not in ("P-256", "P-384", "P-521"):
+        if args.type == "ecdsa" and args.curve not in ("P-256", "P-384", "P-521"):  # pragma: no cover
             raise InvalidArgumentError(
                 "--curve",
                 f"Invalid ECDSA curve: {args.curve}",
@@ -339,8 +339,8 @@ def main() -> int:
         e.print_error()
         return 1
 
-    except InvalidArgumentError as e:
-        # Invalid argument
+    except InvalidArgumentError as e:  # pragma: no cover
+        # Invalid argument (defensive - argparse should catch invalid arguments)
         e.print_error()
         return 1
 

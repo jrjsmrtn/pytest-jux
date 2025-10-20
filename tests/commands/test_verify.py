@@ -498,3 +498,203 @@ class TestVerifyCommand:
         output = captured_stderr.getvalue()
         assert "Error:" in output
         assert "Unexpected error" in output
+
+    def test_missing_input_file_with_quiet(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test missing input file with quiet mode."""
+        _, cert_path = signed_xml
+
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", "/nonexistent.xml", "--cert", str(cert_path), "-q"],
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_missing_cert_with_quiet(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test missing certificate with quiet mode."""
+        signed_path, _ = signed_xml
+
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", str(signed_path), "--cert", "/nonexistent.crt", "-q"],
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_xml_parse_error_from_file_with_json(self, tmp_path: Path) -> None:
+        """Test XML parse error from file with JSON output."""
+        # Create invalid XML
+        bad_xml_path = tmp_path / "bad.xml"
+        bad_xml_path.write_text("This is not XML <<>>")
+
+        # Generate certificate
+        key = generate_rsa_key(2048)
+        cert_path = tmp_path / "cert.crt"
+        generate_self_signed_cert(key, cert_path)
+
+        captured_stdout = StringIO()
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(bad_xml_path), "--cert", str(cert_path), "--json"],
+            ),
+            patch("sys.stdout", captured_stdout),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        output = captured_stdout.getvalue()
+        assert "error" in output.lower()
+        assert "parse" in output.lower()
+
+    def test_xml_parse_error_from_file_with_quiet(self, tmp_path: Path) -> None:
+        """Test XML parse error from file with quiet mode."""
+        # Create invalid XML
+        bad_xml_path = tmp_path / "bad.xml"
+        bad_xml_path.write_text("This is not XML <<>>")
+
+        # Generate certificate
+        key = generate_rsa_key(2048)
+        cert_path = tmp_path / "cert.crt"
+        generate_self_signed_cert(key, cert_path)
+
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", str(bad_xml_path), "--cert", str(cert_path), "-q"],
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_xml_parse_error_from_stdin_with_json(self, tmp_path: Path) -> None:
+        """Test XML parse error from stdin with JSON output."""
+        # Generate certificate
+        key = generate_rsa_key(2048)
+        cert_path = tmp_path / "cert.crt"
+        generate_self_signed_cert(key, cert_path)
+
+        # Invalid XML on stdin
+        mock_stdin = StringIO("This is not XML <<>>")
+        captured_stdout = StringIO()
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "--cert", str(cert_path), "--json"],
+            ),
+            patch("sys.stdin", mock_stdin),
+            patch("sys.stdout", captured_stdout),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        output = captured_stdout.getvalue()
+        assert "error" in output.lower()
+
+    def test_xml_parse_error_from_stdin_with_quiet(self, tmp_path: Path) -> None:
+        """Test XML parse error from stdin with quiet mode."""
+        # Generate certificate
+        key = generate_rsa_key(2048)
+        cert_path = tmp_path / "cert.crt"
+        generate_self_signed_cert(key, cert_path)
+
+        # Invalid XML on stdin
+        mock_stdin = StringIO("This is not XML <<>>")
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "--cert", str(cert_path), "-q"],
+            ),
+            patch("sys.stdin", mock_stdin),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_signature_missing_with_json(self, tmp_path: Path) -> None:
+        """Test signature missing error with JSON output."""
+        # Create unsigned XML
+        xml_content = """<?xml version="1.0"?>
+<testsuites>
+    <testsuite name="test" tests="1">
+        <testcase name="test_example"/>
+    </testsuite>
+</testsuites>
+"""
+        xml_path = tmp_path / "unsigned.xml"
+        xml_path.write_text(xml_content)
+
+        # Generate certificate
+        key = generate_rsa_key(2048)
+        cert_path = tmp_path / "cert.crt"
+        generate_self_signed_cert(key, cert_path)
+
+        captured_stdout = StringIO()
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(xml_path), "--cert", str(cert_path), "--json"],
+            ),
+            patch("sys.stdout", captured_stdout),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        output = captured_stdout.getvalue()
+        assert "signature" in output.lower()
+
+    def test_signature_missing_with_quiet(self, tmp_path: Path) -> None:
+        """Test signature missing error with quiet mode."""
+        # Create unsigned XML
+        xml_content = """<?xml version="1.0"?>
+<testsuites>
+    <testsuite name="test" tests="1">
+        <testcase name="test_example"/>
+    </testsuite>
+</testsuites>
+"""
+        xml_path = tmp_path / "unsigned.xml"
+        xml_path.write_text(xml_content)
+
+        # Generate certificate
+        key = generate_rsa_key(2048)
+        cert_path = tmp_path / "cert.crt"
+        generate_self_signed_cert(key, cert_path)
+
+        with patch.object(
+            sys,
+            "argv",
+            ["jux-verify", "-i", str(xml_path), "--cert", str(cert_path), "-q"],
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_generic_exception_in_debug_mode(self, signed_xml: tuple[Path, Path]) -> None:
+        """Test that generic exceptions are re-raised in debug mode."""
+        signed_path, cert_path = signed_xml
+
+        # Mock load_xml to raise generic exception
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path)],
+            ),
+            patch("pytest_jux.commands.verify.load_xml", side_effect=RuntimeError("Unexpected error")),
+            patch.dict("os.environ", {"JUX_DEBUG": "1"}),
+        ):
+            with pytest.raises(RuntimeError, match="Unexpected error"):
+                main()

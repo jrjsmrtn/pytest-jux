@@ -395,3 +395,119 @@ class TestEdgeCases:
         generate_self_signed_cert(key, cert_path)
 
         assert cert_path.exists()
+
+    def test_main_rejects_file_already_exists(self, tmp_path: Path) -> None:
+        """Test that main() returns error when output file already exists."""
+        output_path = tmp_path / "key.pem"
+        output_path.write_text("existing content")
+
+        with patch(
+            "sys.argv",
+            [
+                "jux-keygen",
+                "--type",
+                "rsa",
+                "--output",
+                str(output_path),
+            ],
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+
+    def test_main_handles_permission_error(self, tmp_path: Path) -> None:
+        """Test that main() handles permission errors gracefully."""
+        readonly_dir = tmp_path / "readonly"
+        readonly_dir.mkdir()
+        readonly_dir.chmod(0o444)
+        output_path = readonly_dir / "key.pem"
+
+        with patch(
+            "sys.argv",
+            [
+                "jux-keygen",
+                "--type",
+                "rsa",
+                "--output",
+                str(output_path),
+            ],
+        ):
+            exit_code = main()
+
+        # Error should be handled gracefully and return exit code 1
+        assert exit_code == 1
+
+    def test_main_handles_value_error(self, tmp_path: Path) -> None:
+        """Test that main() handles ValueError from key generation."""
+        output_path = tmp_path / "key.pem"
+
+        # Mock generate_rsa_key to raise ValueError
+        with patch(
+            "sys.argv",
+            [
+                "jux-keygen",
+                "--type",
+                "rsa",
+                "--output",
+                str(output_path),
+            ],
+        ), patch(
+            "pytest_jux.commands.keygen.generate_rsa_key",
+            side_effect=ValueError("Test error"),
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        assert not output_path.exists()
+
+    def test_main_handles_unexpected_error_in_debug_mode(
+        self, tmp_path: Path
+    ) -> None:
+        """Test that main() re-raises unexpected errors in debug mode."""
+        output_path = tmp_path / "key.pem"
+
+        # Mock generate_rsa_key to raise RuntimeError
+        with patch(
+            "sys.argv",
+            [
+                "jux-keygen",
+                "--type",
+                "rsa",
+                "--output",
+                str(output_path),
+            ],
+        ), patch(
+            "pytest_jux.commands.keygen.generate_rsa_key",
+            side_effect=RuntimeError("Unexpected error"),
+        ), patch.dict(
+            "os.environ", {"JUX_DEBUG": "1"}
+        ):
+            with pytest.raises(RuntimeError, match="Unexpected error"):
+                main()
+
+    def test_main_handles_unexpected_error_without_debug(
+        self, tmp_path: Path
+    ) -> None:
+        """Test that main() handles unexpected errors gracefully without debug."""
+        output_path = tmp_path / "key.pem"
+
+        # Mock generate_rsa_key to raise RuntimeError
+        with patch(
+            "sys.argv",
+            [
+                "jux-keygen",
+                "--type",
+                "rsa",
+                "--output",
+                str(output_path),
+            ],
+        ), patch(
+            "pytest_jux.commands.keygen.generate_rsa_key",
+            side_effect=RuntimeError("Unexpected error"),
+        ), patch.dict(
+            "os.environ", {"JUX_DEBUG": "0"}, clear=True
+        ):
+            exit_code = main()
+
+        assert exit_code == 1
+        assert not output_path.exists()
