@@ -980,6 +980,9 @@ key_path = /path/to/key.pem
         fake_home.mkdir()
         monkeypatch.setattr("pathlib.Path.home", lambda: fake_home)
 
+        # Clear XDG_CONFIG_HOME to ensure Path.home() is used
+        monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+
         # Change to tmp_path to avoid loading local config files
         monkeypatch.chdir(tmp_path)
 

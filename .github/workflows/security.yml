@@ -158,7 +158,7 @@ jobs:
         run: |
           cyclonedx-py requirements \
             --pyproject pyproject.toml \
-            --format json \
+            --of JSON \
             --output-file pytest-jux-sbom.cdx.json
 
           echo "Generated SBOM:"
