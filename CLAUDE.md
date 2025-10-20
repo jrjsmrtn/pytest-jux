@@ -539,14 +539,14 @@ Each sprint should have:
 3. **Refactor**: Improve code quality
 4. **Type Check**: Ensure mypy passes (`uv run mypy pytest_jux`)
 5. **Format**: Run ruff format (`uv run ruff format .`)
-6. **Coverage**: Verify >85% coverage (100% for crypto)
+6. **Coverage**: Verify ≥88% coverage (≥90% for crypto modules)
 7. **Commit**: Use conventional commit format
 8. **Update Docs**: If needed (Diátaxis structure)
 
 ### Pull Request Checklist
 
 - [ ] All tests pass (`uv run pytest`)
-- [ ] Code coverage >85% (100% for crypto)
+- [ ] Code coverage ≥88% overall (≥90% for crypto modules)
 - [ ] Type checking passes (`uv run mypy pytest_jux`)
 - [ ] Code formatted (`uv run ruff format --check .`)
 - [ ] Linting clean (`uv run ruff check .`)
@@ -577,33 +577,50 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Sprint 3 Complete - Ready for Sprint 4
+**Current Phase**: Sprint 5 Complete - Starting Sprint 6
 **Completed Sprints**:
 - ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
 - ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
 - ✅ Sprint 2: CLI Tools (jux-keygen, jux-sign, jux-verify, jux-inspect)
 - ✅ Sprint 3: Configuration, Storage & Caching (v0.1.3, v0.1.4)
+- ✅ Sprint 5: Documentation & User Experience (v0.2.0)
 
-**Sprint 3 Completed** (Configuration, Storage & Caching):
-- ✅ Configuration management (config.py, 25 tests, 85.05% coverage)
-- ✅ Environment metadata (metadata.py, 19 tests, 92.98% coverage)
-- ✅ Local storage & caching (storage.py, 33 tests, 80.33% coverage)
-- ✅ Cache management CLI (cache.py, 16 tests, 84.13% coverage)
-- ✅ Config management CLI (config_cmd.py, 25 tests, 91.32% coverage)
-- ✅ Multi-environment configuration guide (766 lines)
-- ✅ CLAUDE.md updated with uv run best practices
-- ⏸️ REST API client & publishing (postponed - no API server yet)
+**Sprint 5 Completed** (Documentation & User Experience - v0.2.0):
+- ✅ Complete Diátaxis Documentation Framework (50+ documents, 30,000+ lines)
+  - 7 API Reference Pages (auto-generated + enhanced)
+  - 3 Complete Tutorials (beginner → intermediate → advanced)
+  - 10 How-To Guides (key management, storage, CI/CD, troubleshooting)
+  - 4 Explanation Documents (architecture, security, performance, testing)
+- ✅ User Experience Improvements
+  - Enhanced CLI help text (all 6 commands)
+  - Improved error messages (errors.py, 23 error codes)
+  - 5 configuration templates
+  - Shell completion scripts (bash, zsh, fish)
+- ✅ Development Tools
+  - Quick-start setup wizard (scripts/quickstart.sh)
+  - Documentation review checklist
+  - Documentation testing script
+- ✅ Test Coverage Improvements (89.70%, up from 86.09%)
+  - commands/keygen.py: 73.58% → 100.00%
+  - commands/verify.py: 72.99% → 88.32%
+  - Stricter codecov thresholds (88% project target)
 
-**Total Sprint 3**: 5 modules, 118 tests, 86.76% average coverage
+**Total Sprint 5**: 50+ documents, 30,000+ lines of documentation, 354 tests passing
 
-**Next Sprint**: Sprint 4 - REST API Client & Plugin Integration
-- 📋 Planned (awaiting Jux API Server availability)
-- Target: v0.2.0 (Beta Milestone)
-- Duration: 12-16 days (can span multiple calendar periods)
+**Current Sprint**: Sprint 6 - OpenSSF Best Practices Badge
+- 🚧 In Progress
+- Target: Achieve OpenSSF Best Practices Badge (Passing Level)
+- Focus: SBOM generation, dependency scanning, security posture
+- See: [Sprint 6 Plan](docs/sprints/sprint-06-openssf-best-practices-badge.md)
+
+**Postponed Sprint**: Sprint 4 - REST API Client & Plugin Integration
+- ⏸️ Postponed (awaiting Jux API Server availability)
+- Target: v0.3.0 (Beta Milestone)
 - See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
 
-**Version**: 0.1.5 (released 2025-10-19)
+**Version**: 0.2.0 (released 2025-10-20)
 **Current Branch**: develop
+**Test Coverage**: 89.70% (354 tests passing, 9 skipped, 8 xfailed)
 
 ---
 
