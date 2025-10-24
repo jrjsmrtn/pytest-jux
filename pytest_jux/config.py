@@ -70,16 +70,26 @@ class ConfigSchema:
             "default": None,
             "description": "Path to X.509 certificate",
         },
-        # API settings
+        # API settings (Jux API v1.0.0)
         "jux_api_url": {
             "type": "str",
             "default": None,
-            "description": "API endpoint URL",
+            "description": "Jux API base URL (e.g., https://jux.example.com/api/v1)",
         },
-        "jux_api_key": {
+        "jux_bearer_token": {
             "type": "str",
             "default": None,
-            "description": "API authentication key",
+            "description": "Bearer token for remote API authentication",
+        },
+        "jux_api_timeout": {
+            "type": "int",
+            "default": 30,
+            "description": "API request timeout in seconds",
+        },
+        "jux_api_max_retries": {
+            "type": "int",
+            "default": 3,
+            "description": "Maximum retry attempts for transient failures",
         },
     }
 

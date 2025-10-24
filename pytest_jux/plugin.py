@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 from lxml import etree
 
+from pytest_jux.api_client import JuxAPIClient
 from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
 from pytest_jux.config import ConfigurationManager, StorageMode
 from pytest_jux.signer import load_private_key, sign_xml
@@ -106,6 +107,12 @@ def pytest_configure(config: pytest.Config) -> None:
     jux_storage_mode = config_manager.get("jux_storage_mode")
     jux_storage_path = config_manager.get("jux_storage_path")
 
+    # API configuration (Jux API v1.0.0)
+    jux_api_url = config_manager.get("jux_api_url")
+    jux_bearer_token = config_manager.get("jux_bearer_token")
+    jux_api_timeout = config_manager.get("jux_api_timeout")
+    jux_api_max_retries = config_manager.get("jux_api_max_retries")
+
     # Store merged configuration in config object for later use
     config._jux_enabled = jux_enabled  # type: ignore[attr-defined]
     config._jux_sign = jux_sign  # type: ignore[attr-defined]
@@ -114,6 +121,10 @@ def pytest_configure(config: pytest.Config) -> None:
     config._jux_publish = jux_publish  # type: ignore[attr-defined]
     config._jux_storage_mode = jux_storage_mode  # type: ignore[attr-defined]
     config._jux_storage_path = jux_storage_path  # type: ignore[attr-defined]
+    config._jux_api_url = jux_api_url  # type: ignore[attr-defined]
+    config._jux_bearer_token = jux_bearer_token  # type: ignore[attr-defined]
+    config._jux_api_timeout = jux_api_timeout  # type: ignore[attr-defined]
+    config._jux_api_max_retries = jux_api_max_retries  # type: ignore[attr-defined]
 
     # Validate configuration if plugin is enabled
     if jux_enabled:
