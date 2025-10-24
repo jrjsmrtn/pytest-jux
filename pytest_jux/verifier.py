@@ -11,8 +11,8 @@ from lxml import etree
 from signxml import XMLVerifier
 
 # Type aliases
-PublicKeyTypes = Union[rsa.RSAPublicKey, ec.EllipticCurvePublicKey]
-CertOrKeyType = Union[PublicKeyTypes, bytes, str]
+PublicKeyTypes = rsa.RSAPublicKey | ec.EllipticCurvePublicKey
+CertOrKeyType = PublicKeyTypes | bytes | str
 
 
 def _create_temp_certificate(public_key: PublicKeyTypes) -> bytes:
@@ -73,8 +73,8 @@ def verify_signature(tree: etree._Element, cert_or_key: CertOrKeyType) -> bool:
     # Validate certificate before verification
     try:
         load_pem_x509_certificate(cert_data)
-    except Exception:
-        raise ValueError("Invalid certificate")
+    except Exception as e:
+        raise ValueError("Invalid certificate") from e
 
     # Verify signature with provided certificate
     verifier = XMLVerifier()

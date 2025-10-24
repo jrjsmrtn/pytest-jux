@@ -18,7 +18,6 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Tuple
 
 # ANSI color codes
 GREEN = "\033[92m"
@@ -41,7 +40,7 @@ class CodeBlock:
         return f"CodeBlock({self.language}, {self.file_path}:{self.line_number})"
 
 
-def extract_code_blocks(markdown_file: Path) -> List[CodeBlock]:
+def extract_code_blocks(markdown_file: Path) -> list[CodeBlock]:
     """
     Extract code blocks from a Markdown file.
 
@@ -155,7 +154,7 @@ def is_testable_python(code: str) -> bool:
     return True
 
 
-def test_bash_block(block: CodeBlock, verbose: bool = False) -> Tuple[bool, str]:
+def test_bash_block(block: CodeBlock, verbose: bool = False) -> tuple[bool, str]:
     """
     Test a bash code block.
 
@@ -191,7 +190,7 @@ def test_bash_block(block: CodeBlock, verbose: bool = False) -> Tuple[bool, str]
         return False, f"Error: {str(e)[:100]}"
 
 
-def test_python_block(block: CodeBlock, verbose: bool = False) -> Tuple[bool, str]:
+def test_python_block(block: CodeBlock, verbose: bool = False) -> tuple[bool, str]:
     """
     Test a Python code block.
 
@@ -236,7 +235,7 @@ def test_python_block(block: CodeBlock, verbose: bool = False) -> Tuple[bool, st
         return False, f"Error: {str(e)[:100]}"
 
 
-def test_code_block(block: CodeBlock, verbose: bool = False) -> Tuple[bool, str]:
+def test_code_block(block: CodeBlock, verbose: bool = False) -> tuple[bool, str]:
     """
     Test a code block based on its language.
 
@@ -255,7 +254,7 @@ def test_code_block(block: CodeBlock, verbose: bool = False) -> Tuple[bool, str]
         return True, "Skipped (unsupported language)"
 
 
-def find_markdown_files(path: Path) -> List[Path]:
+def find_markdown_files(path: Path) -> list[Path]:
     """
     Find all Markdown files in a directory tree.
 

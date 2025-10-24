@@ -382,6 +382,7 @@ class TestGitMetadata:
     def test_git_metadata_none_outside_repo(self, tmp_path) -> None:
         """Should return None for git metadata outside a git repository."""
         import os
+
         from pytest_jux.metadata import capture_metadata
 
         # Change to non-git directory
@@ -476,8 +477,8 @@ class TestProjectNameCapture:
 
     def test_project_name_from_git_remote(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test project name extraction from git remote URL."""
-        from pytest_jux.metadata import _capture_project_name, _run_git_command
-        from unittest.mock import Mock
+
+        from pytest_jux.metadata import _capture_project_name
 
         def mock_run_git_command(args: list[str]) -> str | None:
             if args[0] == "config" and args[1] == "--get":
