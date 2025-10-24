@@ -14,6 +14,7 @@ This directory contains Architecture Decision Records for the pytest-jux project
 - [ADR-0008](0008-adopt-openssf-best-practices-badge-program.md): Adopt OpenSSF Best Practices Badge Program
 - [ADR-0009](0009-adopt-reuse-spdx-license-identifiers.md): Adopt REUSE/SPDX License Identifiers
 - [ADR-0010](0010-remove-database-dependencies.md): Remove Database Dependencies from pytest-jux
+- [ADR-0011](0011-integrate-metadata-with-pytest-metadata.md): Integrate Environment Metadata with pytest-metadata
 
 ## About ADRs
 

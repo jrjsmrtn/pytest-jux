@@ -9,7 +9,37 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from lxml import etree
+
 from pytest_jux.storage import ReportStorage, StorageError, get_default_storage_path
+
+
+def extract_metadata_from_xml(report_xml: bytes) -> dict[str, str]:
+    """Extract metadata from XML <properties> elements.
+
+    Args:
+        report_xml: JUnit XML report bytes
+
+    Returns:
+        Dictionary of metadata key-value pairs
+    """
+    try:
+        root = etree.fromstring(report_xml)
+        properties = root.find(".//properties")
+
+        if properties is None:
+            return {}
+
+        metadata = {}
+        for prop in properties.findall("property"):
+            name = prop.get("name")
+            value = prop.get("value")
+            if name and value:
+                metadata[name] = value
+
+        return metadata
+    except Exception:
+        return {}
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -34,20 +64,21 @@ def cmd_list(args: argparse.Namespace) -> int:
             report_data = []
             for report_hash in reports:
                 try:
-                    metadata = storage.get_metadata(report_hash)
+                    report_xml = storage.get_report(report_hash)
+                    metadata = extract_metadata_from_xml(report_xml)
                     report_file = storage_path / "reports" / f"{report_hash}.xml"
                     report_data.append(
                         {
                             "hash": report_hash,
-                            "timestamp": metadata.timestamp,
-                            "hostname": metadata.hostname,
+                            "timestamp": metadata.get("jux:timestamp", "N/A"),
+                            "hostname": metadata.get("jux:hostname", "N/A"),
                             "size": report_file.stat().st_size
                             if report_file.exists()
                             else 0,
                         }
                     )
                 except StorageError:
-                    # Skip reports with missing metadata
+                    # Skip reports that can't be read
                     continue
 
             output = {"reports": report_data, "total": len(report_data)}
@@ -61,14 +92,15 @@ def cmd_list(args: argparse.Namespace) -> int:
                 print()
                 for report_hash in reports:
                     try:
-                        metadata = storage.get_metadata(report_hash)
+                        report_xml = storage.get_report(report_hash)
+                        metadata = extract_metadata_from_xml(report_xml)
                         print(f"  {report_hash}")
-                        print(f"    Timestamp: {metadata.timestamp}")
-                        print(f"    Hostname:  {metadata.hostname}")
-                        print(f"    Username:  {metadata.username}")
+                        print(f"    Timestamp: {metadata.get('jux:timestamp', 'N/A')}")
+                        print(f"    Hostname:  {metadata.get('jux:hostname', 'N/A')}")
+                        print(f"    Username:  {metadata.get('jux:username', 'N/A')}")
                         print()
                     except StorageError:
-                        print(f"  {report_hash} (metadata missing)")
+                        print(f"  {report_hash} (cannot read report)")
                         print()
 
         return 0
@@ -95,15 +127,15 @@ def cmd_show(args: argparse.Namespace) -> int:
 
         report_hash = args.hash
 
-        # Get report and metadata
+        # Get report and extract metadata from XML
         report_xml = storage.get_report(report_hash)
-        metadata = storage.get_metadata(report_hash)
+        metadata = extract_metadata_from_xml(report_xml)
 
         if args.json:
             # JSON output
             output = {
                 "hash": report_hash,
-                "metadata": metadata.to_dict(),
+                "metadata": metadata,
                 "report": report_xml.decode("utf-8"),
                 "size": len(report_xml),
             }
@@ -113,16 +145,20 @@ def cmd_show(args: argparse.Namespace) -> int:
             print(f"Report: {report_hash}")
             print()
             print("Metadata:")
-            print(f"  Hostname:       {metadata.hostname}")
-            print(f"  Username:       {metadata.username}")
-            print(f"  Platform:       {metadata.platform}")
-            print(f"  Python Version: {metadata.python_version}")
-            print(f"  pytest Version: {metadata.pytest_version}")
-            print(f"  Timestamp:      {metadata.timestamp}")
-            if metadata.env:
+            print(f"  Hostname:       {metadata.get('jux:hostname', 'N/A')}")
+            print(f"  Username:       {metadata.get('jux:username', 'N/A')}")
+            print(f"  Platform:       {metadata.get('jux:platform', 'N/A')}")
+            print(f"  Python Version: {metadata.get('jux:python_version', 'N/A')}")
+            print(f"  pytest Version: {metadata.get('jux:pytest_version', 'N/A')}")
+            print(f"  Timestamp:      {metadata.get('jux:timestamp', 'N/A')}")
+
+            # Show environment variables (jux:env: prefix)
+            env_vars = {k[8:]: v for k, v in metadata.items() if k.startswith("jux:env:")}
+            if env_vars:
                 print("  Environment:")
-                for key, value in metadata.env.items():
+                for key, value in env_vars.items():
                     print(f"    {key}: {value}")
+
             print()
             print(f"Report Content ({len(report_xml)} bytes):")
             print(report_xml.decode("utf-8"))

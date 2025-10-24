@@ -14,8 +14,9 @@ The `storage` module provides XDG-compliant local storage and caching for signed
 
 - **Local Storage**: Store signed reports in XDG-compliant directories
 - **Duplicate Detection**: Prevent storing duplicate reports (canonical hash)
-- **Metadata Persistence**: Save and retrieve environment metadata
 - **Cache Management**: Cleanup old reports, show statistics, purge cache
+
+**Note**: As of v0.3.0, environment metadata is embedded in JUnit XML `<properties>` elements and cryptographically signed with the report. There are no separate JSON sidecar files.
 
 ### When to Use This Module
 
@@ -62,24 +63,23 @@ Main storage class for managing local test reports.
 ```python
 from pathlib import Path
 from pytest_jux.storage import ReportStorage
-from pytest_jux.metadata import EnvironmentMetadata
 
 # Initialize storage (default XDG location)
 storage = ReportStorage()
 
-# Store a signed report
+# Store a signed report (metadata embedded in XML)
 report_xml = Path("test-results/junit-signed.xml").read_bytes()
-metadata = EnvironmentMetadata.collect()
 
 report_hash = storage.store_report(
-    report_xml=report_xml,
-    metadata=metadata
+    xml_content=report_xml,
+    canonical_hash="sha256:abc123..."
 )
 print(f"Stored report: {report_hash}")
 
 # Retrieve report
 retrieved_xml = storage.get_report(report_hash)
-retrieved_metadata = storage.get_metadata(report_hash)
+
+# Metadata is embedded in the XML <properties> elements
 ```
 
 ---
@@ -124,15 +124,16 @@ The storage module follows XDG Base Directory Specification:
 
 ```
 ~/.local/share/pytest-jux/       # XDG_DATA_HOME/pytest-jux
-├── reports/                      # Signed test reports
+├── reports/                      # Signed test reports with embedded metadata
 │   ├── <hash1>.xml              # Report file (canonical hash as filename)
 │   ├── <hash2>.xml
 │   └── ...
-└── metadata/                     # Environment metadata
-    ├── <hash1>.json             # Metadata for each report
-    ├── <hash2>.json
+└── queue/                        # Queued reports (waiting for publish)
+    ├── <hash1>.xml
     └── ...
 ```
+
+**Note (v0.3.0+)**: The `metadata/` directory is no longer used. All metadata is embedded in XML `<properties>` elements and cryptographically signed.
 
 ### Storage Locations
 
@@ -160,7 +161,7 @@ storage = ReportStorage(storage_path=custom_path)
 ```python
 from pathlib import Path
 from pytest_jux.storage import ReportStorage
-from pytest_jux.metadata import EnvironmentMetadata
+from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
 
 # Initialize storage
 storage = ReportStorage()
@@ -168,36 +169,42 @@ storage = ReportStorage()
 # Read signed report
 report_xml = Path("junit-signed.xml").read_bytes()
 
-# Collect metadata
-metadata = EnvironmentMetadata.collect()
+# Compute canonical hash for duplicate detection
+root = load_xml("junit-signed.xml")
+canonical_hash = compute_canonical_hash(root)
 
-# Store report
-report_hash = storage.store_report(
-    report_xml=report_xml,
-    metadata=metadata
+# Store report (metadata embedded in XML)
+storage.store_report(
+    xml_content=report_xml,
+    canonical_hash=canonical_hash
 )
 
-print(f"Stored: {report_hash}")
+print(f"Stored: {canonical_hash}")
 ```
 
 ### Duplicate Detection
 
 ```python
+from pathlib import Path
 from pytest_jux.storage import ReportStorage
-from pytest_jux.metadata import EnvironmentMetadata
+from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
 
 storage = ReportStorage()
 report_xml = Path("junit-signed.xml").read_bytes()
-metadata = EnvironmentMetadata.collect()
+
+# Compute canonical hash
+root = load_xml("junit-signed.xml")
+canonical_hash = compute_canonical_hash(root)
 
 # First store - succeeds
-hash1 = storage.store_report(report_xml, metadata)
-print(f"First store: {hash1}")
+storage.store_report(report_xml, canonical_hash)
+print(f"First store: {canonical_hash}")
 
-# Second store - duplicate detected
-hash2 = storage.store_report(report_xml, metadata)
-print(f"Second store: {hash2}")
-print(f"Same hash: {hash1 == hash2}")  # True - duplicate
+# Second store - duplicate detected (same hash)
+if storage.report_exists(canonical_hash):
+    print("Duplicate detected - report already stored")
+else:
+    storage.store_report(report_xml, canonical_hash)
 
 # Storage only keeps one copy (deduplication)
 ```
@@ -206,17 +213,25 @@ print(f"Same hash: {hash1 == hash2}")  # True - duplicate
 
 ```python
 from pytest_jux.storage import ReportStorage, StorageError
+from lxml import etree
 
 storage = ReportStorage()
 
 try:
     # Retrieve report by hash
-    report_xml = storage.get_report("abc123...")
-    metadata = storage.get_metadata("abc123...")
+    report_xml = storage.get_report("sha256:abc123...")
 
     print(f"Report size: {len(report_xml)} bytes")
-    print(f"Hostname: {metadata.hostname}")
-    print(f"Timestamp: {metadata.timestamp}")
+
+    # Metadata is embedded in XML <properties>
+    root = etree.fromstring(report_xml)
+    properties = root.find(".//properties")
+
+    for prop in properties.findall("property"):
+        name = prop.get("name")
+        value = prop.get("value")
+        if name.startswith("jux:"):
+            print(f"{name}: {value}")
 
 except StorageError as e:
     print(f"Report not found: {e}")
@@ -226,6 +241,7 @@ except StorageError as e:
 
 ```python
 from pytest_jux.storage import ReportStorage
+from lxml import etree
 
 storage = ReportStorage()
 
@@ -234,8 +250,12 @@ reports = storage.list_reports()
 
 print(f"Total reports: {len(reports)}")
 for report_hash in reports:
-    metadata = storage.get_metadata(report_hash)
-    print(f"  {report_hash[:16]}... - {metadata.timestamp}")
+    # Get report and extract timestamp from metadata
+    report_xml = storage.get_report(report_hash)
+    root = etree.fromstring(report_xml)
+    timestamp_prop = root.find(".//property[@name='jux:timestamp']")
+    timestamp = timestamp_prop.get("value") if timestamp_prop is not None else "N/A"
+    print(f"  {report_hash[:16]}... - {timestamp}")
 ```
 
 ### Cache Statistics
@@ -326,7 +346,7 @@ Raised for storage-related errors:
 | Error Scenario | Exception | Message |
 |----------------|-----------|---------|
 | Report not found | `StorageError` | `Report not found: <hash>` |
-| Metadata not found | `StorageError` | `Metadata not found: <hash>` |
+| Queued report not found | `StorageError` | `Queued report not found: <hash>` |
 | Permission denied | `PermissionError` | `Permission denied: <path>` |
 | Disk full | `OSError` | `No space left on device` |
 
@@ -360,9 +380,9 @@ from pytest_jux.storage import ReportStorage
 storage = ReportStorage()
 lock = threading.Lock()
 
-def store_report_thread_safe(report_xml, metadata):
+def store_report_thread_safe(report_xml, canonical_hash):
     with lock:
-        return storage.store_report(report_xml, metadata)
+        return storage.store_report(report_xml, canonical_hash)
 ```
 
 ---
@@ -389,7 +409,7 @@ The storage module supports different modes (configured via `storage_mode` in co
 ### 1. Auto Mode (Default)
 ```python
 storage = ReportStorage()  # Automatic deduplication
-storage.store_report(report_xml, metadata)
+storage.store_report(report_xml, canonical_hash)
 ```
 
 ### 2. Disabled Mode

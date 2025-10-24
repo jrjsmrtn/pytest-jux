@@ -25,7 +25,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
 
                 # Configuration & Metadata
                 configManager = component "Configuration Manager" "Multi-source config (CLI, env, files) with precedence" "Python module (config.py)"
-                metadataCollector = component "Metadata Collector" "Captures environment metadata (hostname, platform, user)" "Python module (metadata.py)"
+                metadataCollector = component "Metadata Collector" "Captures environment metadata and injects into pytest-metadata hook" "Python module (metadata.py)"
 
                 # Storage & Publishing
                 storageManager = component "Storage Manager" "XDG-compliant local storage and caching (4 modes)" "Python module (storage.py)"
@@ -33,7 +33,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
 
                 # Relationships within plugin
                 pluginHooks -> signer "Signs report with"
-                pluginHooks -> metadataCollector "Captures environment with"
+                pluginHooks -> metadataCollector "Injects metadata via pytest_metadata hook"
                 pluginHooks -> storageManager "Stores locally via"
                 pluginHooks -> apiClient "Publishes via"
 

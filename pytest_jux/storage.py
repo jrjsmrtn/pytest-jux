@@ -3,15 +3,12 @@
 
 """Local filesystem storage for signed test reports."""
 
-import json
 import os
 import platform
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-
-from pytest_jux.metadata import EnvironmentMetadata
 
 
 class StorageError(Exception):
@@ -70,7 +67,6 @@ class ReportStorage:
         """Create storage directories if they don't exist."""
         self.storage_path.mkdir(parents=True, exist_ok=True)
         (self.storage_path / "reports").mkdir(exist_ok=True)
-        (self.storage_path / "metadata").mkdir(exist_ok=True)
         (self.storage_path / "queue").mkdir(exist_ok=True)
 
     def _write_file_atomic(self, path: Path, content: bytes, mode: int = 0o600) -> None:
@@ -110,27 +106,22 @@ class ReportStorage:
         except Exception as e:
             raise StorageError(f"Failed to write file {path}: {e}") from e
 
-    def store_report(
-        self, xml_content: bytes, canonical_hash: str, metadata: EnvironmentMetadata
-    ) -> None:
-        """Store test report with metadata.
+    def store_report(self, xml_content: bytes, canonical_hash: str) -> None:
+        """Store test report.
+
+        Metadata is embedded in the XML content as <properties> elements
+        and is cryptographically signed with XMLDSig.
 
         Args:
-            xml_content: JUnit XML content
+            xml_content: JUnit XML content (includes metadata and signature)
             canonical_hash: Canonical hash identifier
-            metadata: Environment metadata
 
         Raises:
             StorageError: If storage operation fails
         """
-        # Store report XML
+        # Store report XML (includes embedded metadata in <properties>)
         report_file = self.storage_path / "reports" / f"{canonical_hash}.xml"
         self._write_file_atomic(report_file, xml_content)
-
-        # Store metadata JSON
-        metadata_file = self.storage_path / "metadata" / f"{canonical_hash}.json"
-        metadata_json = json.dumps(metadata.to_dict(), indent=2).encode()
-        self._write_file_atomic(metadata_file, metadata_json)
 
     def get_report(self, canonical_hash: str) -> bytes:
         """Retrieve stored report.
@@ -153,49 +144,21 @@ class ReportStorage:
         except Exception as e:
             raise StorageError(f"Failed to read report {canonical_hash}: {e}") from e
 
-    def get_metadata(self, canonical_hash: str) -> EnvironmentMetadata:
-        """Retrieve stored metadata.
-
-        Args:
-            canonical_hash: Canonical hash identifier
-
-        Returns:
-            Environment metadata
-
-        Raises:
-            StorageError: If metadata doesn't exist or read fails
-        """
-        metadata_file = self.storage_path / "metadata" / f"{canonical_hash}.json"
-        if not metadata_file.exists():
-            raise StorageError(f"Metadata not found: {canonical_hash}")
-
-        try:
-            data = json.loads(metadata_file.read_text())
-            return EnvironmentMetadata(**data)
-        except Exception as e:
-            raise StorageError(f"Failed to read metadata {canonical_hash}: {e}") from e
-
-    def queue_report(
-        self, xml_content: bytes, canonical_hash: str, metadata: EnvironmentMetadata
-    ) -> None:
+    def queue_report(self, xml_content: bytes, canonical_hash: str) -> None:
         """Queue report for later publishing (offline mode).
 
+        Metadata is embedded in the XML content as <properties> elements.
+
         Args:
-            xml_content: JUnit XML content
+            xml_content: JUnit XML content (includes metadata and signature)
             canonical_hash: Canonical hash identifier
-            metadata: Environment metadata
 
         Raises:
             StorageError: If queuing operation fails
         """
-        # Store report in queue directory
+        # Store report in queue directory (includes embedded metadata)
         queue_file = self.storage_path / "queue" / f"{canonical_hash}.xml"
         self._write_file_atomic(queue_file, xml_content)
-
-        # Store metadata alongside
-        metadata_file = self.storage_path / "queue" / f"{canonical_hash}.json"
-        metadata_json = json.dumps(metadata.to_dict(), indent=2).encode()
-        self._write_file_atomic(metadata_file, metadata_json)
 
     def list_reports(self) -> list[str]:
         """List all stored report hashes.
@@ -233,28 +196,26 @@ class ReportStorage:
             StorageError: If dequeue operation fails
         """
         queue_file = self.storage_path / "queue" / f"{canonical_hash}.xml"
-        queue_metadata = self.storage_path / "queue" / f"{canonical_hash}.json"
 
         if not queue_file.exists():
             raise StorageError(f"Queued report not found: {canonical_hash}")
 
         try:
-            # Read queued report and metadata
+            # Read queued report (includes embedded metadata)
             xml_content = queue_file.read_bytes()
-            metadata_data = json.loads(queue_metadata.read_text())
-            metadata = EnvironmentMetadata(**metadata_data)
 
             # Store in reports directory
-            self.store_report(xml_content, canonical_hash, metadata)
+            self.store_report(xml_content, canonical_hash)
 
             # Remove from queue
             queue_file.unlink()
-            queue_metadata.unlink()
         except Exception as e:
             raise StorageError(f"Failed to dequeue report {canonical_hash}: {e}") from e
 
     def delete_report(self, canonical_hash: str) -> None:
-        """Delete report and its metadata.
+        """Delete report.
+
+        Metadata is embedded in the XML file, so only the XML file needs to be deleted.
 
         Args:
             canonical_hash: Canonical hash identifier
@@ -263,11 +224,9 @@ class ReportStorage:
             Does not raise error if report doesn't exist
         """
         report_file = self.storage_path / "reports" / f"{canonical_hash}.xml"
-        metadata_file = self.storage_path / "metadata" / f"{canonical_hash}.json"
 
-        # missing_ok=True silently ignores if files don't exist
+        # missing_ok=True silently ignores if file doesn't exist
         report_file.unlink(missing_ok=True)
-        metadata_file.unlink(missing_ok=True)
 
     def report_exists(self, canonical_hash: str) -> bool:
         """Check if report exists in storage.
@@ -316,13 +275,6 @@ class ReportStorage:
                     oldest.stat().st_mtime
                 ).isoformat()
 
-        # Add metadata size
-        metadata_dir = self.storage_path / "metadata"
-        if metadata_dir.exists():
-            for f in metadata_dir.glob("*.json"):
-                if f.is_file():
-                    stats["total_size"] += f.stat().st_size
-
         # Count queued reports
         queue_dir = self.storage_path / "queue"
         if queue_dir.exists():
@@ -331,11 +283,6 @@ class ReportStorage:
 
             # Add queue size to total
             for f in queued_files:
-                if f.is_file():
-                    stats["total_size"] += f.stat().st_size
-
-            # Add queue metadata size
-            for f in queue_dir.glob("*.json"):
                 if f.is_file():
                     stats["total_size"] += f.stat().st_size
 

@@ -63,6 +63,14 @@ This project uses ADRs to track significant architectural decisions. Current dec
   - SQLAlchemy, Alembic, psycopg removed (not used in client-side plugin)
   - Database functionality resides in Jux API Server (separate project)
   - Reduces installation size by ~15MB
+- **[ADR-0011](docs/adr/0011-integrate-pytest-metadata.md)**: Integrate pytest-metadata for XML-embedded metadata
+  - Remove JSON sidecar files (breaking change)
+  - Embed all metadata in JUnit XML `<properties>` elements
+  - Include metadata in XMLDSig signature for tamper-proof provenance
+  - Auto-detect git metadata (commit, branch, status, remote)
+  - Auto-detect CI metadata (provider, build_id, build_url)
+  - Mandatory project name with multiple fallback strategies
+  - Semantic namespace prefixes (jux:, git:, ci:, env:)
 
 See [docs/adr/README.md](docs/adr/README.md) for the complete ADR index.
 
@@ -296,6 +304,7 @@ git branch -d hotfix/0.1.x
 - **signxml** (3.x): XMLDSig digital signatures
 - **cryptography** (41.x+): RSA/ECDSA key management
 - **pytest** (7.4+/8.x): Plugin host and test framework
+- **pytest-metadata** (3.1+): Metadata injection into JUnit XML (integrated in v0.3.0)
 - **configargparse** (1.x): Configuration management (CLI, environment, files)
 - **pydantic** (2.5+): Configuration validation and metadata schemas
 - **rich** (13.x): Terminal output formatting
@@ -465,6 +474,140 @@ pytest-jux/
 
 **Note**: Database models and database integration are **NOT** part of this project. These are implemented in the Jux API Server (separate project). SQLAlchemy, Alembic, and psycopg dependencies were removed in v0.1.9 (see [ADR-0010](docs/adr/0010-remove-database-dependencies.md)).
 
+## Metadata Architecture (v0.3.0)
+
+**Breaking Change**: v0.3.0 removes JSON sidecar files and embeds all metadata in JUnit XML `<properties>` elements.
+
+### Metadata Integration
+
+pytest-jux integrates with **pytest-metadata** to automatically capture and embed environment metadata into test reports. All metadata is:
+- Embedded in JUnit XML `<properties>` elements
+- Included in the XMLDSig signature (tamper-proof)
+- Auto-detected (zero configuration required)
+- Organized with semantic namespace prefixes
+
+### Namespace Prefixes
+
+Metadata uses semantic prefixes to organize different metadata types:
+
+- **No prefix**: Project name (e.g., `project="my-project"`)
+- **jux:**: Core pytest-jux metadata (e.g., `jux:hostname`, `jux:timestamp`)
+- **git:**: Git metadata (e.g., `git:commit`, `git:branch`, `git:status`)
+- **ci:**: CI provider metadata (e.g., `ci:provider`, `ci:build_id`)
+- **env:**: Environment variables (e.g., `env:GITHUB_SHA`, `env:CI_COMMIT_SHA`)
+
+### Auto-Detected Metadata
+
+#### Project Name (Mandatory)
+
+Project name is **always** captured using these fallback strategies (in order):
+
+1. **Git remote URL**: Extract repository name from `origin` remote
+   - `https://github.com/owner/my-project.git` → `my-project`
+2. **pyproject.toml**: Read from `[project] name` or `[tool.poetry] name`
+3. **Environment variable**: `JUX_PROJECT_NAME`
+4. **Directory basename**: Current directory name
+
+XML: `<property name="project" value="my-project"/>`
+
+#### Git Metadata (Optional)
+
+Auto-detected when running in a git repository:
+
+- **git:commit**: Full commit SHA
+- **git:branch**: Current branch name
+- **git:status**: Working tree status (`clean` or `dirty`)
+- **git:remote**: Remote URL (credentials sanitized)
+
+**Features**:
+- Multi-remote support: Tries `origin`, `home`, `upstream`, `github`, `gitlab`
+- Credential sanitization: Removes credentials from remote URLs
+- Graceful fallback: Returns `None` if not in a git repository
+
+#### CI Metadata (Optional)
+
+Auto-detected based on CI environment variables:
+
+- **ci:provider**: CI provider name (`github`, `gitlab`, `jenkins`, `travis`, `circleci`)
+- **ci:build_id**: CI build/pipeline ID
+- **ci:build_url**: CI build URL
+
+**Supported CI Providers** (5):
+1. **GitHub Actions**: `GITHUB_ACTIONS`, `GITHUB_RUN_ID`, `GITHUB_SERVER_URL`
+2. **GitLab CI**: `GITLAB_CI`, `CI_PIPELINE_ID`, `CI_PIPELINE_URL`
+3. **Jenkins**: `JENKINS_URL`, `BUILD_ID`, `BUILD_URL`
+4. **Travis CI**: `TRAVIS`, `TRAVIS_BUILD_ID`, `TRAVIS_BUILD_WEB_URL`
+5. **CircleCI**: `CIRCLECI`, `CIRCLE_BUILD_NUM`, `CIRCLE_BUILD_URL`
+
+#### Environment Variables (Optional)
+
+CI-specific environment variables are automatically captured:
+
+- **GitHub Actions**: `GITHUB_SHA`, `GITHUB_REF`, `GITHUB_ACTOR`, etc.
+- **GitLab CI**: `CI_COMMIT_SHA`, `CI_PIPELINE_ID`, `CI_JOB_ID`, etc.
+- **Jenkins**: `GIT_COMMIT`, `BUILD_NUMBER`, `JOB_NAME`, etc.
+- **Travis CI**: `TRAVIS_COMMIT`, `TRAVIS_BUILD_NUMBER`, etc.
+- **CircleCI**: `CIRCLE_SHA1`, `CIRCLE_WORKFLOW_ID`, etc.
+
+### Metadata Provenance
+
+**All metadata is included in the XMLDSig signature**, ensuring:
+- Tamper-proof metadata (cryptographic integrity)
+- Complete test report provenance
+- Traceable build and environment context
+- Reproducible test execution environment
+
+### Example XML Output
+
+```xml
+<testsuite>
+  <properties>
+    <!-- Project name (no prefix) -->
+    <property name="project" value="my-project"/>
+
+    <!-- Core jux metadata (jux: prefix) -->
+    <property name="jux:hostname" value="ci-runner-01"/>
+    <property name="jux:username" value="gitlab-runner"/>
+    <property name="jux:platform" value="Linux-5.15.0"/>
+    <property name="jux:python_version" value="3.11.4"/>
+    <property name="jux:pytest_version" value="8.4.2"/>
+    <property name="jux:pytest_jux_version" value="0.3.0"/>
+    <property name="jux:timestamp" value="2025-10-24T12:34:56+00:00"/>
+
+    <!-- Git metadata (git: prefix) -->
+    <property name="git:commit" value="abc123def456..."/>
+    <property name="git:branch" value="main"/>
+    <property name="git:status" value="clean"/>
+    <property name="git:remote" value="https://gitlab.com/owner/my-project.git"/>
+
+    <!-- CI metadata (ci: prefix) -->
+    <property name="ci:provider" value="gitlab"/>
+    <property name="ci:build_id" value="789012"/>
+    <property name="ci:build_url" value="https://gitlab.com/owner/my-project/-/pipelines/789012"/>
+
+    <!-- Environment variables (env: prefix) -->
+    <property name="env:CI_COMMIT_SHA" value="abc123def456..."/>
+    <property name="env:CI_PIPELINE_ID" value="789012"/>
+  </properties>
+
+  <!-- XMLDSig signature covers all metadata -->
+  <ds:Signature>...</ds:Signature>
+  ...
+</testsuite>
+```
+
+### Metadata Override
+
+User-provided metadata (via `--metadata` CLI) takes precedence over auto-detected metadata:
+
+```bash
+# Override hostname (useful in containerized environments)
+pytest --junit-xml=report.xml --metadata jux:hostname "custom-hostname"
+
+# Override project name
+pytest --junit-xml=report.xml --metadata project "my-custom-project-name"
+```
+
 ## Documentation Framework (Diátaxis)
 
 ### Documentation Categories
@@ -577,7 +720,7 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Sprint 6 Complete - OpenSSF Badge Ready
+**Current Phase**: Sprint 7 Complete - Metadata Integration (v0.3.0)
 **Completed Sprints**:
 - ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
 - ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
@@ -585,38 +728,35 @@ Each sprint should have:
 - ✅ Sprint 3: Configuration, Storage & Caching (v0.1.3, v0.1.4)
 - ✅ Sprint 5: Documentation & User Experience (v0.2.0)
 - ✅ Sprint 6: OpenSSF Best Practices Badge (v0.2.1)
+- ✅ Sprint 7: Metadata Integration with pytest-metadata (v0.3.0)
 
-**Sprint 6 Completed** (OpenSSF Best Practices Badge - v0.2.1):
-- ✅ US-6.1: Test Coverage Visibility (89.70%, Codecov integrated)
-- ✅ US-6.2: Vulnerability Disclosure (SECURITY.md, GitHub Security Advisories)
-- ✅ US-6.3: SBOM Generation (CycloneDX, automated in releases)
-  - SBOM generation in build-release workflow
-  - Comprehensive SBOM documentation (369 lines)
-  - SBOM validation in security workflow
-- ✅ US-6.4: OpenSSF Badge Readiness (100% criteria met)
-  - Complete badge readiness assessment (342 lines)
-  - All MUST criteria documented and met
-  - Ready for manual application
-- ✅ US-6.5: Dependency Scanning (strict enforcement)
-  - pip-audit --strict (fails on vulnerabilities)
-  - Trivy exit-code enforcement
-  - SBOM-based dependency auditing
-- ✅ Bonus: XDG Base Directory compliance for config files
-- ✅ Bonus: Repository hygiene (.jux-dogfood cleanup)
+**Sprint 7 Completed** (Metadata Integration - v0.3.0):
+- ✅ US-7.1: pytest-metadata Integration (XML-embedded metadata, no JSON sidecars)
+- ✅ US-7.2: Project Name Capture (mandatory, 4 fallback strategies)
+- ✅ US-7.3: Git Metadata Auto-Detection (commit, branch, status, remote)
+- ✅ US-7.4: CI Metadata Auto-Detection (5 providers: GitHub, GitLab, Jenkins, Travis, CircleCI)
+- ✅ US-7.5: Semantic Namespace Prefixes (jux:, git:, ci:, env:)
+- ✅ Documentation Updates (API reference, how-to guides)
+- ✅ ADR-0011: Integrate pytest-metadata (breaking change)
 
-**Total Sprint 6**: 5 user stories, 700+ lines documentation, 10 commits, 100% badge criteria met
+**Breaking Changes in v0.3.0**:
+- JSON sidecar metadata files removed (metadata now embedded in XML)
+- All metadata included in XMLDSig signature for tamper-proof provenance
+- Requires pytest-metadata 3.1+
 
-**Next Steps**: Manual badge application at https://www.bestpractices.dev/
+**Total Sprint 7**: 5 user stories, 1 ADR, 2 doc updates, comprehensive git/CI auto-detection
 
 **Postponed Sprint**: Sprint 4 - REST API Client & Plugin Integration
 - ⏸️ Postponed (awaiting Jux API Server availability)
-- Target: v0.3.0 (Beta Milestone)
+- Target: v0.4.0 (Beta Milestone)
 - See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
 
-**Version**: 0.2.1 (in preparation)
-**Previous Release**: 0.2.0 (released 2025-10-20)
-**Current Branch**: develop
-**Test Coverage**: 89.70% (360 tests passing, 9 skipped, 8 xfailed)
+**Version**: 0.3.0 (in preparation - 2025-10-24)
+**Previous Releases**:
+- v0.2.1 (released 2025-10-21) - OpenSSF Best Practices Badge
+- v0.2.0 (released 2025-10-20) - Documentation & User Experience
+**Current Branch**: feature/metadata-integration (merging to develop)
+**Test Coverage**: 89.11% (381 tests passing, 9 skipped, 8 xfailed)
 
 ---
 
