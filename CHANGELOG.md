@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Organized release notes in `docs/release-notes/` directory structure
+- Added "Releases" section to README.md with links to release notes
+
+### Fixed
+- Updated `uv.lock` for v0.3.0 dependencies
+
 ## [0.3.0] - 2025-10-24
 
 ### Changed

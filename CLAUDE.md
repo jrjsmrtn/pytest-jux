@@ -752,12 +752,13 @@ Each sprint should have:
 - Target: v0.4.0 (Beta Milestone)
 - See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
 
-**Version**: 0.3.0 (in preparation - 2025-10-24)
+**Version**: 0.3.0 (released 2025-10-24)
 **Previous Releases**:
 - v0.2.1 (released 2025-10-21) - OpenSSF Best Practices Badge
 - v0.2.0 (released 2025-10-20) - Documentation & User Experience
-**Current Branch**: feature/metadata-integration (merging to develop)
+**Current Branch**: develop
 **Test Coverage**: 89.11% (381 tests passing, 9 skipped, 8 xfailed)
+**Release Notes**: [docs/release-notes/v0.3.0.md](docs/release-notes/v0.3.0.md)
 
 ---
 
