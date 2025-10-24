@@ -1,446 +1,462 @@
 # metadata API Reference
 
 **Module**: `pytest_jux.metadata`
-**Purpose**: Environment metadata capture and persistence
-**Version**: 0.1.9+
+**Purpose**: Environment metadata capture for test reports
+**Version**: 0.3.0+
 
 ---
 
 ## Overview
 
-The `metadata` module provides functionality to capture environment metadata (system, Python, pytest, dependencies) and persist it alongside test reports. This enables reproducibility, debugging, and auditing of test results.
+The `metadata` module captures environment metadata (system, Python, pytest, git, CI) and embeds it into JUnit XML test reports via pytest-metadata integration. All metadata is included in XMLDSig signatures for cryptographic provenance.
 
 ### Purpose
 
-- **Environment Capture**: Capture system, Python, pytest metadata
-- **Dependency Tracking**: Record installed dependencies and versions
-- **Git Integration**: Capture git commit, branch, and dirty state
+- **Environment Capture**: System, Python, pytest metadata
+- **Project Identification**: Auto-detect project name
+- **Git Integration**: Commit, branch, status, remote URL
+- **CI Detection**: Auto-detect CI provider and build info
 - **Reproducibility**: Enable test result reproduction
 - **Auditing**: Track when, where, and how tests were run
 
-### When to Use This Module
+### Key Changes in v0.3.0
 
-- Capturing environment metadata before signing reports
-- Storing metadata alongside test reports
-- Debugging test failures (environment differences)
-- Auditing test execution history
+- ✅ Metadata embedded in JUnit XML `<properties>` elements
+- ✅ No separate JSON sidecar files (removed)
+- ✅ All metadata included in XMLDSig signature
+- ✅ Auto-detects project name (mandatory)
+- ✅ Auto-detects git metadata (commit, branch, status, remote)
+- ✅ Auto-detects CI provider (GitHub, GitLab, Jenkins, Travis, CircleCI)
+- ✅ Semantic namespace prefixes (jux:, git:, ci:, env:)
 
 ### Related Modules
 
-- **`storage`**: Persists metadata alongside reports
-- **`plugin`**: Uses metadata to enrich test reports
-- **`config`**: Configuration affects metadata collection
+- **`plugin`**: Injects metadata into pytest-metadata hook
+- **`storage`**: Stores signed reports with embedded metadata
 
 ---
 
-## Module Documentation
+## Core Function
 
-```{eval-rst}
-.. automodule:: pytest_jux.metadata
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :special-members: __init__
+### `capture_metadata()`
+
+Capture current environment metadata.
+
+**Signature**:
+```python
+def capture_metadata(
+    include_env_vars: list[str] | None = None,
+) -> EnvironmentMetadata
+```
+
+**Parameters**:
+- `include_env_vars` (optional): List of additional environment variable names to capture
+
+**Returns**: `EnvironmentMetadata` instance with all captured metadata
+
+**Example**:
+```python
+from pytest_jux.metadata import capture_metadata
+
+# Capture metadata (auto-detects everything)
+metadata = capture_metadata()
+
+print(f"Project: {metadata.project_name}")
+print(f"Hostname: {metadata.hostname}")
+print(f"Git commit: {metadata.git_commit}")
+print(f"CI provider: {metadata.ci_provider}")
+
+# Capture with additional env vars
+metadata = capture_metadata(include_env_vars=["CUSTOM_VAR", "APP_VERSION"])
 ```
 
 ---
 
-## Classes
+## Data Class
 
 ### `EnvironmentMetadata`
 
-Environment metadata model (Pydantic).
+Environment metadata model (dataclass).
 
-```{eval-rst}
-.. autoclass:: pytest_jux.metadata.EnvironmentMetadata
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :special-members: __init__
+**Fields**:
+
+#### Core Metadata (always present)
+```python
+hostname: str                    # System hostname
+username: str                    # User running tests
+platform: str                    # OS platform (e.g., "Linux-5.15.0")
+python_version: str              # Python version
+pytest_version: str              # pytest version
+pytest_jux_version: str          # pytest-jux version
+timestamp: str                   # ISO 8601 timestamp (UTC)
+project_name: str                # Project name (mandatory)
+```
+
+#### Optional Metadata
+```python
+env: dict[str, str] | None       # Environment variables
+git_commit: str | None           # Git commit SHA
+git_branch: str | None           # Git branch name
+git_status: str | None           # "clean" or "dirty"
+git_remote: str | None           # Git remote URL (sanitized)
+ci_provider: str | None          # CI provider name
+ci_build_id: str | None          # CI build/pipeline ID
+ci_build_url: str | None         # CI build URL
+```
+
+**Methods**:
+
+- `to_dict() -> dict`: Convert to dictionary
+- `to_json(indent: int | None = None) -> str`: Serialize to JSON
+
+**Example**:
+```python
+from pytest_jux.metadata import EnvironmentMetadata, capture_metadata
+
+# Capture metadata
+metadata = capture_metadata()
+
+# Access fields
+print(metadata.project_name)     # "my-project"
+print(metadata.hostname)          # "dev-machine"
+print(metadata.git_commit)        # "abc123..." or None
+print(metadata.ci_provider)       # "github" or None
+
+# Convert to dict
+data = metadata.to_dict()
+print(data["jux:hostname"])
+
+# Serialize to JSON
+json_str = metadata.to_json(indent=2)
+```
+
+---
+
+## Project Name Capture
+
+Project name is **mandatory** and captured using multiple fallback strategies:
+
+### Strategy Order
+
+1. **Git Remote URL** - Extracts repository name from git remote
+   ```
+   https://github.com/owner/my-project.git → "my-project"
+   git@github.com:owner/repo.git → "repo"
+   ssh://user@host/path/project.git → "project"
+   ```
+
+2. **pyproject.toml** - Reads from Python project metadata
+   ```toml
+   [project]
+   name = "my-awesome-project"
+   ```
+   Or:
+   ```toml
+   [tool.poetry]
+   name = "my-poetry-project"
+   ```
+
+3. **Environment Variable** - Checks `JUX_PROJECT_NAME`
+   ```bash
+   export JUX_PROJECT_NAME="custom-project"
+   ```
+
+4. **Directory Basename** - Falls back to current directory name
+   ```
+   /path/to/my-project → "my-project"
+   ```
+
+**Example**:
+```python
+from pytest_jux.metadata import capture_metadata
+
+# Project name always captured (never None)
+metadata = capture_metadata()
+assert metadata.project_name is not None
+print(f"Project: {metadata.project_name}")
+```
+
+---
+
+## Git Metadata Capture
+
+Git metadata is auto-detected when running in a git repository.
+
+### Captured Fields
+
+- `git_commit`: Full commit SHA (e.g., "abc123def456...")
+- `git_branch`: Current branch name (e.g., "main", "feature/new-feature")
+- `git_status`: Working tree status ("clean" or "dirty")
+- `git_remote`: Remote URL with credentials sanitized
+
+### Multi-Remote Support
+
+Tries remote names in order: `origin`, `home`, `upstream`, `github`, `gitlab`
+
+### Credential Sanitization
+
+Remote URLs are sanitized to remove credentials:
+```
+https://user:password@github.com/owner/repo.git
+→ https://github.com/owner/repo.git
 ```
 
 **Example**:
 ```python
-from pytest_jux.metadata import EnvironmentMetadata
+from pytest_jux.metadata import capture_metadata
 
-# Collect current environment metadata
-metadata = EnvironmentMetadata.collect()
+metadata = capture_metadata()
 
-print(f"Hostname: {metadata.hostname}")
-print(f"Platform: {metadata.platform}")
-print(f"Python: {metadata.python_version}")
-print(f"pytest: {metadata.pytest_version}")
-print(f"Git commit: {metadata.git_commit}")
+if metadata.git_commit:
+    print(f"Commit: {metadata.git_commit}")
+    print(f"Branch: {metadata.git_branch}")
+    print(f"Status: {metadata.git_status}")  # "clean" or "dirty"
+    print(f"Remote: {metadata.git_remote}")
+else:
+    print("Not in a git repository")
 ```
 
 ---
 
-### `MetadataCollector`
+## CI Metadata Capture
 
-Metadata collection helper class.
+CI metadata is auto-detected based on environment variables.
 
-```{eval-rst}
-.. autoclass:: pytest_jux.metadata.MetadataCollector
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :special-members: __init__
+### Supported CI Providers
+
+1. **GitHub Actions**
+   - Provider: `"github"`
+   - Build ID: `$GITHUB_RUN_ID`
+   - Build URL: Constructed from `$GITHUB_SERVER_URL`, `$GITHUB_REPOSITORY`, `$GITHUB_RUN_ID`
+   - Env vars: `GITHUB_SHA`, `GITHUB_REF`, `GITHUB_ACTOR`, etc.
+
+2. **GitLab CI**
+   - Provider: `"gitlab"`
+   - Build ID: `$CI_PIPELINE_ID`
+   - Build URL: `$CI_PIPELINE_URL`
+   - Env vars: `CI_COMMIT_SHA`, `CI_COMMIT_BRANCH`, `CI_PROJECT_PATH`, etc.
+
+3. **Jenkins**
+   - Provider: `"jenkins"`
+   - Build ID: `$BUILD_ID`
+   - Build URL: `$BUILD_URL`
+   - Env vars: `GIT_COMMIT`, `GIT_BRANCH`, `JOB_NAME`, `BUILD_NUMBER`
+
+4. **Travis CI**
+   - Provider: `"travis"`
+   - Build ID: `$TRAVIS_BUILD_ID`
+   - Build URL: `$TRAVIS_BUILD_WEB_URL`
+   - Env vars: `TRAVIS_COMMIT`, `TRAVIS_BRANCH`, `TRAVIS_JOB_ID`
+
+5. **CircleCI**
+   - Provider: `"circleci"`
+   - Build ID: `$CIRCLE_BUILD_NUM`
+   - Build URL: `$CIRCLE_BUILD_URL`
+   - Env vars: `CIRCLE_SHA1`, `CIRCLE_BRANCH`, `CIRCLE_WORKFLOW_ID`
+
+**Example**:
+```python
+from pytest_jux.metadata import capture_metadata
+
+metadata = capture_metadata()
+
+if metadata.ci_provider:
+    print(f"CI Provider: {metadata.ci_provider}")
+    print(f"Build ID: {metadata.ci_build_id}")
+    print(f"Build URL: {metadata.ci_build_url}")
+
+    # CI env vars automatically captured
+    if metadata.env:
+        for key, value in metadata.env.items():
+            if key.startswith("CI_") or key.startswith("GITHUB_"):
+                print(f"{key}: {value}")
+else:
+    print("Not running in CI")
 ```
 
 ---
 
-## Metadata Fields
+## Environment Variables
 
-### System Metadata
+Environment variables from CI providers are automatically captured. You can also capture custom variables.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `hostname` | `str` | System hostname | `"dev-machine.local"` |
-| `username` | `str` | Current user | `"alice"` |
-| `platform` | `str` | OS platform | `"Darwin-23.5.0-arm64"` |
-| `timestamp` | `str` | Capture time (ISO 8601) | `"2025-10-20T14:30:00Z"` |
+### Auto-Captured CI Variables
 
-### Python Metadata
+- **GitHub Actions**: `GITHUB_SHA`, `GITHUB_REF`, `GITHUB_ACTOR`, etc.
+- **GitLab CI**: `CI_COMMIT_SHA`, `CI_PIPELINE_ID`, `CI_JOB_ID`, etc.
+- **Jenkins**: `GIT_COMMIT`, `BUILD_NUMBER`, `JOB_NAME`, etc.
+- **Travis CI**: `TRAVIS_COMMIT`, `TRAVIS_BUILD_NUMBER`, etc.
+- **CircleCI**: `CIRCLE_SHA1`, `CIRCLE_WORKFLOW_ID`, etc.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `python_version` | `str` | Python version | `"3.11.14"` |
-| `python_implementation` | `str` | Python impl | `"CPython"` |
+### Custom Variables
 
-### pytest Metadata
+```python
+from pytest_jux.metadata import capture_metadata
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `pytest_version` | `str` | pytest version | `"8.0.0"` |
-| `pytest_plugins` | `list[str]` | Active plugins | `["pytest-cov", "pytest-jux"]` |
+# Capture specific env vars
+metadata = capture_metadata(include_env_vars=["APP_VERSION", "CUSTOM_VAR"])
 
-### Dependency Metadata
+if metadata.env:
+    print(f"App Version: {metadata.env.get('APP_VERSION')}")
+    print(f"Custom: {metadata.env.get('CUSTOM_VAR')}")
+```
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `dependencies` | `dict` | Installed packages | `{"lxml": "5.0.0", "signxml": "3.2.0"}` |
+### Precedence
 
-### Git Metadata (Optional)
+User-requested env vars take precedence over auto-detected CI vars if there's a conflict.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `git_commit` | `str \| None` | Git commit SHA | `"abc123..."` |
-| `git_branch` | `str \| None` | Git branch | `"main"` |
-| `git_dirty` | `bool \| None` | Uncommitted changes | `False` |
+---
 
-### Custom Environment Variables
+## Metadata Namespaces
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `env` | `dict \| None` | Custom env vars | `{"CI": "true", "BUILD_NUMBER": "123"}` |
+Metadata uses semantic namespace prefixes in JUnit XML:
+
+### Namespace Prefixes
+
+- **jux:** - Core pytest-jux metadata (hostname, username, etc.)
+- **git:** - Git metadata (commit, branch, status, remote)
+- **ci:** - CI metadata (provider, build_id, build_url)
+- **env:** - Environment variables (GITHUB_SHA, CI_COMMIT_SHA, etc.)
+- **no prefix** - Project name and user-provided metadata
+
+### XML Representation
+
+```xml
+<properties>
+  <!-- No prefix -->
+  <property name="project" value="my-project"/>
+
+  <!-- jux: prefix -->
+  <property name="jux:hostname" value="dev-machine"/>
+  <property name="jux:timestamp" value="2025-10-24T12:34:56+00:00"/>
+
+  <!-- git: prefix -->
+  <property name="git:commit" value="abc123..."/>
+  <property name="git:branch" value="main"/>
+
+  <!-- ci: prefix -->
+  <property name="ci:provider" value="github"/>
+  <property name="ci:build_id" value="123456"/>
+
+  <!-- env: prefix -->
+  <property name="env:GITHUB_SHA" value="abc123..."/>
+</properties>
+```
 
 ---
 
 ## Usage Examples
 
-### Collecting Metadata
+### Basic Usage
 
 ```python
-from pytest_jux.metadata import EnvironmentMetadata
+from pytest_jux.metadata import capture_metadata
 
-# Collect current environment metadata
-metadata = EnvironmentMetadata.collect()
+# Capture all metadata
+metadata = capture_metadata()
 
-# Access metadata fields
+# Display summary
+print(f"Project: {metadata.project_name}")
 print(f"Running on: {metadata.hostname}")
 print(f"Platform: {metadata.platform}")
 print(f"Python: {metadata.python_version}")
-print(f"pytest: {metadata.pytest_version}")
 print(f"Timestamp: {metadata.timestamp}")
 ```
 
-### Storing Metadata with Reports
+### Git Repository
 
 ```python
-from pathlib import Path
-from pytest_jux.metadata import EnvironmentMetadata
-from pytest_jux.storage import ReportStorage
+from pytest_jux.metadata import capture_metadata
 
-# Collect metadata
-metadata = EnvironmentMetadata.collect()
+metadata = capture_metadata()
 
-# Store with report
-storage = ReportStorage()
-report_xml = Path("junit-signed.xml").read_bytes()
+# Git metadata only present in git repos
+if metadata.git_commit:
+    print(f"Git commit: {metadata.git_commit[:7]}")
+    print(f"Branch: {metadata.git_branch}")
 
-report_hash = storage.store_report(
-    report_xml=report_xml,
-    metadata=metadata
-)
+    if metadata.git_status == "dirty":
+        print("⚠️  Warning: Uncommitted changes")
+    else:
+        print("✓ Clean working tree")
+```
 
-print(f"Stored with metadata: {report_hash}")
+### CI Environment
+
+```python
+from pytest_jux.metadata import capture_metadata
+
+metadata = capture_metadata()
+
+if metadata.ci_provider:
+    print(f"Running in {metadata.ci_provider} CI")
+    print(f"Build: {metadata.ci_build_id}")
+    print(f"URL: {metadata.ci_build_url}")
+else:
+    print("Running locally")
 ```
 
 ### Custom Environment Variables
 
 ```python
+from pytest_jux.metadata import capture_metadata
 import os
-from pytest_jux.metadata import EnvironmentMetadata
 
-# Set custom environment variables
-os.environ["CI"] = "true"
-os.environ["BUILD_NUMBER"] = "456"
-os.environ["BRANCH_NAME"] = "feature/new-feature"
+# Set custom env vars
+os.environ["APP_VERSION"] = "1.2.3"
+os.environ["DEPLOY_ENV"] = "staging"
 
-# Collect metadata (includes JUX_* env vars)
-metadata = EnvironmentMetadata.collect()
+# Capture with custom vars
+metadata = capture_metadata(
+    include_env_vars=["APP_VERSION", "DEPLOY_ENV"]
+)
 
-# Access custom env vars
-if metadata.env:
-    print(f"CI: {metadata.env.get('CI')}")
-    print(f"Build: {metadata.env.get('BUILD_NUMBER')}")
-    print(f"Branch: {metadata.env.get('BRANCH_NAME')}")
-```
-
-### Git Metadata
-
-```python
-from pytest_jux.metadata import EnvironmentMetadata
-
-# Collect metadata (auto-detects git)
-metadata = EnvironmentMetadata.collect()
-
-if metadata.git_commit:
-    print(f"Git commit: {metadata.git_commit}")
-    print(f"Git branch: {metadata.git_branch}")
-
-    if metadata.git_dirty:
-        print("⚠ Warning: Uncommitted changes present")
-    else:
-        print("✓ Clean git state")
-else:
-    print("Not a git repository")
+print(f"App: {metadata.env['APP_VERSION']}")
+print(f"Env: {metadata.env['DEPLOY_ENV']}")
 ```
 
 ### Serialization
 
 ```python
-from pytest_jux.metadata import EnvironmentMetadata
+from pytest_jux.metadata import capture_metadata
 import json
 
-# Collect metadata
-metadata = EnvironmentMetadata.collect()
+metadata = capture_metadata()
 
 # Convert to dict
-metadata_dict = metadata.to_dict()
+data = metadata.to_dict()
+print(f"Fields: {len(data)}")
 
 # Serialize to JSON
-metadata_json = json.dumps(metadata_dict, indent=2)
-print(metadata_json)
+json_str = metadata.to_json(indent=2)
+print(json_str)
 
-# Deserialize from dict
-metadata_loaded = EnvironmentMetadata.from_dict(metadata_dict)
-assert metadata_loaded.hostname == metadata.hostname
+# Pretty print
+json_data = json.loads(json_str)
+for key, value in json_data.items():
+    print(f"{key}: {value}")
 ```
 
 ---
 
-## Metadata Collection Process
+## Integration with pytest-metadata
 
-### 1. System Metadata
-
-Collected using Python standard library:
-```python
-import socket
-import platform
-import getpass
-from datetime import datetime, UTC
-
-hostname = socket.gethostname()
-username = getpass.getuser()
-platform_info = platform.platform()
-timestamp = datetime.now(UTC).isoformat()
-```
-
-### 2. Python Metadata
+The `pytest_metadata` hook in `plugin.py` automatically calls `capture_metadata()` and injects all metadata into pytest-metadata's metadata dict:
 
 ```python
-import sys
+# In pytest_jux/plugin.py
+def pytest_metadata(metadata: dict) -> None:
+    jux_meta = capture_metadata()
 
-python_version = sys.version.split()[0]
-python_implementation = sys.implementation.name
+    # Inject with semantic prefixes
+    metadata["project"] = jux_meta.project_name
+    metadata["jux:hostname"] = jux_meta.hostname
+    metadata["git:commit"] = jux_meta.git_commit
+    metadata["ci:provider"] = jux_meta.ci_provider
+    # ... etc
 ```
 
-### 3. pytest Metadata
-
-```python
-import pytest
-
-pytest_version = pytest.__version__
-pytest_plugins = [p for p in sys.modules if p.startswith('pytest_')]
-```
-
-### 4. Dependency Metadata
-
-```python
-import importlib.metadata
-
-dependencies = {
-    dist.name: dist.version
-    for dist in importlib.metadata.distributions()
-}
-```
-
-### 5. Git Metadata (Optional)
-
-```python
-import subprocess
-
-git_commit = subprocess.check_output(
-    ["git", "rev-parse", "HEAD"],
-    text=True
-).strip()
-
-git_branch = subprocess.check_output(
-    ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-    text=True
-).strip()
-
-git_dirty = subprocess.call(["git", "diff-index", "--quiet", "HEAD"]) != 0
-```
-
----
-
-## Environment Variable Filtering
-
-Only environment variables with specific prefixes are included:
-
-**Included Prefixes**:
-- `CI_*` (CI/CD variables)
-- `BUILD_*` (Build system variables)
-- `GITHUB_*` (GitHub Actions)
-- `GITLAB_*` (GitLab CI)
-- `JENKINS_*` (Jenkins)
-- `JUX_*` (pytest-jux configuration)
-
-**Example**:
-```python
-import os
-from pytest_jux.metadata import EnvironmentMetadata
-
-# These will be included
-os.environ["CI_PIPELINE_ID"] = "123"
-os.environ["BUILD_NUMBER"] = "456"
-os.environ["GITHUB_RUN_ID"] = "789"
-os.environ["JUX_ENVIRONMENT"] = "production"
-
-# This will NOT be included (no matching prefix)
-os.environ["RANDOM_VAR"] = "value"
-
-metadata = EnvironmentMetadata.collect()
-
-# Only CI_*, BUILD_*, GITHUB_*, JUX_* are in metadata.env
-assert "CI_PIPELINE_ID" in metadata.env
-assert "RANDOM_VAR" not in metadata.env
-```
-
----
-
-## Metadata Persistence
-
-Metadata is stored as JSON alongside test reports:
-
-### Storage Format
-
-```
-~/.local/share/pytest-jux/
-├── reports/
-│   └── abc123...xml      # Test report
-└── metadata/
-    └── abc123...json     # Metadata (same hash)
-```
-
-### JSON Structure
-
-```json
-{
-  "hostname": "dev-machine.local",
-  "username": "alice",
-  "platform": "Darwin-23.5.0-arm64",
-  "python_version": "3.11.14",
-  "python_implementation": "CPython",
-  "pytest_version": "8.0.0",
-  "pytest_plugins": ["pytest-cov", "pytest-jux"],
-  "timestamp": "2025-10-20T14:30:00Z",
-  "git_commit": "abc123...",
-  "git_branch": "main",
-  "git_dirty": false,
-  "dependencies": {
-    "lxml": "5.0.0",
-    "signxml": "3.2.0",
-    "cryptography": "41.0.0"
-  },
-  "env": {
-    "CI": "true",
-    "BUILD_NUMBER": "456"
-  }
-}
-```
-
----
-
-## Use Cases
-
-### 1. Debugging Test Failures
-
-```python
-from pytest_jux.storage import ReportStorage
-
-storage = ReportStorage()
-
-# Get metadata for failed test report
-metadata = storage.get_metadata("failed-test-hash")
-
-print(f"Failed on: {metadata.hostname}")
-print(f"Platform: {metadata.platform}")
-print(f"Python: {metadata.python_version}")
-print(f"pytest: {metadata.pytest_version}")
-print(f"Git commit: {metadata.git_commit}")
-
-# Compare with successful run metadata
-success_metadata = storage.get_metadata("success-test-hash")
-if metadata.python_version != success_metadata.python_version:
-    print("⚠ Different Python versions!")
-```
-
-### 2. Reproducibility
-
-```python
-from pytest_jux.metadata import EnvironmentMetadata
-from pytest_jux.storage import ReportStorage
-
-# Store current test run
-metadata = EnvironmentMetadata.collect()
-storage = ReportStorage()
-
-# Later: reproduce environment
-historical_metadata = storage.get_metadata("historical-hash")
-
-print("To reproduce:")
-print(f"  Python: {historical_metadata.python_version}")
-print(f"  pytest: {historical_metadata.pytest_version}")
-print(f"  Git commit: {historical_metadata.git_commit}")
-for dep, version in historical_metadata.dependencies.items():
-    print(f"  {dep}=={version}")
-```
-
-### 3. Audit Trail
-
-```python
-from pytest_jux.storage import ReportStorage
-
-storage = ReportStorage()
-
-# Audit all test runs
-for report_hash in storage.list_reports():
-    metadata = storage.get_metadata(report_hash)
-    print(f"{metadata.timestamp} | {metadata.username}@{metadata.hostname} | {metadata.git_commit[:7]}")
-```
+This metadata is then written to JUnit XML `<properties>` elements and included in XMLDSig signatures.
 
 ---
 
@@ -448,25 +464,26 @@ for report_hash in storage.list_reports():
 
 ### Sensitive Information
 
-**Warning**: Metadata may contain sensitive information:
-- Hostnames (reveals network topology)
-- Usernames (reveals user accounts)
-- Environment variables (may contain secrets)
-- Git commits (may expose private repos)
+Metadata may contain sensitive information:
+- ❌ Hostnames (network topology)
+- ❌ Usernames (user accounts)
+- ❌ Git remotes (private repository URLs)
+- ❌ CI build URLs (internal CI systems)
 
-**Best Practices**:
-1. Review metadata before sharing reports
-2. Filter sensitive environment variables
-3. Sanitize hostnames/usernames in CI/CD
-4. Use metadata encryption for public storage
+### Best Practices
 
-### Environment Variable Filtering
+1. **Review before sharing**: Check metadata before publishing reports
+2. **Override sensitive fields**: Use CLI to override hostnames/usernames
+3. **Sanitize git remotes**: Credentials are automatically removed from URLs
+4. **CI-specific handling**: Use generic identifiers in CI environments
 
-The module only captures environment variables with specific prefixes to avoid accidentally capturing secrets:
+### Example: Sanitizing Metadata
 
-```python
-# SAFE: Only CI_*, BUILD_*, GITHUB_*, GITLAB_*, JENKINS_*, JUX_* are captured
-# Secrets in other env vars (like AWS_SECRET_KEY) are NOT captured
+```bash
+# Override sensitive fields
+pytest --junit-xml=report.xml \
+  --metadata jux:hostname "ci-runner" \
+  --metadata jux:username "ci-user"
 ```
 
 ---
@@ -475,25 +492,25 @@ The module only captures environment variables with specific prefixes to avoid a
 
 | Operation | Complexity | Typical Time |
 |-----------|------------|--------------|
-| `collect()` | O(n) | 5-20ms |
+| `capture_metadata()` | O(1) | 10-50ms |
+| Git detection | O(1) | 20-100ms |
+| CI detection | O(1) | <5ms |
 | `to_dict()` | O(1) | <1ms |
-| `from_dict()` | O(1) | <1ms |
+| `to_json()` | O(1) | <1ms |
 
-Where n = number of installed packages
-
-**Note**: Git metadata collection may take longer (~50-100ms) if repository is large.
+**Note**: Git operations may be slower in large repositories.
 
 ---
 
 ## See Also
 
-- **[storage API](storage.md)**: Persists metadata alongside reports
-- **[config API](config.md)**: Configuration affects metadata collection
-- **[Reproducibility How-To](../../howto/reproducible-tests.md)**: Guide for reproducible test environments
+- **[How-To: Add Metadata to Reports](../../howto/add-metadata-to-reports.md)** - User guide
+- **[plugin API](plugin.md)** - pytest hook integration
+- **[storage API](storage.md)** - Report persistence
 
 ---
 
 **Module Path**: `pytest_jux.metadata`
 **Source Code**: `pytest_jux/metadata.py`
 **Tests**: `tests/test_metadata.py`
-**Last Updated**: 2025-10-20
+**Last Updated**: 2025-10-24 (v0.3.0)

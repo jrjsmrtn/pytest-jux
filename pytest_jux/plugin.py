@@ -15,7 +15,6 @@ from lxml import etree
 
 from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
 from pytest_jux.config import ConfigurationManager, StorageMode
-from pytest_jux.metadata import capture_metadata
 from pytest_jux.signer import load_private_key, sign_xml
 from pytest_jux.storage import ReportStorage
 
@@ -139,14 +138,108 @@ def pytest_configure(config: pytest.Config) -> None:
                     )
 
 
+def pytest_metadata(metadata: dict) -> None:  # type: ignore[misc]
+    """Add pytest-jux environment metadata to pytest-metadata.
+
+    This hook is called by pytest-metadata during test session startup.
+    We capture environment metadata and inject it into the metadata dict,
+    but only if keys don't already exist (user CLI metadata takes precedence).
+
+    Metadata is stored in JUnit XML <properties> elements and is included
+    in the XMLDSig signature, ensuring cryptographic provenance.
+
+    All jux metadata uses the "jux:" prefix to avoid conflicts with other
+    plugins or user-provided metadata.
+
+    Args:
+        metadata: pytest-metadata's metadata dictionary (mutable)
+
+    Example:
+        Running pytest with:
+            pytest --metadata build_number 12345
+
+        Results in XML properties:
+            <property name="build_number" value="12345"/>  <!-- User metadata -->
+            <property name="project" value="my-project"/>  <!-- Project name (mandatory) -->
+            <property name="jux:hostname" value="ci-runner"/>  <!-- Jux metadata -->
+            <property name="jux:timestamp" value="2025-10-24T12:34:56+00:00"/>
+            <property name="git:commit" value="abc123..."/>  <!-- Git metadata -->
+            <property name="ci:provider" value="github"/>  <!-- CI metadata -->
+            <property name="env:GITHUB_SHA" value="abc123..."/>  <!-- Env vars -->
+    """
+    from pytest_jux.metadata import capture_metadata
+
+    # Capture jux environment metadata
+    jux_meta = capture_metadata()
+
+    # Add metadata with "jux:" prefix if not already present
+    # User-provided metadata (CLI --metadata) takes precedence
+    if "jux:hostname" not in metadata:
+        metadata["jux:hostname"] = jux_meta.hostname
+
+    if "jux:username" not in metadata:
+        metadata["jux:username"] = jux_meta.username
+
+    if "jux:platform" not in metadata:
+        metadata["jux:platform"] = jux_meta.platform
+
+    if "jux:python_version" not in metadata:
+        metadata["jux:python_version"] = jux_meta.python_version
+
+    if "jux:pytest_version" not in metadata:
+        metadata["jux:pytest_version"] = jux_meta.pytest_version
+
+    if "jux:pytest_jux_version" not in metadata:
+        metadata["jux:pytest_jux_version"] = jux_meta.pytest_jux_version
+
+    if "jux:timestamp" not in metadata:
+        metadata["jux:timestamp"] = jux_meta.timestamp
+
+    if "project" not in metadata:
+        metadata["project"] = jux_meta.project_name
+
+    # Add git metadata (auto-detected from repository)
+    if jux_meta.git_commit and "git:commit" not in metadata:
+        metadata["git:commit"] = jux_meta.git_commit
+
+    if jux_meta.git_branch and "git:branch" not in metadata:
+        metadata["git:branch"] = jux_meta.git_branch
+
+    if jux_meta.git_status and "git:status" not in metadata:
+        metadata["git:status"] = jux_meta.git_status
+
+    if jux_meta.git_remote and "git:remote" not in metadata:
+        metadata["git:remote"] = jux_meta.git_remote
+
+    # Add CI metadata (auto-detected from CI environment)
+    if jux_meta.ci_provider and "ci:provider" not in metadata:
+        metadata["ci:provider"] = jux_meta.ci_provider
+
+    if jux_meta.ci_build_id and "ci:build_id" not in metadata:
+        metadata["ci:build_id"] = jux_meta.ci_build_id
+
+    if jux_meta.ci_build_url and "ci:build_url" not in metadata:
+        metadata["ci:build_url"] = jux_meta.ci_build_url
+
+    # Add optional environment variables with env: prefix
+    if jux_meta.env:
+        for env_key, env_value in jux_meta.env.items():
+            metadata_key = f"env:{env_key}"
+            if metadata_key not in metadata:
+                metadata[metadata_key] = env_value
+
+
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     """Sign and store JUnit XML report after test session completes.
 
     This hook is called after the test session finishes. If the plugin is enabled
     and a JUnit XML report was generated, it:
     1. Signs the report (if signing is enabled)
-    2. Captures environment metadata
-    3. Stores the report (signed or unsigned) according to storage mode
+    2. Stores the report (signed or unsigned) according to storage mode
+
+    Note: Environment metadata is captured by pytest_metadata() hook and included
+    in the JUnit XML <properties> elements before signing. The XMLDSig signature
+    covers all metadata, ensuring cryptographic provenance.
 
     Args:
         session: pytest session object
@@ -201,9 +294,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                     )
                 )
 
-        # Capture environment metadata
-        metadata = capture_metadata()
-
         # Compute canonical hash
         canonical_hash = compute_canonical_hash(tree)
 
@@ -224,10 +314,8 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
             # Initialize storage
             storage = ReportStorage(storage_path=Path(storage_path))
 
-            # Store the report (xml_content expects bytes, metadata expects EnvironmentMetadata object)
-            storage.store_report(
-                xml_content=xml_bytes, canonical_hash=canonical_hash, metadata=metadata
-            )
+            # Store the report (metadata is already embedded in XML properties)
+            storage.store_report(xml_content=xml_bytes, canonical_hash=canonical_hash)
 
     except Exception as e:
         # Report error but don't fail the test run

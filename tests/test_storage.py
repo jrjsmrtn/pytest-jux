@@ -3,14 +3,12 @@
 
 """Tests for local filesystem storage."""
 
-import json
 import platform
 import stat
 from pathlib import Path
 
 import pytest
 
-from pytest_jux.metadata import EnvironmentMetadata
 from pytest_jux.storage import (
     ReportStorage,
     StorageError,
@@ -69,37 +67,32 @@ class TestReportStorage:
         storage_path = tmp_path / "jux"
         ReportStorage(storage_path=storage_path)
 
-        # Should create reports, metadata, and queue directories
+        # Should create reports and queue directories (no metadata dir in v0.3.0+)
         assert (storage_path / "reports").exists()
-        assert (storage_path / "metadata").exists()
         assert (storage_path / "queue").exists()
+        # Metadata directory no longer created (metadata in XML as of v0.3.0)
+        assert not (storage_path / "metadata").exists()
 
     def test_store_report(self, tmp_path: Path) -> None:
-        """Should store report with canonical hash as filename."""
+        """Should store report with canonical hash as filename.
+
+        As of v0.3.0, metadata is embedded in XML, not stored separately.
+        """
         storage = ReportStorage(storage_path=tmp_path)
 
         xml_content = b"<testsuite><testcase name='test1'/></testsuite>"
         canonical_hash = "sha256:abc123def456"
-        metadata = EnvironmentMetadata(
-            hostname="test-host",
-            username="test-user",
-            platform="Test-Platform",
-            python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
-        storage.store_report(xml_content, canonical_hash, metadata)
+        storage.store_report(xml_content, canonical_hash)
 
         # Report file should exist
         report_file = tmp_path / "reports" / f"{canonical_hash}.xml"
         assert report_file.exists()
         assert report_file.read_bytes() == xml_content
 
-        # Metadata file should exist
+        # No separate metadata file (metadata in XML as of v0.3.0)
         metadata_file = tmp_path / "metadata" / f"{canonical_hash}.json"
-        assert metadata_file.exists()
+        assert not metadata_file.exists()
 
     def test_store_report_atomic_write(self, tmp_path: Path) -> None:
         """Should use atomic write (temp file + rename)."""
@@ -107,17 +100,8 @@ class TestReportStorage:
 
         xml_content = b"<testsuite/>"
         canonical_hash = "sha256:test123"
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
-        storage.store_report(xml_content, canonical_hash, metadata)
+        storage.store_report(xml_content, canonical_hash)
 
         # No temp files should remain
         temp_files = list(tmp_path.rglob("*.tmp"))
@@ -129,17 +113,8 @@ class TestReportStorage:
 
         xml_content = b"<testsuite><testcase name='test1'/></testsuite>"
         canonical_hash = "sha256:retrieve123"
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
-        storage.store_report(xml_content, canonical_hash, metadata)
+        storage.store_report(xml_content, canonical_hash)
 
         # Retrieve report
         retrieved = storage.get_report(canonical_hash)
@@ -152,29 +127,6 @@ class TestReportStorage:
         with pytest.raises(StorageError):
             storage.get_report("sha256:nonexistent")
 
-    def test_get_metadata(self, tmp_path: Path) -> None:
-        """Should retrieve stored metadata."""
-        storage = ReportStorage(storage_path=tmp_path)
-
-        xml_content = b"<testsuite/>"
-        canonical_hash = "sha256:meta123"
-        metadata = EnvironmentMetadata(
-            hostname="test-host",
-            username="test-user",
-            platform="Test-Platform",
-            python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
-
-        storage.store_report(xml_content, canonical_hash, metadata)
-
-        # Retrieve metadata
-        retrieved_meta = storage.get_metadata(canonical_hash)
-        assert retrieved_meta.hostname == metadata.hostname
-        assert retrieved_meta.username == metadata.username
-
     def test_list_reports(self, tmp_path: Path) -> None:
         """Should list all stored reports."""
         storage = ReportStorage(storage_path=tmp_path)
@@ -184,15 +136,6 @@ class TestReportStorage:
             storage.store_report(
                 f"<testsuite name='test{i}'/>".encode(),
                 f"sha256:test{i}",
-                EnvironmentMetadata(
-                    hostname="test",
-                    username="test",
-                    platform="test",
-                    python_version="3.11",
-                    pytest_version="8.0",
-                    pytest_jux_version="0.1.4",
-                    timestamp=f"2025-10-17T10:3{i}:00Z",
-                ),
             )
 
         reports = storage.list_reports()
@@ -206,31 +149,23 @@ class TestReportStorage:
         assert reports == []
 
     def test_delete_report(self, tmp_path: Path) -> None:
-        """Should delete report and metadata."""
+        """Should delete report.
+
+        As of v0.3.0, metadata is in XML, so only XML file needs deletion.
+        """
         storage = ReportStorage(storage_path=tmp_path)
 
         xml_content = b"<testsuite/>"
         canonical_hash = "sha256:delete123"
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
-        storage.store_report(xml_content, canonical_hash, metadata)
+        storage.store_report(xml_content, canonical_hash)
 
         # Delete report
         storage.delete_report(canonical_hash)
 
-        # Files should not exist
+        # Report file should not exist
         report_file = tmp_path / "reports" / f"{canonical_hash}.xml"
-        metadata_file = tmp_path / "metadata" / f"{canonical_hash}.json"
         assert not report_file.exists()
-        assert not metadata_file.exists()
 
     def test_delete_nonexistent_report(self, tmp_path: Path) -> None:
         """Should not raise error when deleting nonexistent report."""
@@ -244,17 +179,8 @@ class TestReportStorage:
 
         xml_content = b"<testsuite/>"
         canonical_hash = "sha256:queue123"
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
-        storage.queue_report(xml_content, canonical_hash, metadata)
+        storage.queue_report(xml_content, canonical_hash)
 
         # Report should be in queue directory
         queue_file = tmp_path / "queue" / f"{canonical_hash}.xml"
@@ -269,15 +195,6 @@ class TestReportStorage:
             storage.queue_report(
                 f"<testsuite name='test{i}'/>".encode(),
                 f"sha256:queue{i}",
-                EnvironmentMetadata(
-                    hostname="test",
-                    username="test",
-                    platform="test",
-                    python_version="3.11",
-                    pytest_version="8.0",
-                    pytest_jux_version="0.1.4",
-                    timestamp=f"2025-10-17T10:3{i}:00Z",
-                ),
             )
 
         queued = storage.list_queued_reports()
@@ -290,17 +207,8 @@ class TestReportStorage:
 
         xml_content = b"<testsuite/>"
         canonical_hash = "sha256:dequeue123"
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
-        storage.queue_report(xml_content, canonical_hash, metadata)
+        storage.queue_report(xml_content, canonical_hash)
 
         # Dequeue (mark as published)
         storage.dequeue_report(canonical_hash)
@@ -315,19 +223,10 @@ class TestReportStorage:
 
         xml_content = b"<testsuite/>"
         canonical_hash = "sha256:exists123"
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
         assert not storage.report_exists(canonical_hash)
 
-        storage.store_report(xml_content, canonical_hash, metadata)
+        storage.store_report(xml_content, canonical_hash)
 
         assert storage.report_exists(canonical_hash)
 
@@ -340,30 +239,12 @@ class TestReportStorage:
             storage.store_report(
                 f"<testsuite name='test{i}'/>".encode(),
                 f"sha256:stat{i}",
-                EnvironmentMetadata(
-                    hostname="test",
-                    username="test",
-                    platform="test",
-                    python_version="3.11",
-                    pytest_version="8.0",
-                    pytest_jux_version="0.1.4",
-                    timestamp=f"2025-10-17T10:3{i}:00Z",
-                ),
             )
 
         # Queue one report
         storage.queue_report(
             b"<testsuite/>",
             "sha256:statqueue",
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:40:00Z",
-            ),
         )
 
         stats = storage.get_stats()
@@ -382,17 +263,8 @@ class TestReportStorage:
 
         xml_content = b"<testsuite/>"
         canonical_hash = "sha256:perm123"
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
-        storage.store_report(xml_content, canonical_hash, metadata)
+        storage.store_report(xml_content, canonical_hash)
 
         # Check file permissions (should be 0600 or more restrictive)
         report_file = tmp_path / "reports" / f"{canonical_hash}.xml"
@@ -402,42 +274,26 @@ class TestReportStorage:
         assert mode & stat.S_IRUSR  # Owner read
         assert mode & stat.S_IWUSR  # Owner write
 
-    def test_metadata_serialization(self, tmp_path: Path) -> None:
-        """Metadata should be correctly serialized to JSON."""
+    # Removed test_metadata_serialization - metadata no longer stored as JSON (v0.3.0)
+    # Removed test_get_metadata_invalid_json - get_metadata() removed (v0.3.0)
+
+
+class TestStorageEdgeCases:
+    """Tests for edge cases and error handling."""
+
+    def test_concurrent_writes(self, tmp_path: Path) -> None:
+        """Should handle concurrent writes to storage safely."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        xml_content = b"<testsuite/>"
-        canonical_hash = "sha256:serial123"
-        metadata = EnvironmentMetadata(
-            hostname="test-host",
-            username="test-user",
-            platform="Test-Platform",
-            python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-            env={"CI": "true", "BUILD_ID": "123"},
-        )
+        # Store multiple reports concurrently (simulated)
+        for i in range(10):
+            xml_content = f"<testsuite name='test{i}'/>".encode()
+            canonical_hash = f"sha256:concurrent{i}"
+            storage.store_report(xml_content, canonical_hash)
 
-        storage.store_report(xml_content, canonical_hash, metadata)
-
-        # Read metadata file directly
-        metadata_file = tmp_path / "metadata" / f"{canonical_hash}.json"
-        data = json.loads(metadata_file.read_text())
-
-        assert data["hostname"] == "test-host"
-        assert data["env"]["CI"] == "true"
-
-    def test_get_metadata_invalid_json(self, tmp_path: Path) -> None:
-        """Should raise error for corrupted metadata."""
-        storage = ReportStorage(storage_path=tmp_path)
-
-        canonical_hash = "sha256:corrupt123"
-        metadata_file = tmp_path / "metadata" / f"{canonical_hash}.json"
-        metadata_file.write_text("{invalid json}")
-
-        with pytest.raises(StorageError, match="Failed to read metadata"):
-            storage.get_metadata(canonical_hash)
+        # Verify all reports were stored
+        reports = storage.list_reports()
+        assert len(reports) == 10
 
     def test_dequeue_nonexistent_report(self, tmp_path: Path) -> None:
         """Should raise error when dequeuing nonexistent report."""
@@ -470,19 +326,10 @@ class TestReportStorage:
 
         xml_content = b"<testsuite/>"
         canonical_hash = "sha256:readonly123"
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-17T10:30:00Z",
-        )
 
         try:
             with pytest.raises(StorageError, match="Failed to write file"):
-                storage.store_report(xml_content, canonical_hash, metadata)
+                storage.store_report(xml_content, canonical_hash)
         finally:
             # Restore permissions for cleanup
             reports_dir.chmod(0o700)
@@ -507,13 +354,6 @@ class TestReportStorage:
             # Restore permissions for cleanup
             report_file.chmod(0o600)
 
-    def test_get_metadata_nonexistent(self, tmp_path: Path) -> None:
-        """Should raise error for nonexistent metadata."""
-        storage = ReportStorage(storage_path=tmp_path)
-
-        with pytest.raises(StorageError, match="Metadata not found"):
-            storage.get_metadata("sha256:nonexistent")
-
     def test_queue_and_dequeue_multiple_reports(self, tmp_path: Path) -> None:
         """Should handle multiple queued reports correctly."""
         storage = ReportStorage(storage_path=tmp_path)
@@ -526,15 +366,6 @@ class TestReportStorage:
             storage.queue_report(
                 f"<testsuite name='test{i}'/>".encode(),
                 canonical_hash,
-                EnvironmentMetadata(
-                    hostname="test",
-                    username="test",
-                    platform="test",
-                    python_version="3.11",
-                    pytest_version="8.0",
-                    pytest_jux_version="0.1.4",
-                    timestamp=f"2025-10-17T10:3{i}:00Z",
-                ),
             )
 
         # Verify all are queued
@@ -563,8 +394,8 @@ class TestReportStorage:
         # Path should now exist with subdirectories
         assert storage_path.exists()
         assert (storage_path / "reports").exists()
-        assert (storage_path / "metadata").exists()
         assert (storage_path / "queue").exists()
+        # metadata/ directory no longer created (v0.3.0+)
 
     def test_get_stats_with_queued_reports(self, tmp_path: Path) -> None:
         """Statistics should include queued reports."""
@@ -574,30 +405,12 @@ class TestReportStorage:
         storage.store_report(
             b"<testsuite name='test1'/>",
             "sha256:regular1",
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:30:00Z",
-            ),
         )
 
         # Queue report
         storage.queue_report(
             b"<testsuite name='test2'/>",
             "sha256:queued1",
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:31:00Z",
-            ),
         )
 
         stats = storage.get_stats()
@@ -700,34 +513,13 @@ class TestStorageErrorPaths:
         storage = ReportStorage(storage_path=tmp_path)
 
         # Create a report file first
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-19T10:00:00Z",
-        )
         test_hash = "sha256:test123"
-        storage.store_report(b"<testsuite name='test'/>", test_hash, metadata)
+        storage.store_report(b"<testsuite name='test'/>", test_hash)
 
         # Mock read_bytes to raise an error
         with patch("pathlib.Path.read_bytes", side_effect=PermissionError("Access denied")):
             with pytest.raises(StorageError, match="Failed to read report"):
                 storage.get_report(test_hash)
-
-    def test_get_metadata_parse_error(self, tmp_path: Path) -> None:
-        """Should handle JSON parse errors when retrieving metadata."""
-        storage = ReportStorage(storage_path=tmp_path)
-
-        # Create a corrupted metadata file
-        test_hash = "sha256:corrupted"
-        metadata_file = tmp_path / "metadata" / f"{test_hash}.json"
-        metadata_file.write_text("invalid json {{{")
-
-        with pytest.raises(StorageError, match="Failed to read metadata"):
-            storage.get_metadata(test_hash)
 
     def test_list_reports_empty_dir(self, tmp_path: Path) -> None:
         """Should return empty list when reports directory doesn't exist."""
@@ -757,17 +549,8 @@ class TestStorageErrorPaths:
         storage = ReportStorage(storage_path=tmp_path)
 
         # Queue a report first
-        metadata = EnvironmentMetadata(
-            hostname="test",
-            username="test",
-            platform="test",
-            python_version="3.11",
-            pytest_version="8.0",
-            pytest_jux_version="0.1.4",
-            timestamp="2025-10-19T10:00:00Z",
-        )
         test_hash = "sha256:queued"
-        storage.queue_report(b"<testsuite name='test'/>", test_hash, metadata)
+        storage.queue_report(b"<testsuite name='test'/>", test_hash)
 
         # Mock read_bytes to raise an error
         with patch("pathlib.Path.read_bytes", side_effect=IOError("Read error")):
@@ -787,7 +570,7 @@ class TestStorageErrorPaths:
         # Create storage but delete all subdirectories
         storage = ReportStorage(storage_path=tmp_path)
         (tmp_path / "reports").rmdir()
-        (tmp_path / "metadata").rmdir()
+        # Note: metadata directory no longer exists (Sprint 7 removed JSON metadata)
         (tmp_path / "queue").rmdir()
 
         stats = storage.get_stats()

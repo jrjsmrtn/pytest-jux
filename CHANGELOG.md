@@ -7,6 +7,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-10-24
+
+### Changed
+- **BREAKING CHANGE: Metadata Storage Architecture** (ADR-0011):
+  - Environment metadata now embedded in JUnit XML `<properties>` elements (was: separate JSON sidecar files)
+  - All metadata cryptographically signed with XMLDSig (was: JSON files not signed)
+  - Added `pytest_metadata()` hook to inject environment metadata into pytest-metadata
+  - Semantic namespace prefixes for metadata organization (jux:, git:, ci:, env:)
+  - Single source of truth: All metadata in XML file (no more separate `.json` files)
+- **BREAKING CHANGE: Storage Structure**:
+  - Removed `metadata/` directory (metadata now in XML `<properties>`)
+  - Storage structure simplified: `reports/{hash}.xml` and `queue/{hash}.xml` only
+  - `storage.store_report()` signature changed: removed `metadata` parameter
+  - `storage.get_metadata()` method removed (read from XML properties instead)
+  - `storage.queue_report()` signature changed: removed `metadata` parameter
+  - `storage.delete_report()` no longer deletes separate metadata files
+
+### Added
+- **Sprint 7 (Metadata Integration with pytest-metadata) - Complete**
+- `pytest_metadata()` hook in `plugin.py` to inject environment metadata
+- **Project Name Capture** (mandatory field):
+  - Auto-detected from git remote URL (extracts repository name)
+  - Or read from `pyproject.toml` ([project] name or [tool.poetry] name)
+  - Or from `JUX_PROJECT_NAME` environment variable
+  - Or falls back to current directory name
+  - Injected as `<property name="project" value="..."/>` (no namespace prefix)
+- **Core Metadata Properties** (jux: prefix):
+  - `jux:hostname` - Hostname where tests executed
+  - `jux:username` - Username running tests
+  - `jux:platform` - Platform/OS information
+  - `jux:python_version` - Python version
+  - `jux:pytest_version` - pytest version
+  - `jux:pytest_jux_version` - pytest-jux version
+  - `jux:timestamp` - Execution timestamp (ISO 8601 UTC)
+- **Git Metadata** (git: prefix) - Auto-detected:
+  - `git:commit` - Git commit SHA (full)
+  - `git:branch` - Current branch name
+  - `git:status` - Working tree status ("clean" or "dirty")
+  - `git:remote` - Git remote URL (credentials sanitized)
+  - Multi-remote support (tries origin, home, upstream, github, gitlab)
+  - Automatic credential sanitization for remote URLs
+- **CI Metadata** (ci: prefix) - Auto-detected:
+  - `ci:provider` - CI provider name
+  - `ci:build_id` - CI build/pipeline ID
+  - `ci:build_url` - CI build URL
+  - Supports 5 CI providers: GitHub Actions, GitLab CI, Jenkins, Travis CI, CircleCI
+- **Environment Variables** (env: prefix) - Auto-captured:
+  - `env:GITHUB_SHA`, `env:GITHUB_REF`, `env:GITHUB_ACTOR` (GitHub Actions)
+  - `env:CI_COMMIT_SHA`, `env:CI_PIPELINE_ID`, `env:CI_JOB_ID` (GitLab CI)
+  - `env:GIT_COMMIT`, `env:BUILD_NUMBER`, `env:JOB_NAME` (Jenkins)
+  - `env:TRAVIS_COMMIT`, `env:TRAVIS_BUILD_NUMBER` (Travis CI)
+  - `env:CIRCLE_SHA1`, `env:CIRCLE_WORKFLOW_ID` (CircleCI)
+  - User-requested env vars take precedence over auto-detected CI vars
+
+### Improved
+- **Security**: All metadata now cryptographically bound to test reports
+- **Provenance**: Complete audit trail with signed metadata
+- **Trust Model**: Environment metadata as trusted as user-provided metadata
+- **Simplicity**: Single file per report (was: XML + JSON)
+- **Compatibility**: Standard JUnit XML `<properties>` schema
+
+### Removed
+- JSON sidecar files for metadata (`metadata/{hash}.json`)
+- `metadata/` storage directory
+- Queue metadata JSON files (`queue/{hash}.json`)
+- `storage.get_metadata()` method
+
+### Documentation
+- ADR-0011: Integrate Environment Metadata with pytest-metadata
+- Sprint 7 plan: docs/sprints/sprint-07-metadata-integration.md
+- Updated `docs/howto/add-metadata-to-reports.md` with git/CI/env metadata
+- Complete rewrite of `docs/reference/api/metadata.md` (517 lines)
+- All examples updated to reflect v0.3.0 implementation
+
+### Tests
+- 381 tests passing, 9 skipped, 16 xfailed
+- 89.11% total coverage (metadata.py: 93.75%)
+- 43 metadata tests (26 original + 17 new for git/CI/project name)
+- New test classes: TestProjectNameCapture, TestGitMetadata, TestCIMetadata
+
 ## [0.2.1] - 2025-10-20
 
 ### Added

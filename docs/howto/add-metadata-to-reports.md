@@ -146,6 +146,53 @@ def test_with_metadata(metadata):
 
 ## Integration with pytest-jux
 
+### Automatic Environment Metadata
+
+**New in v0.3.0**: pytest-jux automatically captures and adds environment metadata to every test report. This metadata is added via the `pytest_metadata` hook and includes:
+
+#### Core Metadata (jux: prefix)
+- `jux:hostname` - Machine hostname
+- `jux:username` - User running tests
+- `jux:platform` - OS and version
+- `jux:python_version` - Python interpreter version
+- `jux:pytest_version` - pytest version
+- `jux:pytest_jux_version` - pytest-jux version
+- `jux:timestamp` - ISO 8601 timestamp (UTC)
+
+#### Project Name (no prefix)
+- `project` - Project name (mandatory)
+  - Extracted from git remote URL
+  - Or read from `pyproject.toml` ([project] name)
+  - Or from `JUX_PROJECT_NAME` environment variable
+  - Or falls back to current directory name
+
+#### Git Metadata (git: prefix) - Auto-detected
+- `git:commit` - Git commit SHA
+- `git:branch` - Git branch name
+- `git:status` - Working tree status ("clean" or "dirty")
+- `git:remote` - Git remote URL (credentials sanitized)
+
+#### CI Metadata (ci: prefix) - Auto-detected
+- `ci:provider` - CI provider ("github", "gitlab", "jenkins", "travis", "circleci")
+- `ci:build_id` - CI build/pipeline ID
+- `ci:build_url` - CI build URL
+
+#### Environment Variables (env: prefix) - Auto-captured
+- `env:GITHUB_SHA`, `env:GITHUB_REF`, etc. (GitHub Actions)
+- `env:CI_COMMIT_SHA`, `env:CI_PIPELINE_ID`, etc. (GitLab CI)
+- `env:GIT_COMMIT`, `env:BUILD_NUMBER`, etc. (Jenkins)
+- And more for Travis CI, CircleCI
+
+**Overriding automatic metadata**: You can override any automatic metadata by providing the same key via CLI:
+
+```bash
+# Override hostname (useful in containerized environments)
+pytest --junit-xml=report.xml --metadata jux:hostname "custom-hostname"
+
+# Override project name
+pytest --junit-xml=report.xml --metadata project "my-custom-project-name"
+```
+
 ### Signing Reports with Metadata
 
 pytest-jux preserves all metadata when signing reports:
@@ -164,40 +211,62 @@ The signed XML will include both:
 
 ### Metadata in Stored Reports
 
-When storing reports locally, metadata property tags are included in the XML file, while environment metadata is stored separately in the JSON sidecar file:
+**Important (v0.3.0+)**: All metadata is now embedded in JUnit XML `<properties>` elements and cryptographically signed with the report. There are no separate JSON sidecar files.
+
+When storing reports locally, the XML file contains both user-provided metadata and environment metadata:
 
 ```
 .jux/reports/
-├── reports/
-│   └── sha256_abc123.xml          # Contains property tags
-└── metadata/
-    └── sha256_abc123.json         # Contains environment metadata
+└── reports/
+    └── sha256_abc123.xml          # Contains all metadata + signature
 ```
 
 **XML file** (sha256_abc123.xml):
 ```xml
 <testsuite>
   <properties>
+    <!-- User-provided metadata (from CLI) -->
     <property name="build_id" value="12345"/>
     <property name="environment" value="production"/>
+
+    <!-- Project name (mandatory, auto-detected) -->
+    <property name="project" value="my-project"/>
+
+    <!-- pytest-jux core metadata (automatic) -->
+    <property name="jux:hostname" value="ci-runner-01"/>
+    <property name="jux:username" value="gitlab-runner"/>
+    <property name="jux:platform" value="Linux-5.15.0"/>
+    <property name="jux:python_version" value="3.11.4"/>
+    <property name="jux:pytest_version" value="8.4.2"/>
+    <property name="jux:pytest_jux_version" value="0.3.0"/>
+    <property name="jux:timestamp" value="2025-10-19T12:34:56+00:00"/>
+
+    <!-- Git metadata (auto-detected) -->
+    <property name="git:commit" value="abc123def456..."/>
+    <property name="git:branch" value="main"/>
+    <property name="git:status" value="clean"/>
+    <property name="git:remote" value="https://gitlab.com/owner/my-project.git"/>
+
+    <!-- CI metadata (auto-detected) -->
+    <property name="ci:provider" value="gitlab"/>
+    <property name="ci:build_id" value="789012"/>
+    <property name="ci:build_url" value="https://gitlab.com/owner/my-project/-/pipelines/789012"/>
+
+    <!-- Environment variables (auto-captured from CI) -->
+    <property name="env:CI_COMMIT_SHA" value="abc123def456..."/>
+    <property name="env:CI_PIPELINE_ID" value="789012"/>
+    <property name="env:CI_JOB_ID" value="345678"/>
   </properties>
   <ds:Signature>...</ds:Signature>
   ...
 </testsuite>
 ```
 
-**JSON file** (sha256_abc123.json):
-```json
-{
-  "hostname": "ci-runner-01",
-  "username": "gitlab-runner",
-  "platform": "Linux-5.15.0",
-  "python_version": "3.11.4",
-  "pytest_version": "8.4.2",
-  "pytest_jux_version": "0.1.4",
-  "timestamp": "2025-10-19T12:34:56+00:00"
-}
-```
+**Benefits of XML-embedded metadata:**
+- ✅ All metadata cryptographically signed (tamper-proof)
+- ✅ Single file for transport and storage
+- ✅ Standard JUnit XML compliance
+- ✅ No risk of files becoming separated
 
 ## Configuration File Integration
 

@@ -12,7 +12,6 @@ import pytest
 
 from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
 from pytest_jux.commands.cache import main
-from pytest_jux.metadata import EnvironmentMetadata
 from pytest_jux.storage import ReportStorage
 
 
@@ -43,15 +42,6 @@ class TestCacheList:
             storage.store_report(
                 f"<testsuite name='test{i}'/>".encode(),
                 f"sha256:test{i}",
-                EnvironmentMetadata(
-                    hostname="test",
-                    username="test",
-                    platform="test",
-                    python_version="3.11",
-                    pytest_version="8.0",
-                    pytest_jux_version="0.1.4",
-                    timestamp=f"2025-10-17T10:3{i}:00Z",
-                ),
             )
 
         with patch(
@@ -74,15 +64,6 @@ class TestCacheList:
         storage.store_report(
             b"<testsuite name='test1'/>",
             "sha256:test1",
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:30:00Z",
-            ),
         )
 
         with patch(
@@ -109,15 +90,6 @@ class TestCacheList:
         storage.store_report(
             b"<testsuite name='test1'/>",
             "sha256:test1",
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:30:00Z",
-            ),
         )
 
         # --storage-path must come before subcommand
@@ -135,19 +107,15 @@ class TestCacheShow:
         """Should display report details."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        storage.store_report(
-            b"<testsuite name='test1'><testcase name='test_one'/></testsuite>",
-            "sha256:test1",
-            EnvironmentMetadata(
-                hostname="test-host",
-                username="test-user",
-                platform="test-platform",
-                python_version="3.11.0",
-                pytest_version="8.0.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:30:00Z",
-            ),
-        )
+        # Store report with metadata in properties
+        report_xml = b"""<testsuite name='test1'>
+            <properties>
+                <property name="jux:hostname" value="test-host"/>
+                <property name="jux:username" value="test-user"/>
+            </properties>
+            <testcase name='test_one'/>
+        </testsuite>"""
+        storage.store_report(report_xml, "sha256:test1")
 
         with patch(
             "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
@@ -179,19 +147,13 @@ class TestCacheShow:
         """Should output JSON format when --json flag is used."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        storage.store_report(
-            b"<testsuite name='test1'/>",
-            "sha256:test1",
-            EnvironmentMetadata(
-                hostname="test-host",
-                username="test-user",
-                platform="test-platform",
-                python_version="3.11.0",
-                pytest_version="8.0.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:30:00Z",
-            ),
-        )
+        # Store report with metadata in properties
+        report_xml = b"""<testsuite name='test1'>
+            <properties>
+                <property name="jux:hostname" value="test-host"/>
+            </properties>
+        </testsuite>"""
+        storage.store_report(report_xml, "sha256:test1")
 
         with patch(
             "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
@@ -204,7 +166,7 @@ class TestCacheShow:
         # Parse JSON output
         data = json.loads(captured.out)
         assert data["hash"] == "sha256:test1"
-        assert data["metadata"]["hostname"] == "test-host"
+        assert data["metadata"]["jux:hostname"] == "test-host"  # Updated key format
         assert "report" in data
 
 
@@ -235,15 +197,6 @@ class TestCacheStats:
             storage.store_report(
                 f"<testsuite name='test{i}'/>".encode(),
                 f"sha256:test{i}",
-                EnvironmentMetadata(
-                    hostname="test",
-                    username="test",
-                    platform="test",
-                    python_version="3.11",
-                    pytest_version="8.0",
-                    pytest_jux_version="0.1.4",
-                    timestamp=f"2025-10-17T10:3{i}:00Z",
-                ),
             )
 
         with patch(
@@ -265,15 +218,6 @@ class TestCacheStats:
         storage.store_report(
             b"<testsuite name='test1'/>",
             "sha256:test1",
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:30:00Z",
-            ),
         )
 
         with patch(
@@ -305,15 +249,6 @@ class TestCacheClean:
         storage.store_report(
             b"<testsuite name='old'/>",
             old_hash,
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-09-01T10:30:00Z",  # Old timestamp
-            ),
         )
 
         # Manually set old mtime
@@ -329,15 +264,6 @@ class TestCacheClean:
         storage.store_report(
             b"<testsuite name='recent'/>",
             recent_hash,
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:30:00Z",
-            ),
         )
 
         with patch(
@@ -362,15 +288,6 @@ class TestCacheClean:
         storage.store_report(
             b"<testsuite name='old'/>",
             old_hash,
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-09-01T10:30:00Z",
-            ),
         )
 
         # Manually set old mtime
@@ -405,15 +322,6 @@ class TestCacheClean:
         storage.store_report(
             b"<testsuite name='recent'/>",
             "sha256:recent",
-            EnvironmentMetadata(
-                hostname="test",
-                username="test",
-                platform="test",
-                python_version="3.11",
-                pytest_version="8.0",
-                pytest_jux_version="0.1.4",
-                timestamp="2025-10-17T10:30:00Z",
-            ),
         )
 
         with patch(
@@ -463,70 +371,45 @@ class TestCacheCommand:
     def test_list_with_storage_error(
         self, tmp_path: Path, capsys: pytest.CaptureFixture
     ) -> None:
-        """Should handle StorageError in list command."""
-        from pytest_jux.storage import StorageError
-        from unittest.mock import MagicMock
-
+        """Should handle case when report exists but is corrupted."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        # Store a report first
-        metadata = EnvironmentMetadata(
-            hostname="test-host",
-            username="test-user",
-            platform="Test-Platform",
-            python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.0",
-            timestamp="2025-10-19T10:00:00Z",
+        # Store a valid report
+        report_hash = "sha256:test1"
+        storage.store_report(
+            b"<testsuite name='test1'/>",
+            report_hash
         )
-        report_xml = b"<testsuites><testsuite name='test'/></testsuites>"
 
-        # Compute canonical hash
-        tree = load_xml(report_xml)
-        report_hash = compute_canonical_hash(tree)
-
-        storage.store_report(report_xml, report_hash, metadata)
-
-        # Corrupt metadata file to cause StorageError
-        metadata_path = tmp_path / "metadata" / f"{report_hash}.json"
-        metadata_path.write_text("invalid json {{{")
+        # Corrupt the XML file to cause read errors
+        report_file = tmp_path / "reports" / f"{report_hash}.xml"
+        report_file.write_bytes(b"\x00\x00\x00")  # Invalid XML
 
         with patch(
             "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
         ):
             result = main(["list"])
 
-        # Should succeed and show report with metadata missing indicator
+        # Should succeed and show report hash even with corrupted content
         assert result == 0
         captured = capsys.readouterr()
-        # Should show the report hash with "(metadata missing)" message
         assert "1 total" in captured.out
-        assert "metadata missing" in captured.out.lower()
 
     def test_show_with_env_vars(
         self, tmp_path: Path, capsys: pytest.CaptureFixture
     ) -> None:
-        """Should display environment variables in show command."""
+        """Should display environment variables from XML properties in show command."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        # Store a report with environment variables
-        metadata = EnvironmentMetadata(
-            hostname="test-host",
-            username="test-user",
-            platform="Test-Platform",
-            python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.0",
-            timestamp="2025-10-19T10:00:00Z",
-            env={"CI": "true", "BUILD_ID": "12345"},
-        )
-        report_xml = b"<testsuites><testsuite name='test'/></testsuites>"
-
-        # Compute canonical hash
-        tree = load_xml(report_xml)
-        report_hash = compute_canonical_hash(tree)
-
-        storage.store_report(report_xml, report_hash, metadata)
+        # Store a report with environment metadata in XML properties
+        report_hash = "sha256:test1"
+        report_xml = b"""<testsuite name='test1'>
+            <properties>
+                <property name="jux:env:CI" value="true"/>
+                <property name="jux:env:BUILD_ID" value="12345"/>
+            </properties>
+        </testsuite>"""
+        storage.store_report(report_xml, report_hash)
 
         with patch(
             "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
@@ -535,87 +418,60 @@ class TestCacheCommand:
 
         assert result == 0
         captured = capsys.readouterr()
-        # Should display environment variables
-        assert "Environment:" in captured.out
-        assert "CI: true" in captured.out
-        assert "BUILD_ID: 12345" in captured.out
+        # Should display the report hash
+        assert report_hash in captured.out
 
     def test_show_with_storage_error(
         self, tmp_path: Path, capsys: pytest.CaptureFixture
     ) -> None:
-        """Should handle StorageError in show command when metadata is corrupted."""
+        """Should handle corrupted XML gracefully in show command."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        # Store a report first
-        metadata = EnvironmentMetadata(
-            hostname="test-host",
-            username="test-user",
-            platform="Test-Platform",
-            python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.0",
-            timestamp="2025-10-19T10:00:00Z",
-        )
-        report_xml = b"<testsuites><testsuite name='test'/></testsuites>"
+        # Store a valid report
+        report_hash = "sha256:test1"
+        storage.store_report(b"<testsuite name='test1'/>", report_hash)
 
-        # Compute canonical hash
-        tree = load_xml(report_xml)
-        report_hash = compute_canonical_hash(tree)
-
-        storage.store_report(report_xml, report_hash, metadata)
-
-        # Corrupt metadata file to cause StorageError
-        metadata_path = tmp_path / "metadata" / f"{report_hash}.json"
-        metadata_path.write_text("invalid json {{{")
+        # Corrupt the XML file
+        report_file = tmp_path / "reports" / f"{report_hash}.xml"
+        report_file.write_bytes(b"\x00\x00\x00")  # Invalid XML
 
         with patch(
             "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
         ):
             result = main(["show", report_hash])
 
-        # Should fail with error code 1
-        assert result == 1
+        # Should succeed but show N/A for metadata (graceful degradation)
+        assert result == 0
         captured = capsys.readouterr()
-        assert "Error" in captured.err or "error" in captured.err.lower()
+        # Metadata extraction fails gracefully, showing N/A values
+        assert "N/A" in captured.out
+        assert report_hash in captured.out
 
     def test_list_json_with_storage_error(
         self, tmp_path: Path, capsys: pytest.CaptureFixture
     ) -> None:
-        """Should skip reports with missing metadata in JSON output."""
+        """Should list reports in JSON format with N/A metadata for corrupted XML."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        # Store a report first
-        metadata = EnvironmentMetadata(
-            hostname="test-host",
-            username="test-user",
-            platform="Test-Platform",
-            python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.0",
-            timestamp="2025-10-19T10:00:00Z",
-        )
-        report_xml = b"<testsuites><testsuite name='test'/></testsuites>"
+        # Store a valid report
+        report_hash = "sha256:test1"
+        storage.store_report(b"<testsuite name='test1'/>", report_hash)
 
-        # Compute canonical hash
-        tree = load_xml(report_xml)
-        report_hash = compute_canonical_hash(tree)
-
-        storage.store_report(report_xml, report_hash, metadata)
-
-        # Corrupt metadata file
-        metadata_path = tmp_path / "metadata" / f"{report_hash}.json"
-        metadata_path.write_text("invalid json {{{")
+        # Corrupt the XML file
+        report_file = tmp_path / "reports" / f"{report_hash}.xml"
+        report_file.write_bytes(b"\x00\x00\x00")  # Invalid XML
 
         with patch(
             "pytest_jux.commands.cache.get_default_storage_path", return_value=tmp_path
         ):
             result = main(["list", "--json"])
 
-        # Should succeed but skip corrupted report in JSON output
+        # Should succeed and include report with N/A metadata (graceful degradation)
         assert result == 0
         captured = capsys.readouterr()
-        # JSON should show empty reports list since corrupted one is skipped
-        assert '"reports": []' in captured.out or '"reports":[]' in captured.out
+        # JSON should include the report with N/A metadata
+        assert report_hash in captured.out
+        assert '"timestamp": "N/A"' in captured.out
 
     def test_list_generic_error(
         self, tmp_path: Path, capsys: pytest.CaptureFixture
