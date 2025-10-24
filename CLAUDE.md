@@ -458,6 +458,7 @@ pytest-jux/
 │   ├── howto/             # Problem-solving guides
 │   ├── reference/         # Complete API documentation
 │   ├── explanation/       # Architecture and design
+│   ├── release-notes/     # Release notes (per version)
 │   ├── adr/              # Architecture decisions
 │   ├── architecture/     # C4 DSL models
 │   ├── sprints/          # Sprint documentation
