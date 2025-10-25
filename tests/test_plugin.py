@@ -1049,7 +1049,7 @@ class TestAPIPublishing:
         mock_api_client: Mock,
     ) -> None:
         """Test that reports are published when jux_publish=True."""
-        from pytest_jux.api_client import PublishResponse
+        from pytest_jux.api_client import PublishResponse, TestRun
 
         # Configure session for API publishing
         mock_session.config._jux_enabled = True
@@ -1063,16 +1063,25 @@ class TestAPIPublishing:
         mock_session.config._jux_api_max_retries = 3
         mock_session.config.option.xmlpath = str(test_junit_xml)
 
-        # Mock successful API response
+        # Mock successful API response (Jux API v1.0.0 format)
         mock_client_instance = mock_api_client.return_value
         mock_client_instance.publish_report.return_value = PublishResponse(
-            test_run_id="550e8400-e29b-41d4-a716-446655440000",
-            message="Test results submitted successfully",
-            test_count=1,
-            failure_count=0,
-            error_count=0,
-            skipped_count=0,
-            success_rate=100.0,
+            message="Test report submitted successfully",
+            status="success",
+            test_run=TestRun(
+                id="550e8400-e29b-41d4-a716-446655440000",
+                status="completed",
+                time=None,
+                errors=0,
+                branch="main",
+                project="pytest-jux-integration",
+                failures=0,
+                skipped=0,
+                success_rate=100.0,
+                commit_sha=None,
+                total_tests=1,
+                created_at="2025-10-25T00:00:00.000000Z",
+            ),
         )
 
         # Call sessionfinish - should publish to API
@@ -1097,7 +1106,7 @@ class TestAPIPublishing:
         mock_api_client: Mock,
     ) -> None:
         """Test that reports are published in API storage mode."""
-        from pytest_jux.api_client import PublishResponse
+        from pytest_jux.api_client import PublishResponse, TestRun
 
         # Configure session for API storage mode
         mock_session.config._jux_enabled = True
@@ -1111,15 +1120,25 @@ class TestAPIPublishing:
         mock_session.config._jux_api_max_retries = 3
         mock_session.config.option.xmlpath = str(test_junit_xml)
 
-        # Mock successful API response
+        # Mock successful API response (Jux API v1.0.0 format)
         mock_client_instance = mock_api_client.return_value
         mock_client_instance.publish_report.return_value = PublishResponse(
-            test_run_id="550e8400-e29b-41d4-a716-446655440000",
-            message="Test results submitted successfully",
-            test_count=1,
-            failure_count=0,
-            error_count=0,
-            skipped_count=0,
+            message="Test report submitted successfully",
+            status="success",
+            test_run=TestRun(
+                id="550e8400-e29b-41d4-a716-446655440000",
+                status="completed",
+                time=None,
+                errors=0,
+                branch="main",
+                project="pytest-jux-integration",
+                failures=0,
+                skipped=0,
+                success_rate=100.0,
+                commit_sha=None,
+                total_tests=1,
+                created_at="2025-10-25T00:00:00.000000Z",
+            ),
         )
 
         # Call sessionfinish - should publish to API

@@ -362,8 +362,8 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 # Log success (visible in pytest output)
                 import warnings
                 warnings.warn(
-                    f"Report published to Jux API: test_run_id={response.test_run_id}, "
-                    f"success_rate={response.success_rate}%",
+                    f"Report published to Jux API: test_run_id={response.test_run.id}, "
+                    f"success_rate={response.test_run.success_rate}%",
                     stacklevel=2,
                 )
 

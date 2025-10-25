@@ -20,26 +20,50 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
+class TestRun(BaseModel):
+    """Test run details from Jux API v1.0.0.
+
+    Attributes:
+        id: UUID of the created test run
+        status: Test run status (e.g., "completed")
+        time: Test run duration (nullable)
+        errors: Number of tests with errors
+        branch: Git branch name
+        project: Project name
+        failures: Number of failed tests
+        skipped: Number of skipped tests
+        success_rate: Success rate percentage (0-100)
+        commit_sha: Git commit SHA (nullable)
+        total_tests: Total number of tests in the run
+        created_at: ISO 8601 timestamp of test run creation
+    """
+
+    id: str
+    status: str
+    time: Optional[float] = None
+    errors: int
+    branch: str
+    project: str
+    failures: int
+    skipped: int
+    success_rate: float
+    commit_sha: Optional[str] = None
+    total_tests: int
+    created_at: str
+
+
 class PublishResponse(BaseModel):
     """Response from Jux API v1.0.0 /junit/submit endpoint.
 
     Attributes:
-        test_run_id: UUID of the created test run
         message: Human-readable success message
-        test_count: Total number of tests in the run
-        failure_count: Number of failed tests
-        error_count: Number of tests with errors
-        skipped_count: Number of skipped tests
-        success_rate: Optional success rate percentage (0-100)
+        status: Response status (e.g., "success")
+        test_run: Nested test run details
     """
 
-    test_run_id: str
     message: str
-    test_count: int
-    failure_count: int
-    error_count: int
-    skipped_count: int
-    success_rate: Optional[float] = None
+    status: str
+    test_run: TestRun
 
 
 class JuxAPIClient:
@@ -54,7 +78,7 @@ class JuxAPIClient:
         ...     bearer_token="your-api-token"
         ... )
         >>> response = client.publish_report(signed_xml)
-        >>> print(response.test_run_id)
+        >>> print(response.test_run.id)
         550e8400-e29b-41d4-a716-446655440000
 
     Localhost Example (no auth):
@@ -122,7 +146,7 @@ class JuxAPIClient:
                 - Metadata in <properties> elements (project, git:*, ci:*, jux:*)
 
         Returns:
-            PublishResponse with test_run_id and test statistics
+            PublishResponse with nested test_run containing ID and statistics
 
         Raises:
             requests.exceptions.RequestException: Network errors, timeouts
@@ -130,8 +154,8 @@ class JuxAPIClient:
 
         Example:
             >>> response = client.publish_report(signed_xml)
-            >>> print(f"Test run created: {response.test_run_id}")
-            >>> print(f"Success rate: {response.success_rate}%")
+            >>> print(f"Test run created: {response.test_run.id}")
+            >>> print(f"Success rate: {response.test_run.success_rate}%")
         """
         try:
             response = self.session.post(

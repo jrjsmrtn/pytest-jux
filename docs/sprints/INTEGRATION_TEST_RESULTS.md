@@ -151,16 +151,91 @@ All existing tests continue to pass:
 
 ---
 
+### ✅ Scenario 5: Live API Server Integration
+
+**Date**: 2025-10-25
+**API Server**: Jux API v1.0.0 running on `http://localhost:4000`
+
+**Configuration**:
+```ini
+[jux]
+enabled = true
+sign = false
+publish = true
+storage_mode = both
+storage_path = /tmp/pytest-jux-integration/reports-api
+api_url = http://localhost:4000/api
+api_timeout = 30
+api_max_retries = 3
+```
+
+**Test Command**:
+```bash
+cd /tmp/pytest-jux-integration
+/Users/gm/Projects/jux-tools/pytest-jux/.venv/bin/pytest \
+  --junit-xml=report-live-api.xml \
+  -c .jux-api.conf \
+  -v
+```
+
+**Results**:
+- ✅ 5 tests passed
+- ✅ Report published to Jux API successfully
+- ✅ Test run ID: `ad8203f0-df7a-4640-8bbc-92059012c4d2`
+- ✅ Success rate: 100.0%
+- ✅ Local copy saved in BOTH mode: `ede011e0521b7004057172920f6913535980bcef89c0293868f560b1936dadb7.xml`
+
+**API Response Verification**:
+```json
+{
+  "message": "Test report submitted successfully",
+  "status": "success",
+  "test_run": {
+    "id": "ad8203f0-df7a-4640-8bbc-92059012c4d2",
+    "status": "completed",
+    "time": null,
+    "errors": 0,
+    "branch": "main",
+    "project": "pytest-jux-integration",
+    "failures": 0,
+    "skipped": 0,
+    "success_rate": 100.0,
+    "commit_sha": null,
+    "total_tests": 5,
+    "created_at": "2025-10-25T02:08:09.294321Z"
+  }
+}
+```
+
+**Code Changes Required**:
+- ✅ Updated `PublishResponse` Pydantic model to match actual API v1.0.0 response (nested `test_run` object)
+- ✅ Added `TestRun` Pydantic model for nested structure
+- ✅ Updated plugin.py to access `response.test_run.id` and `response.test_run.success_rate`
+- ✅ Fixed config.py to properly parse integer values from INI files (api_timeout, api_max_retries)
+- ✅ Updated all test mocks to use new response format
+
+**Integration Test Suite Results**:
+```bash
+uv run pytest tests/test_api_client.py tests/test_plugin.py::TestAPIPublishing -v
+```
+- ✅ All 19 tests passed
+- ✅ API client unit tests: 13 passed
+- ✅ Plugin integration tests: 6 passed
+
+---
+
 ## Conclusion
 
 **Integration testing PASSED** ✅
 
 All core Sprint 4 functionality verified:
-- REST API client works correctly with Jux API v1.0.0 spec
-- Plugin integration handles all storage modes appropriately
-- Graceful degradation functions as designed
-- Error handling provides clear user feedback
-- Test coverage exceeds targets
+- ✅ REST API client works correctly with Jux API v1.0.0 spec (both mocked and live server)
+- ✅ Plugin integration handles all storage modes appropriately
+- ✅ Graceful degradation functions as designed
+- ✅ Error handling provides clear user feedback
+- ✅ Test coverage exceeds targets (19 API-related tests passing)
+- ✅ **Live API server integration successful** (localhost:4000)
+- ✅ BOTH mode verified (local storage + API publishing)
 
 **Recommendation**: Ready for merge to `develop` branch and beta release as v0.4.0.
 
@@ -168,8 +243,8 @@ All core Sprint 4 functionality verified:
 
 ## Next Steps
 
-1. Merge `feature/sprint-04-api-integration` to `develop`
-2. Integration testing with actual Jux API Server (when available)
-3. Performance testing under load
+1. ✅ ~~Integration testing with actual Jux API Server~~ **COMPLETED** (2025-10-25)
+2. Merge `feature/sprint-04-api-integration` to `develop`
+3. Performance testing under load (optional for v0.4.0, defer to v0.5.0)
 4. Documentation updates (how-to guides, API reference)
 5. Release v0.4.0 (Beta Milestone)

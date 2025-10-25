@@ -37,7 +37,9 @@ class TestConfigSchema:
 
         # API settings
         assert "jux_api_url" in schema
-        assert "jux_api_key" in schema
+        assert "jux_bearer_token" in schema
+        assert "jux_api_timeout" in schema
+        assert "jux_api_max_retries" in schema
 
     def test_schema_field_has_type_and_default(self) -> None:
         """Each schema field should have type and default value."""

@@ -186,10 +186,39 @@ class ConfigurationManager:
             return self._parse_enum(key, value, field_info)
         elif field_type == "path":
             return self._parse_path(value)
+        elif field_type == "int":
+            return self._parse_int(value)
         elif field_type == "str":
             return str(value)
         else:
             return value
+
+    def _parse_int(self, value: Any) -> int:
+        """Parse integer value from string or int.
+
+        Args:
+            value: Value to parse
+
+        Returns:
+            Integer value
+
+        Raises:
+            ConfigValidationError: If value can't be parsed
+        """
+        if isinstance(value, int):
+            return value
+
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError as e:
+                raise ConfigValidationError(
+                    f"Invalid integer value: {value}. Expected: numeric string or int"
+                ) from e
+
+        raise ConfigValidationError(
+            f"Invalid integer value type: {type(value)}. Expected: int or str"
+        )
 
     def _parse_bool(self, value: Any) -> bool:
         """Parse boolean value from string or bool.
