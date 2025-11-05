@@ -746,17 +746,34 @@ Each sprint should have:
 
 **Total Sprint 7**: 5 user stories, 1 ADR, 2 doc updates, comprehensive git/CI auto-detection
 
-**Postponed Sprint**: Sprint 4 - REST API Client & Plugin Integration
-- ⏸️ Postponed (awaiting Jux API Server availability)
-- Target: v0.4.0 (Beta Milestone)
-- See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
+**Next Sprint**: Sprint 012 - REST API Integration
+- 📋 Planned (5-phase, 5-week sprint)
+- Target: v1.0.0 (Production-Ready Milestone)
+- **Critical Dependency**: Jux API Server availability for integration testing
+- See: [Sprint 012 Project Plan](docs/sprints/sprint-012-project-plan.md)
+- See: [Sprint 012 Gap Analysis](docs/sprints/sprint-012-api-gap-analysis.md)
 
-**Version**: 0.3.0 (in preparation - 2025-10-24)
+**Sprint 012 Overview**:
+- **Phase 1** (Week 1): Core HTTP Client - Basic submission to localhost
+- **Phase 2** (Week 2): Reliability & Resilience - Retry logic, rate limiting, error handling
+- **Phase 3** (Week 3): User Experience - Dry run mode, verbose logging, rich errors
+- **Phase 4** (Week 4): Server-Side Updates - Jux API Server features (separate project)
+- **Phase 5** (Week 5): Release Preparation - Integration testing, docs, v1.0.0 release
+
+**Strategic Advantage**: Sprint 7 metadata integration saves ~6 days of Sprint 012 work (git/CI detection already complete!)
+
+**Postponed Sprint**: Sprint 4 - REST API Client & Plugin Integration
+- ⏸️ Postponed and superseded by Sprint 012 (awaiting Jux API Server availability)
+- Original Target: v0.2.0
+- Sprint 012 replaces Sprint 4 with updated scope aligned to Jux API OpenAPI v1.0.0 contract
+
+**Version**: 0.3.0 (released 2025-10-24)
 **Previous Releases**:
 - v0.2.1 (released 2025-10-21) - OpenSSF Best Practices Badge
 - v0.2.0 (released 2025-10-20) - Documentation & User Experience
-**Current Branch**: feature/metadata-integration (merging to develop)
-**Test Coverage**: 89.11% (381 tests passing, 9 skipped, 8 xfailed)
+**Current Branch**: develop
+**Test Coverage**: 89.11% (381 tests passing, 9 skipped, 16 xfailed)
+**Next Milestone**: v1.0.0 (Sprint 012 deliverable)
 
 ---
 

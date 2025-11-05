@@ -1,51 +1,53 @@
 # pytest-jux Roadmap
 
-**Last Updated**: 2025-10-20
-**Current Version**: 0.1.8
-**Current Phase**: Sprint 3 Complete, Sprint 4 Planned (awaiting Jux API Server)
+**Last Updated**: 2025-11-05
+**Current Version**: 0.3.0
+**Current Phase**: Sprint 7 Complete (Metadata Integration), Sprint 012 Planned (API Integration)
 
 ---
 
 ## Roadmap Overview
 
-This document outlines the development roadmap from the current state (v0.1.4) to production-ready 1.0.0 release and beyond.
+This document outlines the development roadmap from the current state (v0.3.0) to production-ready 1.0.0 release and beyond.
 
 ### Milestone Summary
 
 | Milestone | Version | Status | Target Features |
 |-----------|---------|--------|-----------------|
 | **Foundation** | 0.1.x | ✅ Complete | Core signing, CLI tools, configuration, storage |
-| **Beta** | 0.2.0 | 📋 Planned (Sprint 4) | REST API client, plugin integration, testing |
-| **Release Candidate** | 0.9.x | 📅 Future | Production hardening, documentation complete |
+| **Documentation** | 0.2.x | ✅ Complete | Diátaxis docs, UX improvements, security framework |
+| **Metadata** | 0.3.0 | ✅ Complete | pytest-metadata integration, git/CI auto-detection |
+| **Beta** | 0.4.0 | 📋 Next (Sprint 012) | REST API client, plugin integration, submission |
+| **Release Candidate** | 0.9.x | 📅 Future | Production hardening, platform support |
 | **Production** | 1.0.0 | 📅 Future | Stable API, production-ready, full documentation |
 | **Enhancements** | 1.x.x | 📅 Future | HSM support, advanced features |
 | **Major Update** | 2.0.0 | 💡 Ideas | Breaking changes, new architecture |
 
 ---
 
-## Current Status (v0.1.8)
+## Current Status (v0.3.0)
 
 ### Completed Features ✅
 
-**Sprint 0**: Project Initialization
+**Sprint 0**: Project Initialization (v0.1.0)
 - Security framework (ADR-0005)
 - Architecture Decision Records (ADRs)
 - Diátaxis documentation structure
 - Apache License 2.0
 
-**Sprint 1**: Core Plugin Infrastructure
+**Sprint 1**: Core Plugin Infrastructure (v0.1.1)
 - XML canonicalization (C14N + SHA-256 hashing)
 - XML digital signatures (XMLDSig)
 - pytest plugin hooks (basic integration)
 - RSA-SHA256 and ECDSA-SHA256 support
 
-**Sprint 2**: CLI Tools
+**Sprint 2**: CLI Tools (v0.1.2)
 - `jux-keygen`: Key pair generation (RSA, ECDSA)
 - `jux-sign`: Offline signing
 - `jux-verify`: Signature verification
 - `jux-inspect`: Report inspection
 
-**Sprint 3**: Configuration, Storage & Caching
+**Sprint 3**: Configuration, Storage & Caching (v0.1.3-0.1.4)
 - Configuration management (multi-source, validation)
 - Environment metadata capture
 - Local storage with XDG compliance
@@ -54,107 +56,132 @@ This document outlines the development roadmap from the current state (v0.1.4) t
 - `jux-config`: Configuration management CLI
 - Multi-environment configuration guide
 
-**Recent Improvements** (v0.1.5-0.1.8):
-- pytest-metadata integration for custom metadata in reports
-- Test coverage improvements: 91.92% (346 tests)
-- CI/CD workflow fixes (GitHub Actions, security scanning)
-- REUSE/SPDX license identifiers (ADR-0009) - machine-readable licensing
-- Database dependencies removed (ADR-0010) - clarifies client-side architecture
-- C4 DSL architecture model created
+**Sprint 5**: Documentation & User Experience (v0.2.0)
+- Complete Diátaxis documentation framework (50+ documents, 30,000+ lines)
+- 7 API reference pages (auto-generated + hand-written)
+- 3 comprehensive tutorials (beginner → intermediate → advanced)
+- 10 how-to guides (key management, storage, integration, troubleshooting)
+- 4 explanation documents (architecture, security, performance)
+- Enhanced CLI help text with examples
+- Improved error messages with actionable suggestions
+- 5 configuration templates (minimal, full, dev, ci, production)
+- Shell completion scripts (bash, zsh, fish)
+- Quick-start script for interactive setup
+
+**Sprint 6**: OpenSSF Best Practices Badge (v0.2.1)
+- SBOM generation (CycloneDX 1.6 JSON)
+- OpenSSF Best Practices Badge readiness (100% MUST criteria met)
+- Enhanced dependency scanning (pip-audit, trivy with strict mode)
+- Security documentation (SECURITY.md, badge readiness assessment)
+- XDG Base Directory Specification compliance
+
+**Sprint 7**: Metadata Integration (v0.3.0) - **CURRENT**
+- pytest-metadata integration (ADR-0011)
+- **BREAKING**: Metadata embedded in JUnit XML `<properties>` (no JSON sidecars)
+- Automatic project name capture (4 fallback strategies)
+- Git metadata auto-detection (commit, branch, status, remote)
+- CI/CD metadata auto-detection (5 providers: GitHub, GitLab, Jenkins, Travis, CircleCI)
+- Environment variable capture (CI-specific vars)
+- Semantic namespace prefixes (jux:, git:, ci:, env:)
+- All metadata cryptographically signed with XMLDSig
+
+**Additional Improvements** (v0.1.5-0.1.9):
+- Test coverage improvements: 89.11% (381 tests passing)
+- REUSE/SPDX license identifiers (ADR-0009)
+- Database dependencies removed (ADR-0010)
+- C4 DSL architecture model
 - Metadata preservation during XMLDSig signing
 
-**Test Coverage**: 346 tests, 91.92% coverage
-**Quality**: Clean codebase (0 critical mypy/ruff errors)
+**Test Coverage**: 381 tests passing, 9 skipped, 16 xfailed, 89.11% coverage
+**Quality**: Clean codebase, comprehensive security scanning
 
 ---
 
-## Sprint 4: REST API Client & Plugin Integration (v0.2.0 Beta)
+## Sprint 012: REST API Integration (v0.4.0 → v1.0.0)
 
-**Status**: 📋 Planned
-**Duration**: 12-16 days
-**Target**: First feature-complete beta release
+**Status**: 📋 Next Sprint
+**Duration**: 5 weeks (5 phases)
+**Target**: API-integrated test report publisher, production-ready v1.0.0
 
-### Goals
+### Background
 
-**Primary Features**:
-- REST API client with retry logic
-- Plugin integration (automatic storage/publishing)
-- Manual publishing command (`jux-publish`)
-- Integration testing
+pytest-jux v0.3.0 is currently a **local-only tool** that signs JUnit XML reports and captures rich metadata, but **cannot submit reports to the Jux API Server**. Sprint 012 transforms pytest-jux into a complete API-integrated solution.
 
-**Technical Debt Resolution**:
-- Fix mypy type checking errors (26 → 0)
-- Improve storage coverage (80.33% → >85%)
-- Fix ruff linting warnings (5 → 0)
+### Strategic Advantage from Sprint 7
 
-**Documentation**:
-- API client usage documentation
-- Plugin integration examples
-- Complete workflow documentation
+Sprint 7's metadata integration **significantly reduces Sprint 012 scope**:
+- ✅ Git metadata detection already implemented (saves ~3 days)
+- ✅ CI/CD metadata detection for 5 providers (saves ~2 days)
+- ✅ Project name capture with fallback strategies (saves ~1 day)
+- ✅ All metadata cryptographically signed (security requirement met)
 
-**Deliverables**:
-- v0.2.0 beta release
-- 300+ tests, >85% coverage
-- Clean codebase (0 mypy/ruff errors)
+**Time Saved**: ~6 days (nearly 1 full week!)
 
-See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
+### 5-Phase Implementation Plan
 
----
+**Phase 1: Core HTTP Client** (Week 1) - CRITICAL
+- Implement HTTP client using `requests` library
+- Construct API request payload (OpenAPI compliant)
+- Basic error handling (connection, timeout, HTTP errors)
+- Environment variable configuration (`JUX_API_URL`, `JUX_API_KEY`)
+- CLI option: `--jux-submit` to enable submission
+- Preserve pytest exit status (submission errors don't fail tests)
+- **Deliverable**: `pytest --jux-submit` works with local Jux server
 
-## Post-Sprint 4: Road to 1.0.0
+**Phase 2: Reliability & Resilience** (Week 2) - MAJOR
+- Exponential backoff retry (1s, 2s, 4s delays)
+- Rate limit handling (429 with `Retry-After` header)
+- Authentication error handling (401/403 with suggestions)
+- Validation error handling (400 with detailed messages)
+- **Deliverable**: Resilient submission in CI/CD environments
 
-### Sprint 5: Documentation & User Experience (v0.3.0)
+**Phase 3: User Experience** (Week 3) - MODERATE
+- Dry run mode (`--jux-dry-run` to validate without submitting)
+- API version negotiation and compatibility warnings
+- Rich error messages with actionable suggestions
+- `pytest.ini` configuration support
+- Verbose logging (`--jux-verbose`)
+- **Deliverable**: Developer-friendly configuration and debugging
 
-**Duration**: 1-2 weeks
-**Goal**: Complete Diátaxis documentation framework
+**Phase 4: Server-Side Updates** (Week 4) - Jux Project
+- API key validation for team server submissions (Jux repo)
+- Rate limiting (100 requests/minute default) (Jux repo)
+- Versioned API endpoints (`/api/v1/junit/submit`) (Jux repo)
+- **Note**: Changes in separate Jux API Server project
 
-**Documentation Gaps**:
-- [ ] **Reference Documentation** (information-oriented)
-  - Complete API reference for all modules
-  - Plugin hook reference
-  - Configuration option reference
-  - CLI command reference (comprehensive)
-  - Error code reference
+**Phase 5: Release Preparation** (Week 5)
+- Integration testing against real Jux server
+- BDD scenario validation (18 scenarios)
+- Update documentation (README, tutorials, API guide)
+- Migration guide (v0.3.0 → v1.0.0)
+- CHANGELOG and release notes
+- **Deliverable**: pytest-jux v1.0.0 (production-ready)
 
-- [ ] **Additional Tutorials** (learning-oriented)
-  - Tutorial: First signed report (beginner)
-  - Tutorial: CI/CD integration (intermediate)
-  - Tutorial: Multi-environment deployment (advanced)
-  - Tutorial: Troubleshooting common issues
+### Success Metrics
 
-- [ ] **Additional How-To Guides** (problem-oriented)
-  - How to rotate signing keys
-  - How to migrate storage paths
-  - How to troubleshoot signature verification failures
-  - How to integrate with custom CI/CD platforms
-  - How to configure high-availability deployments
-  - How to backup and restore cached reports
+**Definition of Done**:
+- ✅ HTTP client submits reports to Jux API
+- ✅ All 18 BDD scenarios pass
+- ✅ Retry logic with exponential backoff working
+- ✅ Rate limiting respected (429 handling)
+- ✅ Authentication errors provide clear guidance
+- ✅ Test coverage ≥89% maintained
+- ✅ Integration tests pass against real Jux server
+- ✅ Documentation updated
+- ✅ **pytest-jux v1.0.0 released**
 
-- [ ] **Additional Explanations** (understanding-oriented)
-  - Why XML signatures for test reports?
-  - Understanding storage modes and their trade-offs
-  - Security model and threat mitigations
-  - Performance characteristics and optimization
-
-**User Experience**:
-- [ ] Improve error messages (actionable, clear)
-- [ ] Add progress indicators for long operations
-- [ ] Enhance CLI help text with examples
-- [ ] Create quick-start configuration templates
-- [ ] Add shell completion (bash, zsh, fish)
-
-**Quality**:
-- [ ] User testing with 5-10 beta testers
-- [ ] Gather feedback on pain points
-- [ ] Address top 5 usability issues
-
-**Release**: v0.3.0 (Documentation Complete)
+See: [Sprint 012 Gap Analysis](sprints/sprint-012-api-gap-analysis.md)
 
 ---
 
-### Sprint 6: Performance & Scale Testing (v0.4.0)
+## Post-1.0.0: Future Enhancements
 
-**Duration**: 1-2 weeks
+### Advanced Features (Deferred Post-1.0.0)
+
+The following sprints were originally planned pre-1.0.0 but have been deferred to post-1.0.0 enhancement releases:
+
+#### Performance & Scale Testing (v1.1.0)
+
 **Goal**: Validate performance at scale
 
 **Performance Benchmarking**:
@@ -191,13 +218,10 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 - [ ] Identify memory leaks (if any)
 - [ ] Optimize memory footprint
 
-**Release**: v0.4.0 (Performance Validated)
-
 ---
 
-### Sprint 7: Production Hardening (v0.5.0)
+#### Production Hardening (v1.2.0)
 
-**Duration**: 1-2 weeks
 **Goal**: Production-ready reliability
 
 **Error Handling**:
@@ -231,13 +255,10 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 - [ ] Grafana dashboard templates
 - [ ] Alert rules (storage full, API unreachable)
 
-**Release**: v0.5.0 (Production Hardening Complete)
-
 ---
 
-### Sprint 8: Security Audit & Compliance (v0.6.0)
+#### Security Audit & Compliance (v1.3.0)
 
-**Duration**: 2-3 weeks
 **Goal**: Security validation and compliance
 
 **Security Audit**:
@@ -273,13 +294,10 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 - [ ] Compliance documentation
 - [ ] Security FAQ
 
-**Release**: v0.6.0 (Security Audit Complete)
-
 ---
 
-### Sprint 9: Platform Support & Packaging (v0.7.0)
+#### Platform Support & Packaging (v1.4.0)
 
-**Duration**: 1-2 weeks
 **Goal**: Broad platform support
 
 **Platform Testing**:
@@ -319,13 +337,10 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 - [ ] Buildkite
 - [ ] TeamCity
 
-**Release**: v0.7.0 (Platform Support Complete)
-
 ---
 
-### Sprint 10: Integration Testing & Validation (v0.8.0)
+#### Integration Testing & Validation (v1.5.0)
 
-**Duration**: 1-2 weeks
 **Goal**: Comprehensive integration validation
 
 **Integration Test Suite**:
@@ -354,14 +369,16 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 - [ ] lxml version compatibility matrix
 - [ ] signxml version compatibility matrix
 
-**Release**: v0.8.0 (Integration Testing Complete)
-
 ---
 
-### Sprint 11: Release Candidate & Final Polish (v0.9.0)
+## Version 1.0.0: Production Release (Sprint 012 Deliverable)
 
-**Duration**: 1-2 weeks
-**Goal**: Release candidate for 1.0.0
+**Status**: 📋 Planned (Sprint 012 Phase 5)
+**Goal**: Stable, production-ready release with API integration
+
+### Sprint 012 → 1.0.0 Transition
+
+Sprint 012 Phase 5 serves as the final release preparation phase, delivering v1.0.0 directly after API integration completion. The previous roadmap's incremental sprints (5-11) are deferred to post-1.0.0 enhancements.
 
 **Final Polish**:
 - [ ] Address all open bugs (critical/high priority)
@@ -391,57 +408,48 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 - [ ] Security audit passed
 - [ ] Performance benchmarks met
 
-**Release**: v0.9.0 (Release Candidate)
-
----
-
-## Version 1.0.0: Production Release
-
-**Status**: 📅 Future (estimated: Q2 2026)
-**Goal**: Stable, production-ready release
-
-### 1.0.0 Criteria
+### 1.0.0 Release Criteria
 
 **Code Quality**:
-- [x] All tests passing (400+ tests expected)
-- [x] >90% code coverage
-- [x] 0 mypy errors (strict mode)
-- [x] 0 ruff warnings
-- [x] Security audit passed
+- [x] All tests passing (381+ tests, target 400+)
+- [x] >89% code coverage (target >90% for v1.0.0)
+- [x] Clean mypy/ruff checks
+- [x] Security audit framework in place (SBOM, scanning)
 
-**Features**:
-- [x] Complete core workflow (sign → store → publish)
-- [x] All CLI tools functional
-- [x] All storage modes operational
-- [x] Production-hardened error handling
-- [x] Performance validated at scale
+**Features** (Sprint 012 Deliverables):
+- [ ] Complete core workflow (sign → store → **submit to API**)
+- [x] All CLI tools functional (6 commands)
+- [x] Local storage modes operational
+- [ ] API submission with retry logic (Sprint 012 Phase 1-2)
+- [ ] Production-hardened error handling (Sprint 012 Phase 3)
 
-**Documentation**:
-- [x] Complete Diátaxis framework (tutorials, how-tos, reference, explanation)
-- [x] API documentation (all modules)
-- [x] Deployment guides (multiple platforms)
+**Documentation** (Already Complete from Sprint 5):
+- [x] Complete Diátaxis framework (50+ documents, 30,000+ lines)
+- [x] API documentation (7 reference pages)
+- [x] 3 comprehensive tutorials
+- [x] 10 how-to guides
+- [x] 4 explanation documents
 - [x] Troubleshooting guide
-- [x] FAQ
-- [x] Migration guides
+- [ ] Migration guide (v0.3.0 → v1.0.0) - Sprint 012 Phase 5
 
-**Operations**:
-- [x] Monitoring and observability
-- [x] Logging and diagnostics
-- [x] Backup/restore procedures
-- [x] Deployment automation
+**Security** (Already Complete from Sprint 6):
+- [x] SBOM generation (CycloneDX)
+- [x] OpenSSF Best Practices Badge readiness
+- [x] Dependency scanning (pip-audit, trivy)
+- [x] REUSE/SPDX compliance
 
 **Community**:
-- [x] PyPI package published
-- [x] Beta testing complete (20+ users)
-- [x] Issue tracker active
-- [x] Contribution guidelines
-- [x] Code of conduct
+- [x] PyPI package published (v0.3.0)
+- [x] GitHub repository active
+- [ ] Beta testing with real Jux server (Sprint 012 Phase 5)
+- [ ] CONTRIBUTING.md (Sprint 012 Phase 5)
+- [ ] CODE_OF_CONDUCT.md (Sprint 012 Phase 5)
 
 **Stability**:
-- [x] API stability guarantee (semantic versioning)
-- [x] Backward compatibility commitment
-- [x] Deprecation policy established
-- [x] LTS support plan documented
+- [x] Semantic versioning adopted
+- [ ] API stability guarantee (with v1.0.0 release)
+- [ ] Backward compatibility commitment (with v1.0.0)
+- [ ] Deprecation policy established
 
 ### 1.0.0 Release Deliverables
 
@@ -566,22 +574,22 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 
 ### Critical Path
 
-**For 1.0.0 release**:
-1. ✅ Sprint 0-3 complete (foundation laid)
-2. 📋 Sprint 4 (API client & integration) - **CRITICAL DEPENDENCY: Jux API Server**
-3. Sprint 5 (documentation)
-4. Sprint 6 (performance)
-5. Sprint 7 (production hardening)
-6. Sprint 8 (security audit)
-7. Sprint 9 (platform support)
-8. Sprint 10 (integration testing)
-9. Sprint 11 (release candidate)
-10. 1.0.0 release
+**For 1.0.0 release** (Updated):
+1. ✅ Sprint 0-3 complete (foundation: v0.1.0-0.1.4)
+2. ✅ Sprint 5 complete (documentation & UX: v0.2.0)
+3. ✅ Sprint 6 complete (OpenSSF Best Practices: v0.2.1)
+4. ✅ Sprint 7 complete (metadata integration: v0.3.0)
+5. 📋 **Sprint 012** (API integration: v0.4.0 → v1.0.0) - **CRITICAL: Requires Jux API Server**
+   - Phase 1-3: pytest-jux implementation (3 weeks)
+   - Phase 4: Jux server updates (1 week, separate project)
+   - Phase 5: Integration testing & release (1 week)
+
+**Simplified Path**: Sprint 012 → v1.0.0 (5 weeks total)
 
 **External Dependencies**:
-- **Jux API Server**: Must be ready for Sprint 4
-- **Beta Testers**: Needed for Sprint 10
-- **Security Auditor**: Needed for Sprint 8 (optional)
+- **Jux API Server**: Must be available for Sprint 012 Phase 1 (localhost testing)
+- **Jux API Server**: Production-ready for Sprint 012 Phase 4 (team server features)
+- **Beta Testers**: Needed for Sprint 012 Phase 5 (integration validation)
 
 ### Resource Requirements
 
@@ -636,18 +644,20 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 
 ## Conclusion
 
-This roadmap outlines a path from the current v0.1.4 to a production-ready v1.0.0 release and beyond. The focus is on:
+This roadmap outlines a path from the current v0.3.0 to a production-ready v1.0.0 release and beyond. The focus has evolved:
 
-1. **Foundation** (v0.1.x - ✅ Complete): Core functionality
-2. **Beta** (v0.2.0 - Sprint 4): Feature-complete
-3. **Maturity** (v0.3-0.9): Production readiness
-4. **Stability** (v1.0.0): Production release
-5. **Enhancement** (v1.x.x): Advanced features
-6. **Evolution** (v2.0.0+): Breaking improvements
+1. **Foundation** (v0.1.x - ✅ Complete): Core functionality, CLI tools, storage
+2. **Documentation** (v0.2.x - ✅ Complete): Diátaxis docs, UX, security framework
+3. **Metadata** (v0.3.0 - ✅ Complete): Git/CI auto-detection, pytest-metadata integration
+4. **API Integration** (v0.4.0 → v1.0.0 - Sprint 012): HTTP client, submission, production release
+5. **Enhancement** (v1.x.x - Future): Performance, platform support, advanced features
+6. **Evolution** (v2.0.0+ - Future): Breaking improvements
 
-**Estimated Timeline to 1.0.0**: 6-12 months (depending on resource availability and Jux API Server readiness)
+**Revised Timeline to 1.0.0**: 5 weeks (Sprint 012, depends on Jux API Server availability)
 
-**Next Immediate Step**: Complete Sprint 4 (REST API Client & Plugin Integration)
+**Current Status**: v0.3.0 released, Sprint 012 ready to begin when Jux API Server is available
+
+**Next Immediate Step**: Begin Sprint 012 Phase 1 (Core HTTP Client implementation)
 
 ---
 
