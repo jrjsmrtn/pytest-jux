@@ -182,7 +182,8 @@ else
     choice=$(prompt_yes_no "Would you like to install it now?")
     if [[ "$choice" =~ ^[Yy] ]]; then
         print_info "Installing pytest-jux..."
-        pip install pytest-jux || {
+        # Pin version for supply chain security (update on new releases)
+        pip install "pytest-jux==0.4.1" || {
             print_error "Installation failed"
             exit 1
         }
