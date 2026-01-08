@@ -23,6 +23,13 @@ pytest-jux is part of a **client-server architecture**:
   - Storing reports in database (SQLite/PostgreSQL)
   - Providing query API and Web UI
 
+- **jux-openapi (API Contract)**: Source of truth for the REST API specification
+  - OpenAPI specs: `../jux-openapi/specs/v1/`
+  - Versioning policy: `../jux-openapi/docs/VERSIONING.md`
+  - See [jux-openapi](../jux-openapi/) for full documentation
+
+**API Compliance**: pytest-jux v0.4.0 is compliant with jux-openapi API v1.0.0.
+
 **IMPORTANT**: This project does **NOT** include database models, SQLAlchemy integration, or duplicate detection logic. These are handled by the Jux API Server.
 
 ## Architecture Documentation
