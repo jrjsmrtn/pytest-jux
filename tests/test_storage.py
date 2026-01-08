@@ -477,7 +477,7 @@ class TestStorageErrorPaths:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Should clean up temp file on write error."""
-        from unittest.mock import MagicMock, patch
+        from unittest.mock import patch
 
         storage = ReportStorage(storage_path=tmp_path)
         test_file = tmp_path / "reports" / "test.xml"
@@ -495,7 +495,7 @@ class TestStorageErrorPaths:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Should handle unlink failure during cleanup."""
-        from unittest.mock import MagicMock, patch, call
+        from unittest.mock import patch
 
         storage = ReportStorage(storage_path=tmp_path)
         test_file = tmp_path / "reports" / "test.xml"
@@ -553,7 +553,7 @@ class TestStorageErrorPaths:
         storage.queue_report(b"<testsuite name='test'/>", test_hash)
 
         # Mock read_bytes to raise an error
-        with patch("pathlib.Path.read_bytes", side_effect=IOError("Read error")):
+        with patch("pathlib.Path.read_bytes", side_effect=OSError("Read error")):
             with pytest.raises(StorageError, match="Failed to dequeue report"):
                 storage.dequeue_report(test_hash)
 

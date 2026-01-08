@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytest-jux"
-version = "0.3.0"
+version = "0.4.0"
 description = "A pytest plugin for signing and publishing JUnit XML test reports to the Jux REST API"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -57,6 +57,7 @@ dev = [
     "pytest-xdist>=3.5",
     "coverage[toml]>=7.3",
     "types-requests>=2.31",
+    "responses>=0.25",
     "hypothesis>=6.92",
     "pre-commit>=3.5",
 ]
@@ -91,6 +92,7 @@ jux-verify = "pytest_jux.commands.verify:main"
 jux-inspect = "pytest_jux.commands.inspect:main"
 jux-cache = "pytest_jux.commands.cache:main"
 jux-config = "pytest_jux.commands.config_cmd:main"
+jux-publish = "pytest_jux.commands.publish:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -164,7 +166,7 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 strict_equality = true
-strict_concatenate = true
+extra_checks = true
 
 [[tool.mypy.overrides]]
 module = "lxml.*"
@@ -172,6 +174,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "signxml.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "configargparse.*"
 ignore_missing_imports = true
 
 [tool.ruff]

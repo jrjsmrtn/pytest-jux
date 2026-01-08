@@ -183,7 +183,7 @@ class TestMetadataInJUnitXML:
             "--junit-xml=report.xml",
             "--metadata", "jux:hostname", "custom-override-host",
             "--metadata", "build_id", "12345",
-            
+
         )
         assert result.ret == 0
 
@@ -218,7 +218,7 @@ class TestMetadataInJUnitXML:
 
         result = pytester.runpytest_inprocess(
             "--junit-xml=report.xml",
-            
+
         )
         assert result.ret == 0
 
@@ -264,7 +264,7 @@ class TestMetadataInSignature:
             "--junit-xml=report.xml",
             f"--jux-key={key_file}",
             "--jux-sign",
-            
+
         )
         assert result.ret == 0
 
@@ -319,7 +319,7 @@ class TestMetadataInSignature:
             f"--jux-key={key_file}",
             f"--jux-cert={cert_file}",
             "--jux-sign",
-            
+
         )
         assert result.ret == 0
 
@@ -383,7 +383,7 @@ storage_path = {storage_path}
         # Run test
         result = pytester.runpytest_inprocess(
             "--junit-xml=report.xml",
-            
+
         )
         assert result.ret == 0
 
@@ -462,7 +462,7 @@ class TestMetadataNamespacePrefix:
 
         result = pytester.runpytest_inprocess(
             "--junit-xml=report.xml",
-            
+
         )
         assert result.ret == 0
 
@@ -497,7 +497,7 @@ class TestMetadataNamespacePrefix:
             "--junit-xml=report.xml",
             "--metadata", "hostname", "user-provided-host",
             "--metadata", "timestamp", "user-provided-time",
-            
+
         )
         assert result.ret == 0
 

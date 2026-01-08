@@ -10,7 +10,6 @@ from unittest.mock import patch
 
 import pytest
 
-from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
 from pytest_jux.commands.cache import main
 from pytest_jux.storage import ReportStorage
 

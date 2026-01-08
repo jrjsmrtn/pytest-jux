@@ -7,12 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-01-08
+
+### Added
+- **Sprint 4 (REST API Client & Plugin Integration) - Complete**
+- **REST API Client** (`pytest_jux.api_client`):
+  - `JuxAPIClient` class for Jux API v1.0.0 `/junit/submit` endpoint
+  - Bearer token authentication (Authorization header)
+  - Retry logic with exponential backoff (1s, 2s, 4s)
+  - Comprehensive error handling (4xx/5xx, network errors, timeouts)
+  - `PublishResponse` and `TestRun` Pydantic models for response parsing
+  - 13 unit tests with mocked HTTP responses (92.86% coverage)
+- **Plugin Integration** with API publishing:
+  - Automatic report publishing in `pytest_sessionfinish` hook
+  - All storage modes supported: LOCAL, API, BOTH, CACHE
+  - Graceful degradation on network failures
+  - Error handling with pytest warnings (non-blocking)
+  - 6 comprehensive plugin tests for API publishing scenarios
+- **Manual Publishing Command** (`jux-publish`):
+  - Single file mode: `jux-publish --file report.xml --api-url <url>`
+  - Queue mode: `jux-publish --queue --api-url <url>`
+  - Dry-run mode: `--dry-run` to preview without publishing
+  - JSON output: `--json` for scripting integration
+  - Verbose mode: `--verbose` for detailed progress
+  - Authentication: `--bearer-token` for remote API access
+  - Configuration: `--timeout` and `--max-retries` options
+  - Exit codes: 0 (success), 1 (all failed), 2 (partial success)
+  - 20 comprehensive tests (78.86% coverage)
+- **New Configuration Options** (CLI and environment variables):
+  - `--jux-api-url` / `JUX_API_URL` - Jux API base URL
+  - `--jux-bearer-token` / `JUX_BEARER_TOKEN` - Bearer token for authentication
+  - `--jux-api-timeout` / `JUX_API_TIMEOUT` - Request timeout (default: 30s)
+  - `--jux-api-max-retries` / `JUX_API_MAX_RETRIES` - Max retry attempts (default: 3)
+
 ### Changed
 - Organized release notes in `docs/release-notes/` directory structure
 - Added "Releases" section to README.md with links to release notes
 
 ### Fixed
-- Updated `uv.lock` for v0.3.0 dependencies
+- Resolved 12 mypy type checking errors
+- Resolved 13 ruff linting errors
+- Added `configargparse` to mypy ignore_missing_imports
+- Updated deprecated `strict_concatenate` → `extra_checks` in mypy config
+- Fixed `any` → `Any` type annotation in metadata.py
+- Added type guards for plugin API publishing
+
+### Tests
+- 420 tests passing (60 new), 9 skipped, 16 xfailed
+- Overall coverage: 86.68% (above 85% target)
+- api_client.py: 92.86% coverage
+- publish.py: 78.86% coverage
+
+### Documentation
+- Sprint 4 documentation updated with all completed user stories
+- CLI reference updated with `jux-publish` command
 
 ## [0.3.0] - 2025-10-24
 
@@ -520,7 +568,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.9...v0.2.0
 [0.1.9]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.7...v0.1.8

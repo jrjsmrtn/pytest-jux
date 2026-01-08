@@ -5,7 +5,7 @@
 
 import os
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from lxml import etree
@@ -599,7 +599,7 @@ class TestPytestSessionfinishWithStorage:
         # Parse stored report and verify metadata is embedded
         from lxml import etree
         tree = etree.parse(str(report_files[0]))
-        properties = tree.find(".//properties")
+        _properties = tree.find(".//properties")  # Prefixed to indicate intentionally unused
 
         # NOTE: In the current test setup, properties might not exist because
         # pytest-metadata hook runs during actual pytest execution, not when
@@ -1032,3 +1032,241 @@ key_path = /path/to/key.pem
 
         # Should handle gracefully (no error)
         pytest_sessionfinish(mock_session, 0)
+
+
+class TestAPIPublishing:
+    """Tests for API publishing functionality."""
+
+    @pytest.fixture
+    def mock_api_client(self, mocker):
+        """Mock JuxAPIClient."""
+        return mocker.patch("pytest_jux.plugin.JuxAPIClient")
+
+    def test_publishes_to_api_when_jux_publish_enabled(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        mock_api_client: Mock,
+    ) -> None:
+        """Test that reports are published when jux_publish=True."""
+        from pytest_jux.api_client import PublishResponse, TestRun
+
+        # Configure session for API publishing
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = False
+        mock_session.config._jux_publish = True
+        mock_session.config._jux_storage_mode = None
+        mock_session.config._jux_storage_path = None
+        mock_session.config._jux_api_url = "http://localhost:4000/api/v1"
+        mock_session.config._jux_bearer_token = None
+        mock_session.config._jux_api_timeout = 30
+        mock_session.config._jux_api_max_retries = 3
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Mock successful API response (Jux API v1.0.0 format)
+        mock_client_instance = mock_api_client.return_value
+        mock_client_instance.publish_report.return_value = PublishResponse(
+            message="Test report submitted successfully",
+            status="success",
+            test_run=TestRun(
+                id="550e8400-e29b-41d4-a716-446655440000",
+                status="completed",
+                time=None,
+                errors=0,
+                branch="main",
+                project="pytest-jux-integration",
+                failures=0,
+                skipped=0,
+                success_rate=100.0,
+                commit_sha=None,
+                total_tests=1,
+                created_at="2025-10-25T00:00:00.000000Z",
+            ),
+        )
+
+        # Call sessionfinish - should publish to API
+        with pytest.warns(UserWarning, match="Report published to Jux API"):
+            pytest_sessionfinish(mock_session, 0)
+
+        # Verify API client was initialized
+        mock_api_client.assert_called_once_with(
+            api_url="http://localhost:4000/api/v1",
+            bearer_token=None,
+            timeout=30,
+            max_retries=3,
+        )
+
+        # Verify publish_report was called
+        mock_client_instance.publish_report.assert_called_once()
+
+    def test_publishes_to_api_in_api_storage_mode(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        mock_api_client: Mock,
+    ) -> None:
+        """Test that reports are published in API storage mode."""
+        from pytest_jux.api_client import PublishResponse, TestRun
+
+        # Configure session for API storage mode
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = False
+        mock_session.config._jux_publish = False
+        mock_session.config._jux_storage_mode = StorageMode.API
+        mock_session.config._jux_storage_path = None
+        mock_session.config._jux_api_url = "http://localhost:4000/api/v1"
+        mock_session.config._jux_bearer_token = "test-token"  # noqa: S105 - Test token
+        mock_session.config._jux_api_timeout = 30
+        mock_session.config._jux_api_max_retries = 3
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Mock successful API response (Jux API v1.0.0 format)
+        mock_client_instance = mock_api_client.return_value
+        mock_client_instance.publish_report.return_value = PublishResponse(
+            message="Test report submitted successfully",
+            status="success",
+            test_run=TestRun(
+                id="550e8400-e29b-41d4-a716-446655440000",
+                status="completed",
+                time=None,
+                errors=0,
+                branch="main",
+                project="pytest-jux-integration",
+                failures=0,
+                skipped=0,
+                success_rate=100.0,
+                commit_sha=None,
+                total_tests=1,
+                created_at="2025-10-25T00:00:00.000000Z",
+            ),
+        )
+
+        # Call sessionfinish - should publish to API
+        with pytest.warns(UserWarning, match="Report published to Jux API"):
+            pytest_sessionfinish(mock_session, 0)
+
+        # Verify API client was initialized with bearer token
+        mock_api_client.assert_called_once_with(
+            api_url="http://localhost:4000/api/v1",
+            bearer_token="test-token",  # noqa: S106 - Test token
+            timeout=30,
+            max_retries=3,
+        )
+
+    def test_api_mode_fails_on_api_error(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        mock_api_client: Mock,
+    ) -> None:
+        """Test that API mode warns on API failure."""
+        # Configure session for API storage mode
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = False
+        mock_session.config._jux_publish = False
+        mock_session.config._jux_storage_mode = StorageMode.API
+        mock_session.config._jux_storage_path = None
+        mock_session.config._jux_api_url = "http://localhost:4000/api/v1"
+        mock_session.config._jux_bearer_token = None
+        mock_session.config._jux_api_timeout = 30
+        mock_session.config._jux_api_max_retries = 3
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Mock API failure
+        mock_client_instance = mock_api_client.return_value
+        mock_client_instance.publish_report.side_effect = Exception("Connection refused")
+
+        # Call sessionfinish - should warn about failure
+        with pytest.warns(UserWarning, match="Failed to publish report to Jux API \\(API mode\\)"):
+            pytest_sessionfinish(mock_session, 0)
+
+    def test_cache_mode_queues_on_api_error(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        tmp_path: Path,
+        mock_api_client: Mock,
+    ) -> None:
+        """Test that CACHE mode queues locally on API failure."""
+        # Configure session for CACHE storage mode
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = False
+        mock_session.config._jux_publish = False
+        mock_session.config._jux_storage_mode = StorageMode.CACHE
+        mock_session.config._jux_storage_path = str(tmp_path / "reports")
+        mock_session.config._jux_api_url = "http://localhost:4000/api/v1"
+        mock_session.config._jux_bearer_token = None
+        mock_session.config._jux_api_timeout = 30
+        mock_session.config._jux_api_max_retries = 3
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Mock API failure
+        mock_client_instance = mock_api_client.return_value
+        mock_client_instance.publish_report.side_effect = Exception("Connection refused")
+
+        # Call sessionfinish - should queue locally
+        with pytest.warns(UserWarning, match="Failed to publish report to Jux API, queued locally \\(CACHE mode\\)"):
+            pytest_sessionfinish(mock_session, 0)
+
+        # Verify report was stored locally (storage creates reports/ subdir)
+        reports_dir = tmp_path / "reports" / "reports"
+        assert reports_dir.exists()
+        assert len(list(reports_dir.glob("*.xml"))) == 1
+
+    def test_both_mode_saves_local_on_api_error(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        tmp_path: Path,
+        mock_api_client: Mock,
+    ) -> None:
+        """Test that BOTH mode saves locally on API failure."""
+        # Configure session for BOTH storage mode
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = False
+        mock_session.config._jux_publish = False
+        mock_session.config._jux_storage_mode = StorageMode.BOTH
+        mock_session.config._jux_storage_path = str(tmp_path / "reports")
+        mock_session.config._jux_api_url = "http://localhost:4000/api/v1"
+        mock_session.config._jux_bearer_token = None
+        mock_session.config._jux_api_timeout = 30
+        mock_session.config._jux_api_max_retries = 3
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Mock API failure
+        mock_client_instance = mock_api_client.return_value
+        mock_client_instance.publish_report.side_effect = Exception("Connection refused")
+
+        # Call sessionfinish - should save locally and warn
+        with pytest.warns(UserWarning, match="Failed to publish report to Jux API, local copy saved \\(BOTH mode\\)"):
+            pytest_sessionfinish(mock_session, 0)
+
+        # Verify report was stored locally (storage creates reports/ subdir)
+        reports_dir = tmp_path / "reports" / "reports"
+        assert reports_dir.exists()
+        assert len(list(reports_dir.glob("*.xml"))) == 1
+
+    def test_skips_api_publishing_when_api_url_not_configured(
+        self,
+        mock_session: Mock,
+        test_junit_xml: Path,
+        mock_api_client: Mock,
+    ) -> None:
+        """Test that API publishing is skipped when api_url is None."""
+        # Configure session without API URL
+        mock_session.config._jux_enabled = True
+        mock_session.config._jux_sign = False
+        mock_session.config._jux_publish = True
+        mock_session.config._jux_storage_mode = None
+        mock_session.config._jux_storage_path = None
+        mock_session.config._jux_api_url = None  # No API URL
+        mock_session.config._jux_bearer_token = None
+        mock_session.config._jux_api_timeout = 30
+        mock_session.config._jux_api_max_retries = 3
+        mock_session.config.option.xmlpath = str(test_junit_xml)
+
+        # Call sessionfinish - should NOT attempt to publish
+        pytest_sessionfinish(mock_session, 0)
+
+        # Verify API client was NOT called
+        mock_api_client.assert_not_called()

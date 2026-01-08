@@ -4,7 +4,7 @@ Complete command-line reference for all pytest-jux CLI tools.
 
 ## Available Commands
 
-pytest-jux provides 7 CLI commands for offline signing, verification, and management:
+pytest-jux provides 8 CLI commands for offline signing, verification, publishing, and management:
 
 ```{toctree}
 :maxdepth: 2
@@ -15,6 +15,7 @@ verify
 inspect
 cache
 config
+publish
 ```
 
 ## Command Overview
@@ -91,6 +92,20 @@ Manage pytest-jux configuration (show, edit, validate).
 
 ---
 
+### jux-publish
+
+Publish signed test reports to Jux API server.
+
+**Purpose**: Manual publishing of cached or single reports to Jux API
+
+**Modes**: Single file (`--file`), queue processing (`--queue`)
+
+**Features**: Dry-run mode, JSON output, retry with backoff
+
+**Exit Codes**: 0 (success), 1 (all failed), 2 (partial success)
+
+---
+
 ## Auto-Generated CLI Documentation
 
 The sections below are auto-generated from the command-line parsers using sphinx-argparse-cli.
@@ -152,6 +167,16 @@ The sections below are auto-generated from the command-line parsers using sphinx
    :module: pytest_jux.commands.config_cmd
    :func: create_parser
    :prog: jux-config
+   :title:
+```
+
+### jux-publish
+
+```{eval-rst}
+.. sphinx_argparse_cli::
+   :module: pytest_jux.commands.publish
+   :func: create_parser
+   :prog: jux-publish
    :title:
 ```
 
@@ -228,6 +253,26 @@ jux-config edit
 
 # Validate configuration
 jux-config validate
+```
+
+### Publishing
+
+```bash
+# Publish single signed report to Jux API
+jux-publish --file test-results/junit-signed.xml --api-url https://jux.example.com/api/v1
+
+# Publish all queued reports
+jux-publish --queue --api-url https://jux.example.com/api/v1
+
+# Dry-run (preview without publishing)
+jux-publish --queue --api-url https://jux.example.com/api/v1 --dry-run
+
+# Publish with authentication
+export JUX_BEARER_TOKEN=your-token
+jux-publish --queue --api-url https://jux.example.com/api/v1
+
+# JSON output for scripting
+jux-publish --queue --api-url https://jux.example.com/api/v1 --json
 ```
 
 ## Exit Codes
