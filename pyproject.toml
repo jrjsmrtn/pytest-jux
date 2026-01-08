@@ -92,6 +92,7 @@ jux-verify = "pytest_jux.commands.verify:main"
 jux-inspect = "pytest_jux.commands.inspect:main"
 jux-cache = "pytest_jux.commands.cache:main"
 jux-config = "pytest_jux.commands.config_cmd:main"
+jux-publish = "pytest_jux.commands.publish:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
