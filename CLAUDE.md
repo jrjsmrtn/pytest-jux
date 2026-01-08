@@ -458,6 +458,7 @@ pytest-jux/
 │   ├── howto/             # Problem-solving guides
 │   ├── reference/         # Complete API documentation
 │   ├── explanation/       # Architecture and design
+│   ├── release-notes/     # Release notes (per version)
 │   ├── adr/              # Architecture decisions
 │   ├── architecture/     # C4 DSL models
 │   ├── sprints/          # Sprint documentation
@@ -720,7 +721,7 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Sprint 7 Complete - Metadata Integration (v0.3.0)
+**Current Phase**: Sprint 4 Complete - REST API Client & Plugin Integration (v0.4.0)
 **Completed Sprints**:
 - ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
 - ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
@@ -729,34 +730,30 @@ Each sprint should have:
 - ✅ Sprint 5: Documentation & User Experience (v0.2.0)
 - ✅ Sprint 6: OpenSSF Best Practices Badge (v0.2.1)
 - ✅ Sprint 7: Metadata Integration with pytest-metadata (v0.3.0)
+- ✅ Sprint 4: REST API Client & Plugin Integration (v0.4.0)
 
-**Sprint 7 Completed** (Metadata Integration - v0.3.0):
-- ✅ US-7.1: pytest-metadata Integration (XML-embedded metadata, no JSON sidecars)
-- ✅ US-7.2: Project Name Capture (mandatory, 4 fallback strategies)
-- ✅ US-7.3: Git Metadata Auto-Detection (commit, branch, status, remote)
-- ✅ US-7.4: CI Metadata Auto-Detection (5 providers: GitHub, GitLab, Jenkins, Travis, CircleCI)
-- ✅ US-7.5: Semantic Namespace Prefixes (jux:, git:, ci:, env:)
-- ✅ Documentation Updates (API reference, how-to guides)
-- ✅ ADR-0011: Integrate pytest-metadata (breaking change)
+**Sprint 4 Completed** (REST API Client & Plugin Integration - v0.4.0):
+- ✅ US-4.1: REST API Client (JuxAPIClient for Jux API v1.0.0)
+- ✅ US-4.2: Plugin Integration (automatic publishing in pytest_sessionfinish)
+- ✅ US-4.3: Manual Publishing Command (jux-publish CLI)
+- ✅ US-4.4: Technical Debt Resolution (mypy, ruff, coverage)
+- ⏸️ US-4.5: Integration Testing (deferred - requires Jux API Server)
 
-**Breaking Changes in v0.3.0**:
-- JSON sidecar metadata files removed (metadata now embedded in XML)
-- All metadata included in XMLDSig signature for tamper-proof provenance
-- Requires pytest-metadata 3.1+
+**New Features in v0.4.0**:
+- `JuxAPIClient` for Jux API v1.0.0 `/junit/submit` endpoint
+- Automatic report publishing in plugin (all storage modes)
+- `jux-publish` command for manual publishing
+- Bearer token authentication support
+- Retry logic with exponential backoff
 
-**Total Sprint 7**: 5 user stories, 1 ADR, 2 doc updates, comprehensive git/CI auto-detection
-
-**Postponed Sprint**: Sprint 4 - REST API Client & Plugin Integration
-- ⏸️ Postponed (awaiting Jux API Server availability)
-- Target: v0.4.0 (Beta Milestone)
-- See: [Sprint 4 Plan](docs/sprints/sprint-04-api-integration.md)
-
-**Version**: 0.3.0 (in preparation - 2025-10-24)
+**Version**: 0.4.0 (released 2026-01-08)
 **Previous Releases**:
+- v0.3.0 (released 2025-10-24) - Metadata Integration
 - v0.2.1 (released 2025-10-21) - OpenSSF Best Practices Badge
 - v0.2.0 (released 2025-10-20) - Documentation & User Experience
-**Current Branch**: feature/metadata-integration (merging to develop)
-**Test Coverage**: 89.11% (381 tests passing, 9 skipped, 8 xfailed)
+**Current Branch**: feature/sprint-04-api-integration
+**Test Coverage**: 86.68% (420 tests passing, 9 skipped, 16 xfailed)
+**Release Notes**: [CHANGELOG.md](CHANGELOG.md#040---2026-01-08)
 
 ---
 

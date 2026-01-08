@@ -118,8 +118,8 @@ class TestLoadPrivateKey:
     def test_load_unsupported_key_type(self, tmp_path: Path) -> None:
         """Test loading unsupported key type raises ValueError."""
         # DSA keys are not supported - only RSA and ECDSA
-        from cryptography.hazmat.primitives.asymmetric import dsa
         from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import dsa
 
         # Generate DSA key (unsupported)
         dsa_key = dsa.generate_private_key(key_size=2048)
@@ -620,8 +620,9 @@ class TestIntegrationWithCanonicalizer:
         self, sample_xml_tree: etree._Element, rsa_key_path: Path, rsa_cert_path: Path
     ) -> None:
         """Test that verify_signature returns False on exception."""
-        from pytest_jux.signer import verify_signature
         from unittest.mock import patch
+
+        from pytest_jux.signer import verify_signature
 
         key = load_private_key(rsa_key_path)
         cert = rsa_cert_path.read_bytes()

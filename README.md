@@ -807,6 +807,14 @@ The **Jux API Server** is the server-side component that works with pytest-jux. 
 
 For more information about the Jux API Server, refer to its separate repository and documentation.
 
+## Releases
+
+**Latest Release**: [v0.3.0 - Metadata Integration](https://github.com/jrjsmrtn/pytest-jux/releases/tag/v0.3.0) (2025-10-24)
+
+**Release Notes**: See [docs/release-notes/](docs/release-notes/) for detailed release notes for all versions.
+
+**Changelog**: See [CHANGELOG.md](CHANGELOG.md) for a complete version history.
+
 ## Support
 
 - Documentation: [docs/](docs/)

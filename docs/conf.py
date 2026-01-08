@@ -17,7 +17,7 @@ author = "Georges Martin"
 
 # The version info
 # Read from pyproject.toml
-import tomllib
+import tomllib  # noqa: E402 - Required after Path import for Sphinx config
 
 with open(Path(__file__).parent.parent / "pyproject.toml", "rb") as f:
     pyproject = tomllib.load(f)

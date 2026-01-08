@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 from lxml import etree
 
+from pytest_jux.api_client import JuxAPIClient
 from pytest_jux.canonicalizer import compute_canonical_hash, load_xml
 from pytest_jux.config import ConfigurationManager, StorageMode
 from pytest_jux.signer import load_private_key, sign_xml
@@ -106,6 +107,12 @@ def pytest_configure(config: pytest.Config) -> None:
     jux_storage_mode = config_manager.get("jux_storage_mode")
     jux_storage_path = config_manager.get("jux_storage_path")
 
+    # API configuration (Jux API v1.0.0)
+    jux_api_url = config_manager.get("jux_api_url")
+    jux_bearer_token = config_manager.get("jux_bearer_token")
+    jux_api_timeout = config_manager.get("jux_api_timeout")
+    jux_api_max_retries = config_manager.get("jux_api_max_retries")
+
     # Store merged configuration in config object for later use
     config._jux_enabled = jux_enabled  # type: ignore[attr-defined]
     config._jux_sign = jux_sign  # type: ignore[attr-defined]
@@ -114,6 +121,10 @@ def pytest_configure(config: pytest.Config) -> None:
     config._jux_publish = jux_publish  # type: ignore[attr-defined]
     config._jux_storage_mode = jux_storage_mode  # type: ignore[attr-defined]
     config._jux_storage_path = jux_storage_path  # type: ignore[attr-defined]
+    config._jux_api_url = jux_api_url  # type: ignore[attr-defined]
+    config._jux_bearer_token = jux_bearer_token  # type: ignore[attr-defined]
+    config._jux_api_timeout = jux_api_timeout  # type: ignore[attr-defined]
+    config._jux_api_max_retries = jux_api_max_retries  # type: ignore[attr-defined]
 
     # Validate configuration if plugin is enabled
     if jux_enabled:
@@ -138,7 +149,7 @@ def pytest_configure(config: pytest.Config) -> None:
                     )
 
 
-def pytest_metadata(metadata: dict) -> None:  # type: ignore[misc]
+def pytest_metadata(metadata: dict[str, str]) -> None:
     """Add pytest-jux environment metadata to pytest-metadata.
 
     This hook is called by pytest-metadata during test session startup.
@@ -262,10 +273,15 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
 
     # Get configuration
     jux_sign = getattr(session.config, "_jux_sign", False)
+    jux_publish = getattr(session.config, "_jux_publish", False)
     key_path_str = getattr(session.config, "_jux_key_path", None)
     cert_path_str = getattr(session.config, "_jux_cert_path", None)
     storage_mode = getattr(session.config, "_jux_storage_mode", None)
     storage_path = getattr(session.config, "_jux_storage_path", None)
+    api_url = getattr(session.config, "_jux_api_url", None)
+    bearer_token = getattr(session.config, "_jux_bearer_token", None)
+    api_timeout = getattr(session.config, "_jux_api_timeout", 30)
+    api_max_retries = getattr(session.config, "_jux_api_max_retries", 3)
 
     try:
         tree = load_xml(xml_path)
@@ -316,6 +332,70 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
 
             # Store the report (metadata is already embedded in XML properties)
             storage.store_report(xml_content=xml_bytes, canonical_hash=canonical_hash)
+
+        # Publish to API if configured
+        # Publish for API, BOTH, and CACHE modes
+        should_publish_to_api = (jux_publish or storage_mode in [
+            StorageMode.API,
+            StorageMode.BOTH,
+            StorageMode.CACHE,
+        ]) and api_url
+
+        if should_publish_to_api:
+            # Type narrowing: api_url must be str at this point (checked in should_publish_to_api)
+            if not isinstance(api_url, str):
+                # This should never happen due to should_publish_to_api check
+                return  # pragma: no cover
+
+            # Convert XML tree to string for API publishing
+            xml_string = etree.tostring(
+                tree, xml_declaration=True, encoding="utf-8", pretty_print=True
+            ).decode("utf-8")
+
+            try:
+                # Initialize API client
+                client = JuxAPIClient(
+                    api_url=api_url,
+                    bearer_token=bearer_token,
+                    timeout=api_timeout,
+                    max_retries=api_max_retries,
+                )
+
+                # Publish report to Jux API v1.0.0
+                response = client.publish_report(xml_string)
+
+                # Log success (visible in pytest output)
+                import warnings
+                warnings.warn(
+                    f"Report published to Jux API: test_run_id={response.test_run.id}, "
+                    f"success_rate={response.test_run.success_rate}%",
+                    stacklevel=2,
+                )
+
+            except Exception as api_error:
+                # Handle API errors based on storage mode
+                if storage_mode == StorageMode.API:
+                    # API mode: fail if API publishing fails
+                    import warnings
+                    warnings.warn(
+                        f"Failed to publish report to Jux API (API mode): {api_error}",
+                        stacklevel=2,
+                    )
+                elif storage_mode == StorageMode.CACHE:
+                    # CACHE mode: queue for later (graceful degradation)
+                    import warnings
+                    warnings.warn(
+                        f"Failed to publish report to Jux API, queued locally (CACHE mode): {api_error}",
+                        stacklevel=2,
+                    )
+                    # Note: Report already stored locally above
+                else:
+                    # BOTH mode: warn but continue (local copy exists)
+                    import warnings
+                    warnings.warn(
+                        f"Failed to publish report to Jux API, local copy saved (BOTH mode): {api_error}",
+                        stacklevel=2,
+                    )
 
     except Exception as e:
         # Report error but don't fail the test run

@@ -3,7 +3,6 @@
 
 """XML signature verification using XMLDSig."""
 
-from typing import Union
 
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.x509 import load_pem_x509_certificate
@@ -11,8 +10,8 @@ from lxml import etree
 from signxml import XMLVerifier
 
 # Type aliases
-PublicKeyTypes = Union[rsa.RSAPublicKey, ec.EllipticCurvePublicKey]
-CertOrKeyType = Union[PublicKeyTypes, bytes, str]
+PublicKeyTypes = rsa.RSAPublicKey | ec.EllipticCurvePublicKey
+CertOrKeyType = PublicKeyTypes | bytes | str
 
 
 def _create_temp_certificate(public_key: PublicKeyTypes) -> bytes:
@@ -73,13 +72,14 @@ def verify_signature(tree: etree._Element, cert_or_key: CertOrKeyType) -> bool:
     # Validate certificate before verification
     try:
         load_pem_x509_certificate(cert_data)
-    except Exception:
-        raise ValueError("Invalid certificate")
+    except Exception as e:
+        raise ValueError("Invalid certificate") from e
 
     # Verify signature with provided certificate
     verifier = XMLVerifier()
     try:
-        verifier.verify(tree, x509_cert=cert_data)
+        # signxml expects PEM cert as string, not bytes
+        verifier.verify(tree, x509_cert=cert_data.decode("utf-8"))
         return True
     except Exception:
         # Signature verification failed

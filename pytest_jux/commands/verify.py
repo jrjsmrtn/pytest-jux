@@ -237,11 +237,11 @@ def main() -> int:
 
     except Exception as e:
         if args.json:
-            result = {
+            error_result: dict[str, bool | str] = {
                 "valid": False,
                 "error": str(e),
             }
-            print(json.dumps(result))
+            print(json.dumps(error_result))
         elif not args.quiet:
             # Handle unexpected errors in non-debug mode
             if debug:
