@@ -12,7 +12,6 @@ Content-Type: application/xml
 Authentication: Bearer token (remote) or localhost bypass
 """
 
-from typing import Optional
 
 import requests
 from pydantic import BaseModel
@@ -40,14 +39,14 @@ class TestRun(BaseModel):
 
     id: str
     status: str
-    time: Optional[float] = None
+    time: float | None = None
     errors: int
     branch: str
     project: str
     failures: int
     skipped: int
     success_rate: float
-    commit_sha: Optional[str] = None
+    commit_sha: str | None = None
     total_tests: int
     created_at: str
 
@@ -89,7 +88,7 @@ class JuxAPIClient:
     def __init__(
         self,
         api_url: str,
-        bearer_token: Optional[str] = None,
+        bearer_token: str | None = None,
         timeout: int = 30,
         max_retries: int = 3,
     ):

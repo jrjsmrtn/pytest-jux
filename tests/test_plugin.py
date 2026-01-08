@@ -599,7 +599,7 @@ class TestPytestSessionfinishWithStorage:
         # Parse stored report and verify metadata is embedded
         from lxml import etree
         tree = etree.parse(str(report_files[0]))
-        properties = tree.find(".//properties")
+        _properties = tree.find(".//properties")  # Prefixed to indicate intentionally unused
 
         # NOTE: In the current test setup, properties might not exist because
         # pytest-metadata hook runs during actual pytest execution, not when
@@ -1115,7 +1115,7 @@ class TestAPIPublishing:
         mock_session.config._jux_storage_mode = StorageMode.API
         mock_session.config._jux_storage_path = None
         mock_session.config._jux_api_url = "http://localhost:4000/api/v1"
-        mock_session.config._jux_bearer_token = "test-token"
+        mock_session.config._jux_bearer_token = "test-token"  # noqa: S105 - Test token
         mock_session.config._jux_api_timeout = 30
         mock_session.config._jux_api_max_retries = 3
         mock_session.config.option.xmlpath = str(test_junit_xml)
@@ -1148,7 +1148,7 @@ class TestAPIPublishing:
         # Verify API client was initialized with bearer token
         mock_api_client.assert_called_once_with(
             api_url="http://localhost:4000/api/v1",
-            bearer_token="test-token",
+            bearer_token="test-token",  # noqa: S106 - Test token
             timeout=30,
             max_retries=3,
         )

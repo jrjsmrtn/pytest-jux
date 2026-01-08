@@ -170,8 +170,8 @@ def test_bash_block(block: CodeBlock, verbose: bool = False) -> tuple[bool, str]
 
     try:
         # Run in a safe shell environment
-        result = subprocess.run(
-            ["bash", "-c", block.code],
+        result = subprocess.run(  # noqa: S603 - Safe: test script execution
+            ["bash", "-c", block.code],  # noqa: S607 - Safe: known executable
             capture_output=True,
             text=True,
             timeout=5,
@@ -212,7 +212,7 @@ def test_python_block(block: CodeBlock, verbose: bool = False) -> tuple[bool, st
 
         try:
             # Validate syntax
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - Safe: controlled py_compile call
                 [sys.executable, "-m", "py_compile", str(temp_file)],
                 capture_output=True,
                 text=True,

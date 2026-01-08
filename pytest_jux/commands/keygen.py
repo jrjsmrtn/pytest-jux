@@ -310,6 +310,7 @@ def main() -> int:
         # Generate key
         console.print(f"[bold]Generating {args.type.upper()} key...[/bold]")
 
+        key: PrivateKeyTypes
         if args.type == "rsa":
             key = generate_rsa_key(args.bits)
             console.print(f"  Key size: {args.bits} bits")

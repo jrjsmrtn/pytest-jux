@@ -149,7 +149,7 @@ def pytest_configure(config: pytest.Config) -> None:
                     )
 
 
-def pytest_metadata(metadata: dict) -> None:  # type: ignore[misc]
+def pytest_metadata(metadata: dict[str, str]) -> None:
     """Add pytest-jux environment metadata to pytest-metadata.
 
     This hook is called by pytest-metadata during test session startup.
@@ -342,6 +342,11 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         ]) and api_url
 
         if should_publish_to_api:
+            # Type narrowing: api_url must be str at this point (checked in should_publish_to_api)
+            if not isinstance(api_url, str):
+                # This should never happen due to should_publish_to_api check
+                return  # pragma: no cover
+
             # Convert XML tree to string for API publishing
             xml_string = etree.tostring(
                 tree, xml_declaration=True, encoding="utf-8", pretty_print=True

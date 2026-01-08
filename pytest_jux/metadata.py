@@ -32,6 +32,7 @@ import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+from typing import Any
 
 
 @dataclass
@@ -57,7 +58,7 @@ class EnvironmentMetadata:
     ci_build_id: str | None = None
     ci_build_url: str | None = None
 
-    def to_dict(self) -> dict[str, any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert metadata to dictionary.
 
         Returns:
@@ -130,7 +131,7 @@ def _run_git_command(args: list[str]) -> str | None:
         Command output stripped of whitespace, or None on failure
     """
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 - Safe: controlled git command with no user input
             ["git"] + args,
             capture_output=True,
             text=True,
@@ -304,12 +305,11 @@ def _capture_project_name() -> str:
                 data = tomllib.load(f)
                 # Try [project] section first (PEP 621)
                 if "project" in data and "name" in data["project"]:
-                    return data["project"]["name"]
+                    return str(data["project"]["name"])
                 # Fall back to [tool.poetry] section
                 if "tool" in data and "poetry" in data["tool"] and "name" in data["tool"]["poetry"]:
-                    return data["tool"]["poetry"]["name"]
-    except Exception:
-        # Ignore errors reading pyproject.toml
+                    return str(data["tool"]["poetry"]["name"])
+    except Exception:  # noqa: S110 - Intentionally silent, fallback to other strategies
         pass
 
     # Strategy 3: Environment variable

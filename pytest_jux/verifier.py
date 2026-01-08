@@ -3,7 +3,6 @@
 
 """XML signature verification using XMLDSig."""
 
-from typing import Union
 
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.x509 import load_pem_x509_certificate
@@ -79,7 +78,8 @@ def verify_signature(tree: etree._Element, cert_or_key: CertOrKeyType) -> bool:
     # Verify signature with provided certificate
     verifier = XMLVerifier()
     try:
-        verifier.verify(tree, x509_cert=cert_data)
+        # signxml expects PEM cert as string, not bytes
+        verifier.verify(tree, x509_cert=cert_data.decode("utf-8"))
         return True
     except Exception:
         # Signature verification failed
