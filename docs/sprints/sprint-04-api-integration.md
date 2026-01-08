@@ -249,7 +249,7 @@ sign = true
 key_path = ~/.jux/signing_key.pem
 storage_mode = cache
 storage_path = ~/.local/share/jux/reports
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 api_key = <from environment variable>
 ```
 

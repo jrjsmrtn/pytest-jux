@@ -349,7 +349,7 @@ storage_mode = local
 # ------------
 
 # API endpoint URL
-# api_url = https://jux.example.com/api/v1/reports
+# api_url = https://jux.example.com/api/v1
 
 # API authentication key (use environment variable for security)
 # api_key = your-api-key-here
@@ -417,7 +417,7 @@ storage_mode = local  # Use 'api' or 'both' if publishing from CI
 # cert_path = /path/from/ci/secrets/signing-cert.pem
 
 # API Settings (if publishing from CI)
-# api_url = https://jux.example.com/api/v1/reports
+# api_url = https://jux.example.com/api/v1
 # Use CI secrets for API key: JUX_API_KEY=<ci-secret>
 
 # CI/CD Best Practices:
@@ -474,7 +474,7 @@ key_path = /etc/jux/production-key.pem
 cert_path = /etc/jux/production-cert.pem
 
 # API Settings
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 # api_key = <use JUX_API_KEY environment variable>
 
 # Production Security Requirements:

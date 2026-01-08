@@ -313,7 +313,7 @@ storage_mode = local
 # cert_path = ~/.jux/signing_key.crt
 
 # API settings
-# api_url = https://jux.example.com/api/v1/reports
+# api_url = https://jux.example.com/api/v1
 # api_key = your-api-key-here
 ```
 
@@ -405,7 +405,7 @@ enabled = true
 sign = true
 key_path = ~/.jux/dev_key.pem
 storage_mode = both
-api_url = http://localhost:4000/api/v1/reports
+api_url = http://localhost:4000/api/v1
 ```
 
 **Production configuration** (signed reports with offline queue):
@@ -416,7 +416,7 @@ sign = true
 key_path = ~/.jux/prod_key.pem
 cert_path = ~/.jux/prod_key.crt
 storage_mode = cache
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 ```
 
 ## CLI Tools

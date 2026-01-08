@@ -437,7 +437,7 @@ steps:
 **Add variables in Azure DevOps:**
 1. Pipelines → Library → Variable groups
 2. Create variable group `jux-config`:
-   - `JUX_API_URL` - Value: https://jux.example.com/api/v1/reports
+   - `JUX_API_URL` - Value: https://jux.example.com/api/v1
    - `JUX_API_KEY` - Value: (secret) Lock icon
 
 3. Secure files:
@@ -576,7 +576,7 @@ docker build -f Dockerfile.ci -t myproject-test:latest .
 # Run tests
 docker run --rm \
   -e JUX_SIGNING_KEY="$(cat ~/.jux/signing_key.pem)" \
-  -e JUX_API_URL="https://jux.example.com/api/v1/reports" \
+  -e JUX_API_URL="https://jux.example.com/api/v1" \
   -e JUX_API_KEY="$JUX_API_KEY" \
   myproject-test:latest
 ```

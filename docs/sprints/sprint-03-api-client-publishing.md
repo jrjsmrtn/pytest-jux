@@ -162,7 +162,7 @@ This sprint focuses **exclusively on the client-side** API integration and local
 ```ini
 [pytest]
 jux_publish = true
-jux_api_url = https://jux.example.com/api/v1/reports
+jux_api_url = https://jux.example.com/api/v1
 jux_api_key = secret-api-key-here
 jux_key_path = ~/.jux/signing_key.pem
 jux_cert_path = ~/.jux/signing_key.crt
@@ -173,7 +173,7 @@ jux_cert_path = ~/.jux/signing_key.crt
 pytest --junit-xml=report.xml \
        --jux-sign \
        --jux-publish \
-       --jux-api-url=https://jux.example.com/api/v1/reports \
+       --jux-api-url=https://jux.example.com/api/v1 \
        --jux-api-key=secret-api-key
 ```
 
@@ -205,7 +205,7 @@ pytest --junit-xml=report.xml \
 ```bash
 # Publish a signed report
 jux-publish --input signed-report.xml \
-  --api-url https://jux.example.com/api/v1/reports \
+  --api-url https://jux.example.com/api/v1 \
   --api-key secret-api-key
 
 # Publish with JSON output
@@ -213,7 +213,7 @@ jux-publish --input signed-report.xml --json
 # Output: {"status": "published", "id": "report-123", "canonical_hash": "sha256:abc..."}
 
 # Publish from stdin (pipeline)
-cat signed-report.xml | jux-publish --api-url https://jux.example.com/api/v1/reports
+cat signed-report.xml | jux-publish --api-url https://jux.example.com/api/v1
 ```
 
 ---
@@ -572,11 +572,11 @@ Following TDD principles, implement in this order:
 
 ## API Endpoint Specification
 
-### POST /api/v1/reports
+### POST /api/v1
 
 **Request:**
 ```http
-POST /api/v1/reports HTTP/1.1
+POST /api/v1 HTTP/1.1
 Host: jux.example.com
 Content-Type: application/json
 X-API-Key: secret-api-key-here
@@ -720,7 +720,7 @@ storage_path = ~/.local/share/jux/reports           # Optional: custom path
 
 # API configuration (for publishing)
 publish = true
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 api_key = secret-api-key-here
 ```
 
@@ -738,7 +738,7 @@ jux_storage_mode = local
 # OR: Enable API publishing with local caching
 jux_storage_mode = cache
 jux_publish = true
-jux_api_url = https://jux.example.com/api/v1/reports
+jux_api_url = https://jux.example.com/api/v1
 jux_api_key_env = JUX_API_KEY  # Read from environment variable
 ```
 
@@ -779,7 +779,7 @@ pytest --jux-enabled --jux-sign --jux-key=~/.jux/key.pem --jux-storage-mode=loca
 **Sign, store locally, and publish to API:**
 ```bash
 pytest --jux-enabled --jux-sign --jux-publish \
-       --jux-api-url=https://jux.example.com/api/v1/reports \
+       --jux-api-url=https://jux.example.com/api/v1 \
        --jux-storage-mode=both
 ```
 
@@ -1045,7 +1045,7 @@ jux_enabled = true
 jux_sign = true
 jux_publish = true
 jux_storage_mode = cache
-jux_api_url = https://jux.example.com/api/v1/reports
+jux_api_url = https://jux.example.com/api/v1
 jux_api_key_env = JUX_API_KEY
 jux_key_path = ~/.jux/signing_key.pem
 EOF
@@ -1093,7 +1093,7 @@ enabled = true
 sign = true
 publish = true
 storage_mode = both
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 api_key = secret-api-key-here
 key_path = ~/.jux/signing_key.pem
 EOF
@@ -1140,7 +1140,7 @@ jux-verify --input signed-report.xml --cert ~/.jux/signing_key.crt
 
 # 5. Publish manually
 jux-publish --input signed-report.xml \
-  --api-url https://jux.example.com/api/v1/reports \
+  --api-url https://jux.example.com/api/v1 \
   --api-key secret-api-key
 # Output: ✓ Published successfully (report-12345)
 ```
