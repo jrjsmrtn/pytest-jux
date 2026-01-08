@@ -98,7 +98,7 @@ storage_mode = cache
 storage_path = /var/lib/jux/reports
 
 # API configuration
-api_url = https://jux-staging.example.com/api/v1/reports
+api_url = https://jux-staging.example.com/api/v1
 # api_key set via environment variable
 ```
 
@@ -140,7 +140,7 @@ storage_mode = cache
 storage_path = /var/lib/jux/reports
 
 # API configuration
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 # api_key set via environment variable
 ```
 
@@ -215,7 +215,7 @@ storage_mode = local
 ```bash
 export JUX_STORAGE_MODE=cache
 export JUX_KEY_PATH=/etc/jux/staging/signing_key.pem
-export JUX_API_URL=https://jux-staging.example.com/api/v1/reports
+export JUX_API_URL=https://jux-staging.example.com/api/v1
 export JUX_API_KEY=$STAGING_API_KEY
 ```
 
@@ -223,7 +223,7 @@ export JUX_API_KEY=$STAGING_API_KEY
 ```bash
 export JUX_STORAGE_MODE=cache
 export JUX_KEY_PATH=/etc/jux/production/signing_key.pem
-export JUX_API_URL=https://jux.example.com/api/v1/reports
+export JUX_API_URL=https://jux.example.com/api/v1
 export JUX_API_KEY=$PRODUCTION_API_KEY
 ```
 
@@ -568,7 +568,7 @@ jux-config validate --strict
 # Set environment
 export ENVIRONMENT=staging
 export JUX_KEY_PATH=/etc/jux/staging/signing_key.pem
-export JUX_API_URL=https://jux-staging.example.com/api/v1/reports
+export JUX_API_URL=https://jux-staging.example.com/api/v1
 
 # Validate
 jux-config validate --strict
@@ -583,7 +583,7 @@ jux-verify /tmp/test-report.xml --cert /etc/jux/staging/signing_key.crt
 # Set environment
 export ENVIRONMENT=production
 export JUX_KEY_PATH=/etc/jux/production/signing_key.pem
-export JUX_API_URL=https://jux.example.com/api/v1/reports
+export JUX_API_URL=https://jux.example.com/api/v1
 
 # Validate
 jux-config validate --strict

@@ -1,0 +1,1094 @@
+{
+  "configuration" : {
+    "scope" : "SoftwareSystem"
+  },
+  "description" : "Client-side pytest plugin for signing and publishing JUnit XML test reports",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedAgent" : "structurizr-ui",
+  "lastModifiedDate" : "2026-01-08T18:51:19Z",
+  "model" : {
+    "people" : [ {
+      "description" : "Software developer running pytest test suites",
+      "id" : "1",
+      "name" : "Developer",
+      "properties" : {
+        "structurizr.dsl.identifier" : "developer"
+      },
+      "relationships" : [ {
+        "description" : "Runs tests with",
+        "destinationId" : "3",
+        "id" : "57",
+        "sourceId" : "1",
+        "tags" : "Relationship",
+        "technology" : "pytest CLI"
+      }, {
+        "description" : "Executes tests via pytest",
+        "destinationId" : "7",
+        "id" : "62",
+        "sourceId" : "1",
+        "tags" : "Relationship",
+        "technology" : "pytest hooks"
+      }, {
+        "description" : "Executes tests via pytest",
+        "destinationId" : "6",
+        "id" : "63",
+        "linkedRelationshipId" : "62",
+        "sourceId" : "1",
+        "technology" : "pytest hooks"
+      }, {
+        "description" : "Uses offline tools",
+        "destinationId" : "25",
+        "id" : "64",
+        "sourceId" : "1",
+        "tags" : "Relationship",
+        "technology" : "CLI commands"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Infrastructure engineer managing test reporting",
+      "id" : "2",
+      "name" : "System Administrator",
+      "properties" : {
+        "structurizr.dsl.identifier" : "sysadmin"
+      },
+      "relationships" : [ {
+        "description" : "Configures and manages",
+        "destinationId" : "6",
+        "id" : "59",
+        "sourceId" : "2",
+        "tags" : "Relationship",
+        "technology" : "CLI tools"
+      }, {
+        "description" : "Configures plugin",
+        "destinationId" : "7",
+        "id" : "65",
+        "sourceId" : "2",
+        "tags" : "Relationship",
+        "technology" : "Configuration files"
+      }, {
+        "description" : "Manages keys and reports",
+        "destinationId" : "25",
+        "id" : "66",
+        "sourceId" : "2",
+        "tags" : "Relationship",
+        "technology" : "CLI commands"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "description" : "Python testing framework that executes tests and generates JUnit XML reports",
+      "documentation" : { },
+      "id" : "3",
+      "name" : "pytest",
+      "properties" : {
+        "structurizr.dsl.identifier" : "pytest"
+      },
+      "relationships" : [ {
+        "description" : "Invokes plugin hooks",
+        "destinationId" : "6",
+        "id" : "58",
+        "sourceId" : "3",
+        "tags" : "Relationship",
+        "technology" : "pytest_sessionfinish"
+      }, {
+        "description" : "Invokes hooks",
+        "destinationId" : "7",
+        "id" : "67",
+        "sourceId" : "3",
+        "tags" : "Relationship",
+        "technology" : "pytest_sessionfinish"
+      } ],
+      "tags" : "Element,Software System,External System"
+    }, {
+      "description" : "Server-side backend for receiving, verifying, and storing signed test reports",
+      "documentation" : { },
+      "id" : "4",
+      "name" : "Jux API Server",
+      "properties" : {
+        "structurizr.dsl.identifier" : "juxApiServer"
+      },
+      "tags" : "Element,Software System,External System"
+    }, {
+      "description" : "Continuous integration system (GitHub Actions, GitLab CI, Jenkins)",
+      "documentation" : { },
+      "id" : "5",
+      "name" : "CI/CD Pipeline",
+      "properties" : {
+        "structurizr.dsl.identifier" : "cicdPipeline"
+      },
+      "relationships" : [ {
+        "description" : "Executes tests with",
+        "destinationId" : "3",
+        "id" : "61",
+        "sourceId" : "5",
+        "tags" : "Relationship",
+        "technology" : "pytest --junit-xml --jux-publish"
+      } ],
+      "tags" : "Element,Software System,External System"
+    }, {
+      "containers" : [ {
+        "components" : [ {
+          "description" : "pytest hook implementations (pytest_sessionfinish)",
+          "documentation" : { },
+          "id" : "8",
+          "name" : "Plugin Hooks",
+          "properties" : {
+            "structurizr.dsl.identifier" : "pluginHooks"
+          },
+          "relationships" : [ {
+            "description" : "Signs report with",
+            "destinationId" : "9",
+            "id" : "16",
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Injects metadata via pytest_metadata hook",
+            "destinationId" : "13",
+            "id" : "17",
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Stores locally via",
+            "destinationId" : "14",
+            "id" : "18",
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Publishes via",
+            "destinationId" : "15",
+            "id" : "19",
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads configuration from",
+            "destinationId" : "12",
+            "id" : "22",
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python module (plugin.py)"
+        }, {
+          "description" : "Generates XMLDSig signatures using RSA/ECDSA keys",
+          "documentation" : { },
+          "id" : "9",
+          "name" : "XML Signer",
+          "properties" : {
+            "structurizr.dsl.identifier" : "signer"
+          },
+          "relationships" : [ {
+            "description" : "Canonicalizes XML with",
+            "destinationId" : "11",
+            "id" : "20",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "References API endpoint",
+            "destinationId" : "4",
+            "id" : "68",
+            "sourceId" : "9",
+            "tags" : "Relationship",
+            "technology" : "Configuration only"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python module (signer.py)"
+        }, {
+          "description" : "Verifies XMLDSig signatures on signed reports",
+          "documentation" : { },
+          "id" : "10",
+          "name" : "Signature Verifier",
+          "properties" : {
+            "structurizr.dsl.identifier" : "verifier"
+          },
+          "relationships" : [ {
+            "description" : "Verifies hash with",
+            "destinationId" : "11",
+            "id" : "21",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python module (verifier.py)"
+        }, {
+          "description" : "C14N canonicalization and hash computation",
+          "documentation" : { },
+          "id" : "11",
+          "name" : "XML Canonicalizer",
+          "properties" : {
+            "structurizr.dsl.identifier" : "canonicalizer"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Python module (canonicalizer.py)"
+        }, {
+          "description" : "Multi-source config (CLI, env, files) with precedence",
+          "documentation" : { },
+          "id" : "12",
+          "name" : "Configuration Manager",
+          "properties" : {
+            "structurizr.dsl.identifier" : "configManager"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Python module (config.py)"
+        }, {
+          "description" : "Captures environment metadata and injects into pytest-metadata hook",
+          "documentation" : { },
+          "id" : "13",
+          "name" : "Metadata Collector",
+          "properties" : {
+            "structurizr.dsl.identifier" : "metadataCollector"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Python module (metadata.py)"
+        }, {
+          "description" : "XDG-compliant local storage and caching (4 modes)",
+          "documentation" : { },
+          "id" : "14",
+          "name" : "Storage Manager",
+          "properties" : {
+            "structurizr.dsl.identifier" : "storageManager"
+          },
+          "relationships" : [ {
+            "description" : "Uses storage config from",
+            "destinationId" : "12",
+            "id" : "23",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python module (storage.py)"
+        }, {
+          "description" : "REST API client for Jux API v1.0.0 with retry logic",
+          "documentation" : { },
+          "id" : "15",
+          "name" : "API Client",
+          "properties" : {
+            "structurizr.dsl.identifier" : "apiClient"
+          },
+          "relationships" : [ {
+            "description" : "Uses API config from",
+            "destinationId" : "12",
+            "id" : "24",
+            "sourceId" : "15",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python module (api_client.py)"
+        } ],
+        "description" : "pytest hook integration for automated report processing",
+        "documentation" : { },
+        "id" : "7",
+        "name" : "pytest Plugin",
+        "properties" : {
+          "structurizr.dsl.identifier" : "pytestPlugin"
+        },
+        "relationships" : [ {
+          "description" : "Uses shared components",
+          "destinationId" : "25",
+          "id" : "56",
+          "sourceId" : "7",
+          "tags" : "Relationship",
+          "technology" : "Python imports"
+        }, {
+          "description" : "References API endpoint",
+          "destinationId" : "4",
+          "id" : "69",
+          "linkedRelationshipId" : "68",
+          "sourceId" : "7",
+          "technology" : "Configuration only"
+        } ],
+        "tags" : "Element,Container,Plugin",
+        "technology" : "Python 3.11+"
+      }, {
+        "components" : [ {
+          "description" : "Generate RSA/ECDSA signing keys with certificates",
+          "documentation" : { },
+          "id" : "26",
+          "name" : "jux-keygen",
+          "properties" : {
+            "structurizr.dsl.identifier" : "keygenCmd"
+          },
+          "relationships" : [ {
+            "description" : "Generates keys for",
+            "destinationId" : "9",
+            "id" : "33",
+            "sourceId" : "26",
+            "tags" : "Relationship",
+            "technology" : "Uses cryptography library"
+          }, {
+            "description" : "Generates keys for",
+            "destinationId" : "7",
+            "id" : "34",
+            "linkedRelationshipId" : "33",
+            "sourceId" : "26",
+            "technology" : "Uses cryptography library"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python CLI (commands/keygen.py)"
+        }, {
+          "description" : "Offline signing of JUnit XML reports",
+          "documentation" : { },
+          "id" : "27",
+          "name" : "jux-sign",
+          "properties" : {
+            "structurizr.dsl.identifier" : "signCmd"
+          },
+          "relationships" : [ {
+            "description" : "Signs reports with",
+            "destinationId" : "9",
+            "id" : "37",
+            "sourceId" : "27",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Signs reports with",
+            "destinationId" : "7",
+            "id" : "38",
+            "linkedRelationshipId" : "37",
+            "sourceId" : "27"
+          }, {
+            "description" : "Canonicalizes with",
+            "destinationId" : "11",
+            "id" : "39",
+            "sourceId" : "27",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python CLI (commands/sign.py)"
+        }, {
+          "description" : "Signature verification for signed reports",
+          "documentation" : { },
+          "id" : "28",
+          "name" : "jux-verify",
+          "properties" : {
+            "structurizr.dsl.identifier" : "verifyCmd"
+          },
+          "relationships" : [ {
+            "description" : "Verifies signatures with",
+            "destinationId" : "10",
+            "id" : "41",
+            "sourceId" : "28",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Verifies signatures with",
+            "destinationId" : "7",
+            "id" : "42",
+            "linkedRelationshipId" : "41",
+            "sourceId" : "28"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python CLI (commands/verify.py)"
+        }, {
+          "description" : "Report inspection (metadata, hash, signature)",
+          "documentation" : { },
+          "id" : "29",
+          "name" : "jux-inspect",
+          "properties" : {
+            "structurizr.dsl.identifier" : "inspectCmd"
+          },
+          "relationships" : [ {
+            "description" : "Computes hash with",
+            "destinationId" : "11",
+            "id" : "44",
+            "sourceId" : "29",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Computes hash with",
+            "destinationId" : "7",
+            "id" : "45",
+            "linkedRelationshipId" : "44",
+            "sourceId" : "29"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python CLI (commands/inspect.py)"
+        }, {
+          "description" : "Cache management (list, show, stats, clean)",
+          "documentation" : { },
+          "id" : "30",
+          "name" : "jux-cache",
+          "properties" : {
+            "structurizr.dsl.identifier" : "cacheCmd"
+          },
+          "relationships" : [ {
+            "description" : "Manages cache via",
+            "destinationId" : "14",
+            "id" : "46",
+            "sourceId" : "30",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Manages cache via",
+            "destinationId" : "7",
+            "id" : "47",
+            "linkedRelationshipId" : "46",
+            "sourceId" : "30"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python CLI (commands/cache.py)"
+        }, {
+          "description" : "Configuration management (init, dump, validate)",
+          "documentation" : { },
+          "id" : "31",
+          "name" : "jux-config",
+          "properties" : {
+            "structurizr.dsl.identifier" : "configCmd"
+          },
+          "relationships" : [ {
+            "description" : "Manages config via",
+            "destinationId" : "12",
+            "id" : "49",
+            "sourceId" : "31",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Manages config via",
+            "destinationId" : "7",
+            "id" : "50",
+            "linkedRelationshipId" : "49",
+            "sourceId" : "31"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python CLI (commands/config_cmd.py)"
+        }, {
+          "description" : "Manual publishing to Jux API (single file or queue)",
+          "documentation" : { },
+          "id" : "32",
+          "name" : "jux-publish",
+          "properties" : {
+            "structurizr.dsl.identifier" : "publishCmd"
+          },
+          "relationships" : [ {
+            "description" : "Publishes reports via",
+            "destinationId" : "15",
+            "id" : "52",
+            "sourceId" : "32",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Publishes reports via",
+            "destinationId" : "7",
+            "id" : "53",
+            "linkedRelationshipId" : "52",
+            "sourceId" : "32"
+          }, {
+            "description" : "Reads queue from",
+            "destinationId" : "14",
+            "id" : "55",
+            "sourceId" : "32",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python CLI (commands/publish.py)"
+        } ],
+        "description" : "Standalone command-line utilities for manual operations",
+        "documentation" : { },
+        "id" : "25",
+        "name" : "CLI Tools",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cliTools"
+        },
+        "relationships" : [ {
+          "description" : "Generates keys for",
+          "destinationId" : "9",
+          "id" : "35",
+          "linkedRelationshipId" : "33",
+          "sourceId" : "25",
+          "technology" : "Uses cryptography library"
+        }, {
+          "description" : "Generates keys for",
+          "destinationId" : "7",
+          "id" : "36",
+          "linkedRelationshipId" : "33",
+          "sourceId" : "25",
+          "technology" : "Uses cryptography library"
+        }, {
+          "description" : "Canonicalizes with",
+          "destinationId" : "11",
+          "id" : "40",
+          "linkedRelationshipId" : "39",
+          "sourceId" : "25"
+        }, {
+          "description" : "Verifies signatures with",
+          "destinationId" : "10",
+          "id" : "43",
+          "linkedRelationshipId" : "41",
+          "sourceId" : "25"
+        }, {
+          "description" : "Manages cache via",
+          "destinationId" : "14",
+          "id" : "48",
+          "linkedRelationshipId" : "46",
+          "sourceId" : "25"
+        }, {
+          "description" : "Manages config via",
+          "destinationId" : "12",
+          "id" : "51",
+          "linkedRelationshipId" : "49",
+          "sourceId" : "25"
+        }, {
+          "description" : "Publishes reports via",
+          "destinationId" : "15",
+          "id" : "54",
+          "linkedRelationshipId" : "52",
+          "sourceId" : "25"
+        } ],
+        "tags" : "Element,Container,CLI",
+        "technology" : "Python 3.11+"
+      } ],
+      "description" : "Client-side pytest plugin for signing and publishing JUnit XML test reports",
+      "documentation" : { },
+      "id" : "6",
+      "name" : "pytest-jux",
+      "properties" : {
+        "structurizr.dsl.identifier" : "pytestJux"
+      },
+      "relationships" : [ {
+        "description" : "Publishes signed reports to",
+        "destinationId" : "4",
+        "id" : "60",
+        "sourceId" : "6",
+        "tags" : "Relationship",
+        "technology" : "HTTPS/REST API (POST /api/v1/junit/submit)"
+      } ],
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "pytest-jux",
+  "properties" : {
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.error" : "31",
+    "structurizr.inspection.warning" : "0",
+    "structurizr.dsl" : "d29ya3NwYWNlICJweXRlc3QtanV4IiAiQ2xpZW50LXNpZGUgcHl0ZXN0IHBsdWdpbiBmb3Igc2lnbmluZyBhbmQgcHVibGlzaGluZyBKVW5pdCBYTUwgdGVzdCByZXBvcnRzIiB7CgogICAgbW9kZWwgewogICAgICAgICMgUGVvcGxlCiAgICAgICAgZGV2ZWxvcGVyID0gcGVyc29uICJEZXZlbG9wZXIiICJTb2Z0d2FyZSBkZXZlbG9wZXIgcnVubmluZyBweXRlc3QgdGVzdCBzdWl0ZXMiCiAgICAgICAgc3lzYWRtaW4gPSBwZXJzb24gIlN5c3RlbSBBZG1pbmlzdHJhdG9yIiAiSW5mcmFzdHJ1Y3R1cmUgZW5naW5lZXIgbWFuYWdpbmcgdGVzdCByZXBvcnRpbmciCgogICAgICAgICMgRXh0ZXJuYWwgU3lzdGVtcwogICAgICAgIHB5dGVzdCA9IHNvZnR3YXJlU3lzdGVtICJweXRlc3QiICJQeXRob24gdGVzdGluZyBmcmFtZXdvcmsgdGhhdCBleGVjdXRlcyB0ZXN0cyBhbmQgZ2VuZXJhdGVzIEpVbml0IFhNTCByZXBvcnRzIiAiRXh0ZXJuYWwgU3lzdGVtIgoKICAgICAgICBqdXhBcGlTZXJ2ZXIgPSBzb2Z0d2FyZVN5c3RlbSAiSnV4IEFQSSBTZXJ2ZXIiICJTZXJ2ZXItc2lkZSBiYWNrZW5kIGZvciByZWNlaXZpbmcsIHZlcmlmeWluZywgYW5kIHN0b3Jpbmcgc2lnbmVkIHRlc3QgcmVwb3J0cyIgIkV4dGVybmFsIFN5c3RlbSIKCiAgICAgICAgY2ljZFBpcGVsaW5lID0gc29mdHdhcmVTeXN0ZW0gIkNJL0NEIFBpcGVsaW5lIiAiQ29udGludW91cyBpbnRlZ3JhdGlvbiBzeXN0ZW0gKEdpdEh1YiBBY3Rpb25zLCBHaXRMYWIgQ0ksIEplbmtpbnMpIiAiRXh0ZXJuYWwgU3lzdGVtIgoKICAgICAgICAjIHB5dGVzdC1qdXggU3lzdGVtCiAgICAgICAgcHl0ZXN0SnV4ID0gc29mdHdhcmVTeXN0ZW0gInB5dGVzdC1qdXgiICJDbGllbnQtc2lkZSBweXRlc3QgcGx1Z2luIGZvciBzaWduaW5nIGFuZCBwdWJsaXNoaW5nIEpVbml0IFhNTCB0ZXN0IHJlcG9ydHMiIHsKCiAgICAgICAgICAgICMgQ29udGFpbmVycyAocnVudGltZSBjb21wb25lbnRzKQogICAgICAgICAgICBweXRlc3RQbHVnaW4gPSBjb250YWluZXIgInB5dGVzdCBQbHVnaW4iICJweXRlc3QgaG9vayBpbnRlZ3JhdGlvbiBmb3IgYXV0b21hdGVkIHJlcG9ydCBwcm9jZXNzaW5nIiAiUHl0aG9uIDMuMTErIiAiUGx1Z2luIiB7CiAgICAgICAgICAgICAgICAjIENvcmUgQ29tcG9uZW50cwogICAgICAgICAgICAgICAgcGx1Z2luSG9va3MgPSBjb21wb25lbnQgIlBsdWdpbiBIb29rcyIgInB5dGVzdCBob29rIGltcGxlbWVudGF0aW9ucyAocHl0ZXN0X3Nlc3Npb25maW5pc2gpIiAiUHl0aG9uIG1vZHVsZSAocGx1Z2luLnB5KSIKCiAgICAgICAgICAgICAgICAjIFhNTCBQcm9jZXNzaW5nCiAgICAgICAgICAgICAgICBzaWduZXIgPSBjb21wb25lbnQgIlhNTCBTaWduZXIiICJHZW5lcmF0ZXMgWE1MRFNpZyBzaWduYXR1cmVzIHVzaW5nIFJTQS9FQ0RTQSBrZXlzIiAiUHl0aG9uIG1vZHVsZSAoc2lnbmVyLnB5KSIKICAgICAgICAgICAgICAgIHZlcmlmaWVyID0gY29tcG9uZW50ICJTaWduYXR1cmUgVmVyaWZpZXIiICJWZXJpZmllcyBYTUxEU2lnIHNpZ25hdHVyZXMgb24gc2lnbmVkIHJlcG9ydHMiICJQeXRob24gbW9kdWxlICh2ZXJpZmllci5weSkiCiAgICAgICAgICAgICAgICBjYW5vbmljYWxpemVyID0gY29tcG9uZW50ICJYTUwgQ2Fub25pY2FsaXplciIgIkMxNE4gY2Fub25pY2FsaXphdGlvbiBhbmQgaGFzaCBjb21wdXRhdGlvbiIgIlB5dGhvbiBtb2R1bGUgKGNhbm9uaWNhbGl6ZXIucHkpIgoKICAgICAgICAgICAgICAgICMgQ29uZmlndXJhdGlvbiAmIE1ldGFkYXRhCiAgICAgICAgICAgICAgICBjb25maWdNYW5hZ2VyID0gY29tcG9uZW50ICJDb25maWd1cmF0aW9uIE1hbmFnZXIiICJNdWx0aS1zb3VyY2UgY29uZmlnIChDTEksIGVudiwgZmlsZXMpIHdpdGggcHJlY2VkZW5jZSIgIlB5dGhvbiBtb2R1bGUgKGNvbmZpZy5weSkiCiAgICAgICAgICAgICAgICBtZXRhZGF0YUNvbGxlY3RvciA9IGNvbXBvbmVudCAiTWV0YWRhdGEgQ29sbGVjdG9yIiAiQ2FwdHVyZXMgZW52aXJvbm1lbnQgbWV0YWRhdGEgYW5kIGluamVjdHMgaW50byBweXRlc3QtbWV0YWRhdGEgaG9vayIgIlB5dGhvbiBtb2R1bGUgKG1ldGFkYXRhLnB5KSIKCiAgICAgICAgICAgICAgICAjIFN0b3JhZ2UgJiBQdWJsaXNoaW5nCiAgICAgICAgICAgICAgICBzdG9yYWdlTWFuYWdlciA9IGNvbXBvbmVudCAiU3RvcmFnZSBNYW5hZ2VyIiAiWERHLWNvbXBsaWFudCBsb2NhbCBzdG9yYWdlIGFuZCBjYWNoaW5nICg0IG1vZGVzKSIgIlB5dGhvbiBtb2R1bGUgKHN0b3JhZ2UucHkpIgogICAgICAgICAgICAgICAgYXBpQ2xpZW50ID0gY29tcG9uZW50ICJBUEkgQ2xpZW50IiAiUkVTVCBBUEkgY2xpZW50IGZvciBKdXggQVBJIHYxLjAuMCB3aXRoIHJldHJ5IGxvZ2ljIiAiUHl0aG9uIG1vZHVsZSAoYXBpX2NsaWVudC5weSkiCgogICAgICAgICAgICAgICAgIyBSZWxhdGlvbnNoaXBzIHdpdGhpbiBwbHVnaW4KICAgICAgICAgICAgICAgIHBsdWdpbkhvb2tzIC0+IHNpZ25lciAiU2lnbnMgcmVwb3J0IHdpdGgiCiAgICAgICAgICAgICAgICBwbHVnaW5Ib29rcyAtPiBtZXRhZGF0YUNvbGxlY3RvciAiSW5qZWN0cyBtZXRhZGF0YSB2aWEgcHl0ZXN0X21ldGFkYXRhIGhvb2siCiAgICAgICAgICAgICAgICBwbHVnaW5Ib29rcyAtPiBzdG9yYWdlTWFuYWdlciAiU3RvcmVzIGxvY2FsbHkgdmlhIgogICAgICAgICAgICAgICAgcGx1Z2luSG9va3MgLT4gYXBpQ2xpZW50ICJQdWJsaXNoZXMgdmlhIgoKICAgICAgICAgICAgICAgIHNpZ25lciAtPiBjYW5vbmljYWxpemVyICJDYW5vbmljYWxpemVzIFhNTCB3aXRoIgogICAgICAgICAgICAgICAgdmVyaWZpZXIgLT4gY2Fub25pY2FsaXplciAiVmVyaWZpZXMgaGFzaCB3aXRoIgoKICAgICAgICAgICAgICAgIHBsdWdpbkhvb2tzIC0+IGNvbmZpZ01hbmFnZXIgIlJlYWRzIGNvbmZpZ3VyYXRpb24gZnJvbSIKICAgICAgICAgICAgICAgIHN0b3JhZ2VNYW5hZ2VyIC0+IGNvbmZpZ01hbmFnZXIgIlVzZXMgc3RvcmFnZSBjb25maWcgZnJvbSIKICAgICAgICAgICAgICAgIGFwaUNsaWVudCAtPiBjb25maWdNYW5hZ2VyICJVc2VzIEFQSSBjb25maWcgZnJvbSIKICAgICAgICAgICAgfQoKICAgICAgICAgICAgY2xpVG9vbHMgPSBjb250YWluZXIgIkNMSSBUb29scyIgIlN0YW5kYWxvbmUgY29tbWFuZC1saW5lIHV0aWxpdGllcyBmb3IgbWFudWFsIG9wZXJhdGlvbnMiICJQeXRob24gMy4xMSsiICJDTEkiIHsKICAgICAgICAgICAgICAgICMgQ0xJIENvbXBvbmVudHMKICAgICAgICAgICAgICAgIGtleWdlbkNtZCA9IGNvbXBvbmVudCAianV4LWtleWdlbiIgIkdlbmVyYXRlIFJTQS9FQ0RTQSBzaWduaW5nIGtleXMgd2l0aCBjZXJ0aWZpY2F0ZXMiICJQeXRob24gQ0xJIChjb21tYW5kcy9rZXlnZW4ucHkpIgogICAgICAgICAgICAgICAgc2lnbkNtZCA9IGNvbXBvbmVudCAianV4LXNpZ24iICJPZmZsaW5lIHNpZ25pbmcgb2YgSlVuaXQgWE1MIHJlcG9ydHMiICJQeXRob24gQ0xJIChjb21tYW5kcy9zaWduLnB5KSIKICAgICAgICAgICAgICAgIHZlcmlmeUNtZCA9IGNvbXBvbmVudCAianV4LXZlcmlmeSIgIlNpZ25hdHVyZSB2ZXJpZmljYXRpb24gZm9yIHNpZ25lZCByZXBvcnRzIiAiUHl0aG9uIENMSSAoY29tbWFuZHMvdmVyaWZ5LnB5KSIKICAgICAgICAgICAgICAgIGluc3BlY3RDbWQgPSBjb21wb25lbnQgImp1eC1pbnNwZWN0IiAiUmVwb3J0IGluc3BlY3Rpb24gKG1ldGFkYXRhLCBoYXNoLCBzaWduYXR1cmUpIiAiUHl0aG9uIENMSSAoY29tbWFuZHMvaW5zcGVjdC5weSkiCiAgICAgICAgICAgICAgICBjYWNoZUNtZCA9IGNvbXBvbmVudCAianV4LWNhY2hlIiAiQ2FjaGUgbWFuYWdlbWVudCAobGlzdCwgc2hvdywgc3RhdHMsIGNsZWFuKSIgIlB5dGhvbiBDTEkgKGNvbW1hbmRzL2NhY2hlLnB5KSIKICAgICAgICAgICAgICAgIGNvbmZpZ0NtZCA9IGNvbXBvbmVudCAianV4LWNvbmZpZyIgIkNvbmZpZ3VyYXRpb24gbWFuYWdlbWVudCAoaW5pdCwgZHVtcCwgdmFsaWRhdGUpIiAiUHl0aG9uIENMSSAoY29tbWFuZHMvY29uZmlnX2NtZC5weSkiCiAgICAgICAgICAgICAgICBwdWJsaXNoQ21kID0gY29tcG9uZW50ICJqdXgtcHVibGlzaCIgIk1hbnVhbCBwdWJsaXNoaW5nIHRvIEp1eCBBUEkgKHNpbmdsZSBmaWxlIG9yIHF1ZXVlKSIgIlB5dGhvbiBDTEkgKGNvbW1hbmRzL3B1Ymxpc2gucHkpIgoKICAgICAgICAgICAgICAgICMgQ0xJIHRvb2wgcmVsYXRpb25zaGlwcwogICAgICAgICAgICAgICAga2V5Z2VuQ21kIC0+IHNpZ25lciAiR2VuZXJhdGVzIGtleXMgZm9yIiAiVXNlcyBjcnlwdG9ncmFwaHkgbGlicmFyeSIKICAgICAgICAgICAgICAgIHNpZ25DbWQgLT4gc2lnbmVyICJTaWducyByZXBvcnRzIHdpdGgiCiAgICAgICAgICAgICAgICBzaWduQ21kIC0+IGNhbm9uaWNhbGl6ZXIgIkNhbm9uaWNhbGl6ZXMgd2l0aCIKICAgICAgICAgICAgICAgIHZlcmlmeUNtZCAtPiB2ZXJpZmllciAiVmVyaWZpZXMgc2lnbmF0dXJlcyB3aXRoIgogICAgICAgICAgICAgICAgaW5zcGVjdENtZCAtPiBjYW5vbmljYWxpemVyICJDb21wdXRlcyBoYXNoIHdpdGgiCiAgICAgICAgICAgICAgICBjYWNoZUNtZCAtPiBzdG9yYWdlTWFuYWdlciAiTWFuYWdlcyBjYWNoZSB2aWEiCiAgICAgICAgICAgICAgICBjb25maWdDbWQgLT4gY29uZmlnTWFuYWdlciAiTWFuYWdlcyBjb25maWcgdmlhIgogICAgICAgICAgICAgICAgcHVibGlzaENtZCAtPiBhcGlDbGllbnQgIlB1Ymxpc2hlcyByZXBvcnRzIHZpYSIKICAgICAgICAgICAgICAgIHB1Ymxpc2hDbWQgLT4gc3RvcmFnZU1hbmFnZXIgIlJlYWRzIHF1ZXVlIGZyb20iCiAgICAgICAgICAgIH0KCiAgICAgICAgICAgICMgQ29udGFpbmVyIHJlbGF0aW9uc2hpcHMKICAgICAgICAgICAgcHl0ZXN0UGx1Z2luIC0+IGNsaVRvb2xzICJVc2VzIHNoYXJlZCBjb21wb25lbnRzIiAiUHl0aG9uIGltcG9ydHMiCiAgICAgICAgfQoKICAgICAgICAjIFN5c3RlbS1sZXZlbCByZWxhdGlvbnNoaXBzCiAgICAgICAgZGV2ZWxvcGVyIC0+IHB5dGVzdCAiUnVucyB0ZXN0cyB3aXRoIiAicHl0ZXN0IENMSSIKICAgICAgICBweXRlc3QgLT4gcHl0ZXN0SnV4ICJJbnZva2VzIHBsdWdpbiBob29rcyIgInB5dGVzdF9zZXNzaW9uZmluaXNoIgogICAgICAgIHN5c2FkbWluIC0+IHB5dGVzdEp1eCAiQ29uZmlndXJlcyBhbmQgbWFuYWdlcyIgIkNMSSB0b29scyIKCiAgICAgICAgcHl0ZXN0SnV4IC0+IGp1eEFwaVNlcnZlciAiUHVibGlzaGVzIHNpZ25lZCByZXBvcnRzIHRvIiAiSFRUUFMvUkVTVCBBUEkgKFBPU1QgL2FwaS92MS9qdW5pdC9zdWJtaXQpIgoKICAgICAgICBjaWNkUGlwZWxpbmUgLT4gcHl0ZXN0ICJFeGVjdXRlcyB0ZXN0cyB3aXRoIiAicHl0ZXN0IC0tanVuaXQteG1sIC0tanV4LXB1Ymxpc2giCgogICAgICAgICMgQ29udGFpbmVyLWxldmVsIHJlbGF0aW9uc2hpcHMgKGZvciBkeW5hbWljIHZpZXdzKQogICAgICAgIGRldmVsb3BlciAtPiBweXRlc3RQbHVnaW4gIkV4ZWN1dGVzIHRlc3RzIHZpYSBweXRlc3QiICJweXRlc3QgaG9va3MiCiAgICAgICAgZGV2ZWxvcGVyIC0+IGNsaVRvb2xzICJVc2VzIG9mZmxpbmUgdG9vbHMiICJDTEkgY29tbWFuZHMiCiAgICAgICAgc3lzYWRtaW4gLT4gcHl0ZXN0UGx1Z2luICJDb25maWd1cmVzIHBsdWdpbiIgIkNvbmZpZ3VyYXRpb24gZmlsZXMiCiAgICAgICAgc3lzYWRtaW4gLT4gY2xpVG9vbHMgIk1hbmFnZXMga2V5cyBhbmQgcmVwb3J0cyIgIkNMSSBjb21tYW5kcyIKICAgICAgICBweXRlc3QgLT4gcHl0ZXN0UGx1Z2luICJJbnZva2VzIGhvb2tzIiAicHl0ZXN0X3Nlc3Npb25maW5pc2giCgogICAgICAgICMgRXh0ZXJuYWwgZGVwZW5kZW5jaWVzIChzaG93biBhcyByZWxhdGlvbnNoaXBzKQogICAgICAgIHNpZ25lciAtPiBqdXhBcGlTZXJ2ZXIgIlJlZmVyZW5jZXMgQVBJIGVuZHBvaW50IiAiQ29uZmlndXJhdGlvbiBvbmx5IgogICAgfQoKICAgIHZpZXdzIHsKICAgICAgICAjIFN5c3RlbSBDb250ZXh0IFZpZXcKICAgICAgICBzeXN0ZW1Db250ZXh0IHB5dGVzdEp1eCAiU3lzdGVtQ29udGV4dCIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICAgICAgYXV0b2xheW91dCBscgogICAgICAgICAgICBkZXNjcmlwdGlvbiAiU3lzdGVtIGNvbnRleHQgZGlhZ3JhbSBzaG93aW5nIHB5dGVzdC1qdXggaW4gdGhlIEp1eCBlY29zeXN0ZW0iCiAgICAgICAgfQoKICAgICAgICAjIENvbnRhaW5lciBWaWV3CiAgICAgICAgY29udGFpbmVyIHB5dGVzdEp1eCAiQ29udGFpbmVycyIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICAgICAgYXV0b2xheW91dCBscgogICAgICAgICAgICBkZXNjcmlwdGlvbiAiQ29udGFpbmVyIGRpYWdyYW0gc2hvd2luZyBweXRlc3QgcGx1Z2luIGFuZCBDTEkgdG9vbHMiCiAgICAgICAgfQoKICAgICAgICAjIENvbXBvbmVudCBWaWV3IC0gcHl0ZXN0IFBsdWdpbgogICAgICAgIGNvbXBvbmVudCBweXRlc3RQbHVnaW4gIlBsdWdpbkNvbXBvbmVudHMiIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgICAgIGF1dG9sYXlvdXQgbHIKICAgICAgICAgICAgZGVzY3JpcHRpb24gIkNvbXBvbmVudCBkaWFncmFtIHNob3dpbmcgcHl0ZXN0IHBsdWdpbiBpbnRlcm5hbCBzdHJ1Y3R1cmUiCiAgICAgICAgfQoKICAgICAgICAjIENvbXBvbmVudCBWaWV3IC0gQ0xJIFRvb2xzCiAgICAgICAgY29tcG9uZW50IGNsaVRvb2xzICJDTElDb21wb25lbnRzIiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgICAgICBhdXRvbGF5b3V0IHRiCiAgICAgICAgICAgIGRlc2NyaXB0aW9uICJDb21wb25lbnQgZGlhZ3JhbSBzaG93aW5nIHN0YW5kYWxvbmUgQ0xJIHV0aWxpdGllcyIKICAgICAgICB9CgogICAgICAgICMgRHluYW1pYyBWaWV3IC0gVGVzdCBFeGVjdXRpb24gRmxvdyAoU3lzdGVtIExldmVsKQogICAgICAgIGR5bmFtaWMgcHl0ZXN0SnV4ICJUZXN0RXhlY3V0aW9uRmxvdyIgIlRlc3QgZXhlY3V0aW9uIGFuZCByZXBvcnQgc2lnbmluZyB3b3JrZmxvdyIgewogICAgICAgICAgICBkZXZlbG9wZXIgLT4gcHl0ZXN0ICIxLiBSdW5zIHB5dGVzdCAtLWp1bml0LXhtbCAtLWp1eC1wdWJsaXNoIgogICAgICAgICAgICBweXRlc3QgLT4gcHl0ZXN0UGx1Z2luICIyLiBJbnZva2VzIHB5dGVzdF9zZXNzaW9uZmluaXNoIGhvb2siCiAgICAgICAgICAgIHB5dGVzdFBsdWdpbiAtPiBqdXhBcGlTZXJ2ZXIgIjMuIFNpZ25zIGFuZCBwdWJsaXNoZXMgcmVwb3J0IgogICAgICAgICAgICBhdXRvbGF5b3V0IGxyCiAgICAgICAgfQoKICAgICAgICAjIER5bmFtaWMgVmlldyAtIE9mZmxpbmUgU2lnbmluZyBGbG93IChDb250YWluZXIgTGV2ZWwpCiAgICAgICAgZHluYW1pYyBweXRlc3RKdXggIk9mZmxpbmVTaWduaW5nRmxvdyIgIk1hbnVhbCBvZmZsaW5lIHNpZ25pbmcgd29ya2Zsb3ciIHsKICAgICAgICAgICAgc3lzYWRtaW4gLT4gY2xpVG9vbHMgIjEuIEdlbmVyYXRlIGtleXMgKGp1eC1rZXlnZW4pIgogICAgICAgICAgICBzeXNhZG1pbiAtPiBjbGlUb29scyAiMi4gU2lnbiByZXBvcnQgKGp1eC1zaWduKSIKICAgICAgICAgICAgc3lzYWRtaW4gLT4gY2xpVG9vbHMgIjMuIFZlcmlmeSBzaWduYXR1cmUgKGp1eC12ZXJpZnkpIgogICAgICAgICAgICBhdXRvbGF5b3V0IGxyCiAgICAgICAgfQoKICAgICAgICAjIFN0eWxpbmcKICAgICAgICBzdHlsZXMgewogICAgICAgICAgICBlbGVtZW50ICJTb2Z0d2FyZSBTeXN0ZW0iIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzExNjhiZAogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICAgICAgc2hhcGUgUm91bmRlZEJveAogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkV4dGVybmFsIFN5c3RlbSIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjOTk5OTk5CiAgICAgICAgICAgICAgICBjb2xvciAjZmZmZmZmCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiUGVyc29uIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICMwODQyN2IKICAgICAgICAgICAgICAgIGNvbG9yICNmZmZmZmYKICAgICAgICAgICAgICAgIHNoYXBlIFBlcnNvbgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkNvbnRhaW5lciIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjNDM4ZGQ1CiAgICAgICAgICAgICAgICBjb2xvciAjZmZmZmZmCiAgICAgICAgICAgICAgICBzaGFwZSBSb3VuZGVkQm94CiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiUGx1Z2luIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICMyZTdkMzIKICAgICAgICAgICAgICAgIGNvbG9yICNmZmZmZmYKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJDTEkiIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgI2Y1N2MwMAogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkNvbXBvbmVudCIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjODViYmYwCiAgICAgICAgICAgICAgICBjb2xvciAjMDAwMDAwCiAgICAgICAgICAgICAgICBzaGFwZSBDb21wb25lbnQKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJGdXR1cmUiIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgI2NjY2NjYwogICAgICAgICAgICAgICAgY29sb3IgIzY2NjY2NgogICAgICAgICAgICAgICAgb3BhY2l0eSA1MAogICAgICAgICAgICB9CiAgICAgICAgfQoKICAgICAgICB0aGVtZSBkZWZhdWx0CiAgICB9CgogICAgY29uZmlndXJhdGlvbiB7CiAgICAgICAgc2NvcGUgc29mdHdhcmVzeXN0ZW0KICAgIH0KfQ=="
+  },
+  "views" : {
+    "componentViews" : [ {
+      "automaticLayout" : {
+        "applied" : true,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "containerId" : "7",
+      "description" : "Component diagram showing pytest plugin internal structure",
+      "dimensions" : {
+        "height" : 4549,
+        "width" : 2430
+      },
+      "elements" : [ {
+        "id" : "4",
+        "x" : 1739,
+        "y" : 3991
+      }, {
+        "id" : "8",
+        "x" : 239,
+        "y" : 2470
+      }, {
+        "id" : "9",
+        "x" : 989,
+        "y" : 2470
+      }, {
+        "id" : "10",
+        "x" : 989,
+        "y" : 670
+      }, {
+        "id" : "11",
+        "x" : 1739,
+        "y" : 670
+      }, {
+        "id" : "12",
+        "x" : 1739,
+        "y" : 1570
+      }, {
+        "id" : "13",
+        "x" : 989,
+        "y" : 3379
+      }, {
+        "id" : "14",
+        "x" : 989,
+        "y" : 1870
+      }, {
+        "id" : "15",
+        "x" : 989,
+        "y" : 1270
+      }, {
+        "id" : "25",
+        "x" : 239,
+        "y" : 162
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "PluginComponents",
+      "name" : "Component View: pytest-jux - pytest Plugin",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "16"
+      }, {
+        "id" : "17"
+      }, {
+        "id" : "18",
+        "vertices" : [ {
+          "x" : 689,
+          "y" : 2454
+        } ]
+      }, {
+        "id" : "19",
+        "vertices" : [ {
+          "x" : 689,
+          "y" : 2454
+        }, {
+          "x" : 989,
+          "y" : 1720
+        } ]
+      }, {
+        "id" : "20",
+        "vertices" : [ {
+          "x" : 1439,
+          "y" : 2320
+        }, {
+          "x" : 1739,
+          "y" : 1420
+        } ]
+      }, {
+        "id" : "21"
+      }, {
+        "id" : "22",
+        "vertices" : [ {
+          "x" : 989,
+          "y" : 2920
+        }, {
+          "x" : 1439,
+          "y" : 2920
+        } ]
+      }, {
+        "id" : "23"
+      }, {
+        "id" : "24"
+      }, {
+        "id" : "35",
+        "vertices" : [ {
+          "x" : 689,
+          "y" : 491
+        }, {
+          "x" : 989,
+          "y" : 2320
+        } ]
+      }, {
+        "id" : "40",
+        "vertices" : [ {
+          "x" : 989,
+          "y" : 287
+        }, {
+          "x" : 1439,
+          "y" : 287
+        } ]
+      }, {
+        "id" : "43"
+      }, {
+        "id" : "48",
+        "vertices" : [ {
+          "x" : 689,
+          "y" : 491
+        }, {
+          "x" : 989,
+          "y" : 1720
+        } ]
+      }, {
+        "id" : "51",
+        "vertices" : [ {
+          "x" : 1439,
+          "y" : 520
+        } ]
+      }, {
+        "id" : "54",
+        "vertices" : [ {
+          "x" : 689,
+          "y" : 491
+        }, {
+          "x" : 989,
+          "y" : 1120
+        } ]
+      }, {
+        "id" : "68",
+        "vertices" : [ {
+          "x" : 1739,
+          "y" : 3858
+        } ]
+      } ]
+    }, {
+      "automaticLayout" : {
+        "applied" : true,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "TopBottom",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "containerId" : "25",
+      "description" : "Component diagram showing standalone CLI utilities",
+      "dimensions" : {
+        "height" : 1439,
+        "width" : 5430
+      },
+      "elements" : [ {
+        "id" : "7",
+        "x" : 2489,
+        "y" : 782
+      }, {
+        "id" : "26",
+        "x" : 4739,
+        "y" : 182
+      }, {
+        "id" : "27",
+        "x" : 3989,
+        "y" : 182
+      }, {
+        "id" : "28",
+        "x" : 3239,
+        "y" : 182
+      }, {
+        "id" : "29",
+        "x" : 2489,
+        "y" : 182
+      }, {
+        "id" : "30",
+        "x" : 1739,
+        "y" : 182
+      }, {
+        "id" : "31",
+        "x" : 989,
+        "y" : 182
+      }, {
+        "id" : "32",
+        "x" : 239,
+        "y" : 182
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "CLIComponents",
+      "name" : "Component View: pytest-jux - CLI Tools",
+      "order" : 4,
+      "relationships" : [ {
+        "id" : "34",
+        "vertices" : [ {
+          "x" : 4589,
+          "y" : 586
+        } ]
+      }, {
+        "id" : "38",
+        "vertices" : [ {
+          "x" : 3839,
+          "y" : 586
+        } ]
+      }, {
+        "id" : "42"
+      }, {
+        "id" : "45"
+      }, {
+        "id" : "47"
+      }, {
+        "id" : "50",
+        "vertices" : [ {
+          "x" : 1589,
+          "y" : 586
+        } ]
+      }, {
+        "id" : "53",
+        "vertices" : [ {
+          "x" : 839,
+          "y" : 586
+        } ]
+      } ]
+    } ],
+    "configuration" : {
+      "branding" : { },
+      "lastSavedView" : "TestExecutionFlow",
+      "metadataSymbols" : "SquareBrackets",
+      "styles" : {
+        "elements" : [ {
+          "background" : "#f57c00",
+          "color" : "#ffffff",
+          "tag" : "CLI"
+        }, {
+          "background" : "#85bbf0",
+          "color" : "#000000",
+          "shape" : "Component",
+          "tag" : "Component"
+        }, {
+          "background" : "#438dd5",
+          "color" : "#ffffff",
+          "shape" : "RoundedBox",
+          "tag" : "Container"
+        }, {
+          "background" : "#999999",
+          "color" : "#ffffff",
+          "tag" : "External System"
+        }, {
+          "background" : "#cccccc",
+          "color" : "#666666",
+          "opacity" : 50,
+          "tag" : "Future"
+        }, {
+          "background" : "#08427b",
+          "color" : "#ffffff",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "background" : "#2e7d32",
+          "color" : "#ffffff",
+          "tag" : "Plugin"
+        }, {
+          "background" : "#1168bd",
+          "color" : "#ffffff",
+          "shape" : "RoundedBox",
+          "tag" : "Software System"
+        } ]
+      },
+      "terminology" : { },
+      "themes" : [ "https://static.structurizr.com/themes/default/theme.json" ]
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "applied" : true,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "description" : "Container diagram showing pytest plugin and CLI tools",
+      "dimensions" : {
+        "height" : 2309,
+        "width" : 3050
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 200,
+        "y" : 696
+      }, {
+        "id" : "2",
+        "x" : 200,
+        "y" : 1651
+      }, {
+        "id" : "3",
+        "x" : 900,
+        "y" : 142
+      }, {
+        "id" : "4",
+        "x" : 2400,
+        "y" : 1351
+      }, {
+        "id" : "7",
+        "x" : 1650,
+        "y" : 1351
+      }, {
+        "id" : "25",
+        "x" : 900,
+        "y" : 1351
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "Containers",
+      "name" : "Container View: pytest-jux",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "36",
+        "vertices" : [ {
+          "x" : 1500,
+          "y" : 1651
+        } ]
+      }, {
+        "id" : "56",
+        "vertices" : [ {
+          "x" : 1500,
+          "y" : 1351
+        } ]
+      }, {
+        "id" : "57"
+      }, {
+        "id" : "62",
+        "vertices" : [ {
+          "x" : 1350,
+          "y" : 1201
+        } ]
+      }, {
+        "id" : "64"
+      }, {
+        "id" : "65",
+        "vertices" : [ {
+          "x" : 1350,
+          "y" : 1801
+        } ]
+      }, {
+        "id" : "66"
+      }, {
+        "id" : "67"
+      }, {
+        "id" : "69"
+      } ],
+      "softwareSystemId" : "6"
+    } ],
+    "dynamicViews" : [ {
+      "automaticLayout" : {
+        "applied" : true,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "description" : "Test execution and report signing workflow",
+      "dimensions" : {
+        "height" : 849,
+        "width" : 3050
+      },
+      "elementId" : "6",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 199,
+        "y" : 142
+      }, {
+        "id" : "3",
+        "x" : 899,
+        "y" : 192
+      }, {
+        "id" : "4",
+        "x" : 2399,
+        "y" : 192
+      }, {
+        "id" : "7",
+        "x" : 1649,
+        "y" : 192
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "TestExecutionFlow",
+      "name" : "Dynamic View: pytest-jux",
+      "order" : 5,
+      "relationships" : [ {
+        "description" : "1. Runs pytest --junit-xml --jux-publish",
+        "id" : "57",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "2. Invokes pytest_sessionfinish hook",
+        "id" : "67",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "3. Signs and publishes report",
+        "id" : "69",
+        "order" : "3",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "applied" : true,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "description" : "Manual offline signing workflow",
+      "dimensions" : {
+        "height" : 849,
+        "width" : 1570
+      },
+      "elementId" : "6",
+      "elements" : [ {
+        "id" : "2",
+        "x" : 199,
+        "y" : 143
+      }, {
+        "id" : "25",
+        "x" : 899,
+        "y" : 193
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "OfflineSigningFlow",
+      "name" : "Dynamic View: pytest-jux",
+      "order" : 6,
+      "relationships" : [ {
+        "description" : "1. Generate keys (jux-keygen)",
+        "id" : "66",
+        "order" : "1",
+        "response" : false,
+        "vertices" : [ {
+          "x" : 761,
+          "y" : 343
+        } ]
+      }, {
+        "description" : "2. Sign report (jux-sign)",
+        "id" : "66",
+        "order" : "2",
+        "response" : false,
+        "vertices" : [ {
+          "x" : 761,
+          "y" : 193
+        } ]
+      }, {
+        "description" : "3. Verify signature (jux-verify)",
+        "id" : "66",
+        "order" : "3",
+        "response" : false,
+        "vertices" : [ {
+          "x" : 761,
+          "y" : 493
+        } ]
+      } ]
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "applied" : true,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "description" : "System context diagram showing pytest-jux in the Jux ecosystem",
+      "dimensions" : {
+        "height" : 2009,
+        "width" : 3050
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 200,
+        "y" : 397
+      }, {
+        "id" : "2",
+        "x" : 925,
+        "y" : 1352
+      }, {
+        "id" : "3",
+        "x" : 900,
+        "y" : 143
+      }, {
+        "id" : "4",
+        "x" : 2400,
+        "y" : 747
+      }, {
+        "id" : "6",
+        "x" : 1650,
+        "y" : 747
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "SystemContext",
+      "name" : "System Context View: pytest-jux",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "57"
+      }, {
+        "id" : "58"
+      }, {
+        "id" : "59"
+      }, {
+        "id" : "60"
+      }, {
+        "id" : "63"
+      } ],
+      "softwareSystemId" : "6"
+    } ]
+  }
+}

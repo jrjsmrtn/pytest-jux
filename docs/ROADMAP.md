@@ -1,21 +1,21 @@
 # pytest-jux Roadmap
 
-**Last Updated**: 2025-10-20
-**Current Version**: 0.1.8
-**Current Phase**: Sprint 3 Complete, Sprint 4 Planned (awaiting Jux API Server)
+**Last Updated**: 2026-01-08
+**Current Version**: 0.4.0
+**Current Phase**: Sprint 4 Complete (REST API Client & Plugin Integration)
 
 ---
 
 ## Roadmap Overview
 
-This document outlines the development roadmap from the current state (v0.1.4) to production-ready 1.0.0 release and beyond.
+This document outlines the development roadmap from the current state (v0.4.0) to production-ready 1.0.0 release and beyond.
 
 ### Milestone Summary
 
 | Milestone | Version | Status | Target Features |
 |-----------|---------|--------|-----------------|
 | **Foundation** | 0.1.x | ✅ Complete | Core signing, CLI tools, configuration, storage |
-| **Beta** | 0.2.0 | 📋 Planned (Sprint 4) | REST API client, plugin integration, testing |
+| **Beta** | 0.4.0 | ✅ Complete (Sprint 4) | REST API client, plugin integration, jux-publish |
 | **Release Candidate** | 0.9.x | 📅 Future | Production hardening, documentation complete |
 | **Production** | 1.0.0 | 📅 Future | Stable API, production-ready, full documentation |
 | **Enhancements** | 1.x.x | 📅 Future | HSM support, advanced features |
@@ -23,7 +23,7 @@ This document outlines the development roadmap from the current state (v0.1.4) t
 
 ---
 
-## Current Status (v0.1.8)
+## Current Status (v0.4.0)
 
 ### Completed Features ✅
 
@@ -54,47 +54,51 @@ This document outlines the development roadmap from the current state (v0.1.4) t
 - `jux-config`: Configuration management CLI
 - Multi-environment configuration guide
 
-**Recent Improvements** (v0.1.5-0.1.8):
-- pytest-metadata integration for custom metadata in reports
-- Test coverage improvements: 91.92% (346 tests)
-- CI/CD workflow fixes (GitHub Actions, security scanning)
-- REUSE/SPDX license identifiers (ADR-0009) - machine-readable licensing
-- Database dependencies removed (ADR-0010) - clarifies client-side architecture
-- C4 DSL architecture model created
-- Metadata preservation during XMLDSig signing
+**Sprint 4**: REST API Client & Plugin Integration (v0.4.0)
+- `JuxAPIClient` for Jux API v1.0.0 (`/api/v1/junit/submit`)
+- Automatic report publishing in `pytest_sessionfinish` hook
+- `jux-publish`: Manual publishing CLI command
+- Bearer token authentication support
+- Retry logic with exponential backoff
+- All storage modes integrated (LOCAL, API, BOTH, CACHE)
 
-**Test Coverage**: 346 tests, 91.92% coverage
-**Quality**: Clean codebase (0 critical mypy/ruff errors)
+**Previous Releases** (v0.2.0-v0.3.0):
+- v0.2.0: Documentation & User Experience (Sprint 5)
+- v0.2.1: OpenSSF Best Practices Badge (Sprint 6)
+- v0.3.0: Metadata Integration with pytest-metadata (Sprint 7)
+
+**Test Coverage**: 420 tests, 86.68% coverage
+**Quality**: Clean codebase (0 mypy/ruff errors)
 
 ---
 
-## Sprint 4: REST API Client & Plugin Integration (v0.2.0 Beta)
+## Sprint 4: REST API Client & Plugin Integration (v0.4.0) ✅
 
-**Status**: 📋 Planned
-**Duration**: 12-16 days
-**Target**: First feature-complete beta release
+**Status**: ✅ Complete (2026-01-08)
+**Duration**: 2026-01-06 to 2026-01-08
+**Result**: Feature-complete beta release
 
-### Goals
+### Completed Goals
 
-**Primary Features**:
-- REST API client with retry logic
-- Plugin integration (automatic storage/publishing)
+**Primary Features** ✅:
+- REST API client with retry logic (`JuxAPIClient`)
+- Plugin integration (automatic storage/publishing in `pytest_sessionfinish`)
 - Manual publishing command (`jux-publish`)
-- Integration testing
+- Integration testing with Jux API v1.0.0
 
-**Technical Debt Resolution**:
-- Fix mypy type checking errors (26 → 0)
-- Improve storage coverage (80.33% → >85%)
-- Fix ruff linting warnings (5 → 0)
+**Technical Debt Resolution** ✅:
+- Fixed 12 mypy type checking errors
+- Fixed 13 ruff linting warnings
+- Coverage: 86.68% (above 85% target)
 
-**Documentation**:
-- API client usage documentation
-- Plugin integration examples
-- Complete workflow documentation
+**Documentation** ✅:
+- API client usage in CLI reference
+- Plugin integration in configuration guide
+- Sprint 4 completion documentation
 
-**Deliverables**:
-- v0.2.0 beta release
-- 300+ tests, >85% coverage
+**Deliverables** ✅:
+- v0.4.0 release
+- 420 tests, 86.68% coverage
 - Clean codebase (0 mypy/ruff errors)
 
 See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
@@ -616,7 +620,7 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 ### Success Metrics
 
 **Adoption**:
-- 100+ PyPI downloads/month (v0.2.0)
+- 100+ PyPI downloads/month (v0.4.0)
 - 500+ PyPI downloads/month (v1.0.0)
 - 10+ production users (v1.0.0)
 - 5+ contributors (v1.0.0)
@@ -636,18 +640,18 @@ See: [Sprint 4 Plan](sprints/sprint-04-api-integration.md)
 
 ## Conclusion
 
-This roadmap outlines a path from the current v0.1.4 to a production-ready v1.0.0 release and beyond. The focus is on:
+This roadmap outlines a path from the current v0.4.0 to a production-ready v1.0.0 release and beyond. The focus is on:
 
 1. **Foundation** (v0.1.x - ✅ Complete): Core functionality
-2. **Beta** (v0.2.0 - Sprint 4): Feature-complete
-3. **Maturity** (v0.3-0.9): Production readiness
+2. **Beta** (v0.4.0 - Sprint 4 - ✅ Complete): Feature-complete
+3. **Maturity** (v0.5-0.9): Production readiness
 4. **Stability** (v1.0.0): Production release
 5. **Enhancement** (v1.x.x): Advanced features
 6. **Evolution** (v2.0.0+): Breaking improvements
 
-**Estimated Timeline to 1.0.0**: 6-12 months (depending on resource availability and Jux API Server readiness)
+**Estimated Timeline to 1.0.0**: 6-12 months (depending on resource availability)
 
-**Next Immediate Step**: Complete Sprint 4 (REST API Client & Plugin Integration)
+**Next Immediate Step**: Production hardening and performance testing (Sprint 8+)
 
 ---
 

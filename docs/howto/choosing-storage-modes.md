@@ -192,7 +192,7 @@ enabled = true
 sign = true
 key_path = ~/.jux/signing_key.pem
 storage_mode = api
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 api_key = your-api-key-here
 ```
 
@@ -202,7 +202,7 @@ export JUX_ENABLED=true
 export JUX_SIGN=true
 export JUX_KEY_PATH=~/.jux/signing_key.pem
 export JUX_STORAGE_MODE=api
-export JUX_API_URL=https://jux.example.com/api/v1/reports
+export JUX_API_URL=https://jux.example.com/api/v1
 export JUX_API_KEY=your-api-key-here  # Never commit this!
 ```
 
@@ -239,7 +239,7 @@ pytest --junit-xml=report.xml
 **API unreachable:**
 ```
 ERROR: Failed to publish report to API
-  URL: https://jux.example.com/api/v1/reports
+  URL: https://jux.example.com/api/v1
   Error: Connection timeout
 ```
 
@@ -288,7 +288,7 @@ sign = true
 key_path = ~/.jux/signing_key.pem
 storage_mode = both
 storage_path = ~/.local/share/jux/reports
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 api_key = your-api-key-here
 ```
 
@@ -376,7 +376,7 @@ sign = true
 key_path = ~/.jux/signing_key.pem
 storage_mode = cache
 storage_path = ~/.local/share/jux/reports
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 api_key = your-api-key-here
 ```
 
@@ -494,7 +494,7 @@ jux-config init --template full
 # Edit config: storage_mode = api
 
 # 2. Test API connectivity
-curl -X POST https://jux.example.com/api/v1/reports \
+curl -X POST https://jux.example.com/api/v1 \
   -H "Authorization: Bearer $JUX_API_KEY" \
   -H "Content-Type: application/xml" \
   -d @test-report.xml
@@ -539,14 +539,14 @@ storage_mode = local
 # /etc/jux/config (staging servers)
 [jux]
 storage_mode = cache
-api_url = https://jux-staging.example.com/api/v1/reports
+api_url = https://jux-staging.example.com/api/v1
 ```
 
 **Production:**
 ```bash
 # Environment variables (CI/CD)
 export JUX_STORAGE_MODE=api
-export JUX_API_URL=https://jux.example.com/api/v1/reports
+export JUX_API_URL=https://jux.example.com/api/v1
 export JUX_API_KEY=$PRODUCTION_API_KEY
 ```
 
@@ -560,7 +560,7 @@ export JUX_API_KEY=$PRODUCTION_API_KEY
 ```ini
 [jux]
 storage_mode = api
-api_url = https://jux.example.com/api/v1/reports  # Add this
+api_url = https://jux.example.com/api/v1  # Add this
 api_key = your-api-key-here
 ```
 
@@ -578,7 +578,7 @@ jux-cache stats
 
 1. **Check API connectivity:**
 ```bash
-curl -I https://jux.example.com/api/v1/reports
+curl -I https://jux.example.com/api/v1
 ```
 
 2. **Check API credentials:**
@@ -639,7 +639,7 @@ env:
 # Good: .jux.conf (committed to git)
 [jux]
 storage_mode = api
-api_url = https://jux.example.com/api/v1/reports
+api_url = https://jux.example.com/api/v1
 # api_key not in file - use JUX_API_KEY env var
 
 # Bad: api_key in file (security risk)

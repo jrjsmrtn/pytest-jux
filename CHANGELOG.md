@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-01-08
+
+### Added
+- **C4 Architecture Model Enhancements**:
+  - Added `pytest` as external system (was missing from model)
+  - Updated relationships: Developer → pytest → pytest-jux → Jux API
+  - Updated TestExecutionFlow dynamic view with pytest hook invocation
+  - Static HTML export (`docs/architecture/static/`) for offline viewing
+  - JSON export (`docs/architecture/workspace.json`) for tooling integration
+
+### Changed
+- Updated all documentation version references from v0.2.0/v0.3.0 to v0.4.0
+- Updated documentation dates to 2026-01-08
+- Added `jux-publish` command examples to README CLI section
+- Updated project structure in README with Sprint 4 files
+- Marked Sprint 4 as complete in ROADMAP.md
+
+### Documentation
+- Updated `docs/index.md` version to v0.4.0
+- Updated `docs/NAVIGATION.md` version to v0.4.0
+- Updated `docs/ROADMAP.md` with Sprint 4 completion status
+- Updated `docs/sprints/sprint-04-api-integration.md` deliverables to v0.4.0
+
 ## [0.4.0] - 2026-01-08
 
 ### Added
@@ -568,7 +591,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.2.0...v0.2.1

@@ -6,6 +6,8 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
         sysadmin = person "System Administrator" "Infrastructure engineer managing test reporting"
 
         # External Systems
+        pytest = softwareSystem "pytest" "Python testing framework that executes tests and generates JUnit XML reports" "External System"
+
         juxApiServer = softwareSystem "Jux API Server" "Server-side backend for receiving, verifying, and storing signed test reports" "External System"
 
         cicdPipeline = softwareSystem "CI/CD Pipeline" "Continuous integration system (GitHub Actions, GitLab CI, Jenkins)" "External System"
@@ -29,7 +31,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
 
                 # Storage & Publishing
                 storageManager = component "Storage Manager" "XDG-compliant local storage and caching (4 modes)" "Python module (storage.py)"
-                apiClient = component "API Client" "REST API client for publishing to Jux API Server" "Python module (api_client.py)" "Future"
+                apiClient = component "API Client" "REST API client for Jux API v1.0.0 with retry logic" "Python module (api_client.py)"
 
                 # Relationships within plugin
                 pluginHooks -> signer "Signs report with"
@@ -53,6 +55,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
                 inspectCmd = component "jux-inspect" "Report inspection (metadata, hash, signature)" "Python CLI (commands/inspect.py)"
                 cacheCmd = component "jux-cache" "Cache management (list, show, stats, clean)" "Python CLI (commands/cache.py)"
                 configCmd = component "jux-config" "Configuration management (init, dump, validate)" "Python CLI (commands/config_cmd.py)"
+                publishCmd = component "jux-publish" "Manual publishing to Jux API (single file or queue)" "Python CLI (commands/publish.py)"
 
                 # CLI tool relationships
                 keygenCmd -> signer "Generates keys for" "Uses cryptography library"
@@ -62,6 +65,8 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
                 inspectCmd -> canonicalizer "Computes hash with"
                 cacheCmd -> storageManager "Manages cache via"
                 configCmd -> configManager "Manages config via"
+                publishCmd -> apiClient "Publishes reports via"
+                publishCmd -> storageManager "Reads queue from"
             }
 
             # Container relationships
@@ -69,18 +74,20 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
         }
 
         # System-level relationships
-        developer -> pytestJux "Runs tests with" "pytest CLI"
+        developer -> pytest "Runs tests with" "pytest CLI"
+        pytest -> pytestJux "Invokes plugin hooks" "pytest_sessionfinish"
         sysadmin -> pytestJux "Configures and manages" "CLI tools"
 
-        pytestJux -> juxApiServer "Publishes signed reports to" "HTTPS/REST API (POST /api/v1/reports)"
+        pytestJux -> juxApiServer "Publishes signed reports to" "HTTPS/REST API (POST /api/v1/junit/submit)"
 
-        cicdPipeline -> pytestJux "Executes tests with" "pytest --junit-xml --jux-publish"
+        cicdPipeline -> pytest "Executes tests with" "pytest --junit-xml --jux-publish"
 
         # Container-level relationships (for dynamic views)
-        developer -> pytestPlugin "Executes tests" "pytest CLI"
+        developer -> pytestPlugin "Executes tests via pytest" "pytest hooks"
         developer -> cliTools "Uses offline tools" "CLI commands"
         sysadmin -> pytestPlugin "Configures plugin" "Configuration files"
         sysadmin -> cliTools "Manages keys and reports" "CLI commands"
+        pytest -> pytestPlugin "Invokes hooks" "pytest_sessionfinish"
 
         # External dependencies (shown as relationships)
         signer -> juxApiServer "References API endpoint" "Configuration only"
@@ -115,10 +122,11 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
             description "Component diagram showing standalone CLI utilities"
         }
 
-        # Dynamic View - Test Execution Flow (Container Level)
+        # Dynamic View - Test Execution Flow (System Level)
         dynamic pytestJux "TestExecutionFlow" "Test execution and report signing workflow" {
-            developer -> pytestPlugin "1. Runs pytest --junit-xml --jux-publish"
-            pytestPlugin -> juxApiServer "2. Publishes signed report"
+            developer -> pytest "1. Runs pytest --junit-xml --jux-publish"
+            pytest -> pytestPlugin "2. Invokes pytest_sessionfinish hook"
+            pytestPlugin -> juxApiServer "3. Signs and publishes report"
             autolayout lr
         }
 
