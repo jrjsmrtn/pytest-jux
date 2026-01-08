@@ -753,14 +753,15 @@ Each sprint should have:
 - Bearer token authentication support
 - Retry logic with exponential backoff
 
-**Version**: 0.4.0 (released 2026-01-08)
+**Version**: 0.4.1 (released 2026-01-08)
 **Previous Releases**:
+- v0.4.0 (released 2026-01-08) - REST API Client & Plugin Integration
 - v0.3.0 (released 2025-10-24) - Metadata Integration
 - v0.2.1 (released 2025-10-21) - OpenSSF Best Practices Badge
 - v0.2.0 (released 2025-10-20) - Documentation & User Experience
-**Current Branch**: feature/sprint-04-api-integration
+**Current Branch**: develop
 **Test Coverage**: 86.68% (420 tests passing, 9 skipped, 16 xfailed)
-**Release Notes**: [CHANGELOG.md](CHANGELOG.md#040---2026-01-08)
+**Release Notes**: [CHANGELOG.md](CHANGELOG.md#041---2026-01-08)
 
 ---
 

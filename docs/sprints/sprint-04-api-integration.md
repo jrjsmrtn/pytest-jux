@@ -673,11 +673,11 @@ Complete (don't block pytest)
 
 **Day 2**: Documentation & Release Prep
 - [ ] Update: README.md with complete workflow examples
-- [ ] Update: CHANGELOG.md for 0.2.0 release
+- [x] Update: CHANGELOG.md for 0.4.0 release
 - [ ] Create: Sprint 4 retrospective
-- [ ] Verify: all quality checks pass (mypy, ruff, pytest, coverage)
+- [x] Verify: all quality checks pass (mypy, ruff, pytest, coverage)
 
-**Deliverable**: v0.2.0 release candidate
+**Deliverable**: v0.4.0 release (completed 2026-01-08)
 
 ---
 
@@ -961,16 +961,16 @@ Bearer token is optional (Jux API v1.0.0 allows unauthenticated localhost access
 - [ ] ruff warnings resolved (0 warnings)
 
 **Documentation**:
-- [ ] API client documented (docstrings, examples)
-- [ ] Plugin integration documented (README.md)
-- [ ] Publishing command documented (CLI help, examples)
-- [ ] CHANGELOG.md updated for 0.2.0
+- [x] API client documented (docstrings, examples)
+- [x] Plugin integration documented (README.md)
+- [x] Publishing command documented (CLI help, examples)
+- [x] CHANGELOG.md updated for 0.4.0
 - [ ] Sprint 4 retrospective completed
 
 **Release**:
-- [ ] Version bumped to 0.2.0
-- [ ] Git tag: v0.2.0
-- [ ] Release notes prepared
+- [x] Version bumped to 0.4.0
+- [x] Git tag: v0.4.0
+- [x] Release notes prepared
 
 ---
 
@@ -1082,13 +1082,13 @@ At completion, address:
 - Document API contract assumptions
 - Plan integration testing for future sprint
 
-### Beta Release (0.2.0)
+### Beta Release (0.4.0) ✅
 
-**Significance**: First feature-complete version
+**Significance**: First feature-complete version (Released 2026-01-08)
 - All core workflows implemented (sign → store → publish)
 - Production-ready for early adopters
 - Comprehensive documentation
-- High test coverage (>85%)
+- High test coverage (86.68%)
 - Clean codebase (0 mypy/ruff errors)
 
 **Post-Beta**:

@@ -322,8 +322,8 @@ grep -r "class ClassName" pytest_jux/
 
 ## Documentation Updates
 
-**Documentation Version**: v0.2.0 (Sprint 5)
-**Last Updated**: 2025-10-20
+**Documentation Version**: v0.4.1 (Sprint 4 Complete)
+**Last Updated**: 2026-01-08
 
 **Recent Additions**:
 - ✅ Complete API reference (7 modules, auto-generated + enhanced)

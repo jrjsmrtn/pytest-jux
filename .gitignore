@@ -84,3 +84,4 @@ docs/_build/
 # Dogfooding artifacts
 .jux-dogfood/
 junit*.xml
+docs/architecture/.structurizr/

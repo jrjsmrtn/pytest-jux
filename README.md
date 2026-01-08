@@ -71,13 +71,13 @@ All pytest-jux releases include cryptographic provenance attestations:
 go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
 
 # Download and verify
-pip download pytest-jux==0.2.0 --no-deps
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.2.0/pytest-jux-0.2.0.intoto.jsonl
+pip download pytest-jux==0.4.1 --no-deps
+curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.4.1/pytest-jux-0.4.1.intoto.jsonl
 
 slsa-verifier verify-artifact \
-  --provenance-path pytest-jux-0.2.0.intoto.jsonl \
+  --provenance-path pytest-jux-0.4.1.intoto.jsonl \
   --source-uri github.com/jrjsmrtn/pytest-jux \
-  pytest_jux-0.2.0-py3-none-any.whl
+  pytest_jux-0.4.1-py3-none-any.whl
 ```
 
 See [SLSA Verification Guide](docs/security/SLSA_VERIFICATION.md) for complete instructions.
@@ -459,6 +459,21 @@ jux-config init
 jux-config validate
 ```
 
+**Manual publishing**:
+```bash
+# Publish single report to Jux API
+jux-publish --file report.xml --api-url https://jux.example.com/api/v1
+
+# Publish all queued reports
+jux-publish --queue --api-url https://jux.example.com/api/v1
+
+# Dry-run mode (preview without publishing)
+jux-publish --queue --api-url https://jux.example.com/api/v1 --dry-run
+
+# JSON output for scripting
+jux-publish --queue --api-url https://jux.example.com/api/v1 --json
+```
+
 See CLI tool documentation for complete usage details.
 
 ## Documentation
@@ -637,7 +652,7 @@ pytest-jux/
 │   ├── config.py           # Configuration management (Sprint 3)
 │   ├── metadata.py         # Environment metadata (Sprint 3)
 │   ├── storage.py          # Local storage & caching (Sprint 3)
-│   ├── api_client.py       # REST API client (Sprint 3 - postponed)
+│   ├── api_client.py       # REST API client (Sprint 4)
 │   └── commands/           # CLI commands
 │       ├── keygen.py       # Key generation
 │       ├── sign.py         # Offline signing
@@ -645,7 +660,7 @@ pytest-jux/
 │       ├── inspect.py      # Report inspection
 │       ├── cache.py        # Cache management (Sprint 3)
 │       ├── config_cmd.py   # Config management (Sprint 3)
-│       └── publish.py      # Manual publishing (Sprint 3 - postponed)
+│       └── publish.py      # Manual publishing (Sprint 4)
 ├── tests/                   # Test suite
 │   ├── test_plugin.py
 │   ├── test_signer.py
@@ -654,9 +669,11 @@ pytest-jux/
 │   ├── test_config.py      # Config tests (Sprint 3)
 │   ├── test_metadata.py    # Metadata tests (Sprint 3)
 │   ├── test_storage.py     # Storage tests (Sprint 3)
+│   ├── test_api_client.py  # API client tests (Sprint 4)
 │   ├── commands/           # CLI command tests
 │   │   ├── test_cache.py   # Cache command tests (Sprint 3)
-│   │   └── test_config_cmd.py  # Config command tests (Sprint 3)
+│   │   ├── test_config_cmd.py  # Config command tests (Sprint 3)
+│   │   └── test_publish.py # Publish command tests (Sprint 4)
 │   ├── security/           # Security tests
 │   └── fixtures/           # JUnit XML fixtures & test keys
 ├── docs/                    # Documentation
@@ -809,7 +826,7 @@ For more information about the Jux API Server, refer to its separate repository 
 
 ## Releases
 
-**Latest Release**: [v0.3.0 - Metadata Integration](https://github.com/jrjsmrtn/pytest-jux/releases/tag/v0.3.0) (2025-10-24)
+**Latest Release**: [v0.4.1 - Documentation & C4 Model Updates](https://github.com/jrjsmrtn/pytest-jux/releases/tag/v0.4.1) (2026-01-08)
 
 **Release Notes**: See [docs/release-notes/](docs/release-notes/) for detailed release notes for all versions.
 

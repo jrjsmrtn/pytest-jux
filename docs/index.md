@@ -265,9 +265,9 @@ grep -rn "search term" docs/
 
 ## 📅 Documentation Updates
 
-**Last Updated**: 2025-10-20
-**Version**: v0.2.0
-**Sprint**: Sprint 5 (Documentation & User Experience)
+**Last Updated**: 2026-01-08
+**Version**: v0.4.1
+**Sprint**: Sprint 4 Complete (REST API Client & Plugin Integration)
 
 **Recent Additions** (Sprint 5):
 - ✅ All 7 API modules documented (auto-generated + enhanced)
