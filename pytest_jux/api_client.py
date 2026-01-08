@@ -41,7 +41,7 @@ class TestRun(BaseModel):
     status: str
     time: float | None = None
     errors: int
-    branch: str
+    branch: str | None = None
     project: str
     failures: int
     skipped: int
