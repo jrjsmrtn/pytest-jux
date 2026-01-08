@@ -1,12 +1,12 @@
 # Sprint 4: REST API Client & Plugin Integration
 
-**Sprint Duration**: TBD (pending Jux API Server availability)
+**Sprint Duration**: 2025-01-06 to 2025-01-08
 **Sprint Goal**: Implement REST API client, resolve technical debt, and integrate storage with pytest plugin
-**Status**: 🚧 In Progress (API Client Complete, Plugin Integration Complete)
-**Target Release**: v0.4.0 (Beta Milestone - was v0.2.0)
+**Status**: ✅ Complete (v0.4.0 Release)
+**Target Release**: v0.4.0 (Beta Milestone)
 **API Compliance**: Jux API v1.0.0 (released 2025-01-24)
 
-## Implementation Progress (2025-10-25)
+## Implementation Progress (2026-01-08)
 
 **✅ Completed**:
 - **US-4.1**: REST API Client (100% complete)
@@ -24,6 +24,22 @@
   - Error handling and warning messages per mode
   - 6 comprehensive plugin tests for API publishing scenarios
 
+- **US-4.3**: Manual Publishing Command (100% complete)
+  - `jux-publish` CLI command implemented
+  - Single file mode: `--file report.xml`
+  - Queue mode: `--queue` for offline queue processing
+  - Dry-run mode: `--dry-run` to preview actions
+  - JSON output: `--json` for scripting
+  - Exit codes: 0 (success), 1 (all failed), 2 (partial success)
+  - 20 comprehensive tests (78.86% coverage)
+
+- **US-4.4**: Technical Debt Resolution (100% complete)
+  - Fixed 12 mypy type checking errors
+  - Fixed 13 ruff linting errors
+  - Added configargparse to mypy overrides
+  - Updated deprecated strict_concatenate → extra_checks
+  - Overall coverage: 86.68% (above 85% target)
+
 **Branch**: `feature/sprint-04-api-integration`
 
 **Commits**:
@@ -33,11 +49,12 @@
 - `a63f699` - chore(config): update configuration for Jux API v1.0.0
 - `c2bde47` - feat(plugin): integrate JuxAPIClient with pytest_sessionfinish
 - `c9fa97f` - test(plugin): add comprehensive tests for API publishing
+- `ac8bd0b` - fix(api): update Pydantic models to match actual Jux API v1.0.0 response format
+- `0e0b0e1` - fix: resolve mypy and ruff linting errors (Sprint 4 tech debt)
+- `8a3a4d4` - feat(cli): implement jux-publish command for manual report publishing
 
-**Remaining**:
-- US-4.3: Technical debt resolution (mypy, coverage, linting)
-- US-4.4: Integration testing with real Jux API Server (requires server availability)
-- US-4.5: Documentation updates (how-to guides, API reference)
+**Deferred**:
+- US-4.5: Integration testing with real Jux API Server (deferred - requires server availability)
 
 ---
 
