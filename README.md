@@ -130,7 +130,7 @@ uv pip install -e ".[dev,security]"
 # Run tests with JUnit XML generation and auto-publish
 pytest --junit-xml=report.xml \
        --jux-publish \
-       --jux-api-url=https://jux.example.com/api \
+       --jux-api-url=https://jux.example.com/api/v1 \
        --jux-key=~/.jux/private_key.pem
 ```
 
@@ -139,7 +139,7 @@ pytest --junit-xml=report.xml \
 ```ini
 [pytest]
 addopts = --junit-xml=report.xml
-jux_api_url = https://jux.example.com/api
+jux_api_url = https://jux.example.com/api/v1
 jux_key_path = ~/.jux/private_key.pem
 ```
 
@@ -218,7 +218,7 @@ pytest --junit-xml=report.xml \
        --jux-enabled \
        --jux-sign \
        --jux-key=~/.jux/private_key.pem \
-       --jux-api-url=https://jux.example.com/api \
+       --jux-api-url=https://jux.example.com/api/v1 \
        --jux-storage-mode=both
 ```
 
@@ -228,7 +228,7 @@ pytest --junit-xml=report.xml \
        --jux-enabled \
        --jux-sign \
        --jux-key=~/.jux/private_key.pem \
-       --jux-api-url=https://jux.example.com/api \
+       --jux-api-url=https://jux.example.com/api/v1 \
        --jux-storage-mode=cache
 ```
 
@@ -384,7 +384,7 @@ export JUX_ENABLED=true
 export JUX_SIGN=true
 export JUX_KEY_PATH=~/.jux/private_key.pem
 export JUX_STORAGE_MODE=local
-export JUX_API_URL=https://jux.example.com/api
+export JUX_API_URL=https://jux.example.com/api/v1
 export JUX_API_KEY=your-api-key-here
 ```
 

@@ -75,7 +75,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
         developer -> pytestJux "Runs tests with" "pytest CLI"
         sysadmin -> pytestJux "Configures and manages" "CLI tools"
 
-        pytestJux -> juxApiServer "Publishes signed reports to" "HTTPS/REST API (POST /api/junit/submit)"
+        pytestJux -> juxApiServer "Publishes signed reports to" "HTTPS/REST API (POST /api/v1/junit/submit)"
 
         cicdPipeline -> pytestJux "Executes tests with" "pytest --junit-xml --jux-publish"
 
