@@ -141,8 +141,13 @@ class TestEnvironmentMetadata:
         # Missing vars should not be included
         assert "NONEXISTENT_VAR" not in metadata.env
 
-    def test_metadata_env_vars_optional(self) -> None:
+    def test_metadata_env_vars_optional(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Environment variables should be optional."""
+        # Unset CI detection env vars to ensure deterministic behavior
+        # (CI auto-detection captures env vars even when not explicitly requested)
+        for ci_var in ["GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL", "TRAVIS", "CIRCLECI"]:
+            monkeypatch.delenv(ci_var, raising=False)
+
         metadata = capture_metadata()
 
         # env should be None or empty dict when not requested
