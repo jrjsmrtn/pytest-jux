@@ -29,7 +29,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
 
                 # Storage & Publishing
                 storageManager = component "Storage Manager" "XDG-compliant local storage and caching (4 modes)" "Python module (storage.py)"
-                apiClient = component "API Client" "REST API client for publishing to Jux API Server" "Python module (api_client.py)" "Future"
+                apiClient = component "API Client" "REST API client for Jux API v1.0.0 with retry logic" "Python module (api_client.py)"
 
                 # Relationships within plugin
                 pluginHooks -> signer "Signs report with"
@@ -53,6 +53,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
                 inspectCmd = component "jux-inspect" "Report inspection (metadata, hash, signature)" "Python CLI (commands/inspect.py)"
                 cacheCmd = component "jux-cache" "Cache management (list, show, stats, clean)" "Python CLI (commands/cache.py)"
                 configCmd = component "jux-config" "Configuration management (init, dump, validate)" "Python CLI (commands/config_cmd.py)"
+                publishCmd = component "jux-publish" "Manual publishing to Jux API (single file or queue)" "Python CLI (commands/publish.py)"
 
                 # CLI tool relationships
                 keygenCmd -> signer "Generates keys for" "Uses cryptography library"
@@ -62,6 +63,8 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
                 inspectCmd -> canonicalizer "Computes hash with"
                 cacheCmd -> storageManager "Manages cache via"
                 configCmd -> configManager "Manages config via"
+                publishCmd -> apiClient "Publishes reports via"
+                publishCmd -> storageManager "Reads queue from"
             }
 
             # Container relationships
@@ -72,7 +75,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
         developer -> pytestJux "Runs tests with" "pytest CLI"
         sysadmin -> pytestJux "Configures and manages" "CLI tools"
 
-        pytestJux -> juxApiServer "Publishes signed reports to" "HTTPS/REST API (POST /api/v1/reports)"
+        pytestJux -> juxApiServer "Publishes signed reports to" "HTTPS/REST API (POST /api/junit/submit)"
 
         cicdPipeline -> pytestJux "Executes tests with" "pytest --junit-xml --jux-publish"
 
