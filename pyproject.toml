@@ -118,6 +118,7 @@ pythonpath = ["."]
 markers = [
     "security: security-focused tests",
     "slow: slow-running tests",
+    "integration: integration tests requiring jux-mock-server",
 ]
 
 [tool.coverage.run]
