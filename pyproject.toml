@@ -36,8 +36,11 @@ classifiers = [
 ]
 
 dependencies = [
+    # For local development, install py-juxlib separately:
+    #   uv pip install -e ../py-juxlib
+    # For release, uncomment PyPI dependency:
+    # "py-juxlib>=0.3.0",
     "lxml>=5.0",
-    "xmlschema>=2.5",
     "signxml>=3.2",
     "cryptography>=41.0",
     "pytest>=7.4",

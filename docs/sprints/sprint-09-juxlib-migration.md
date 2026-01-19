@@ -2,7 +2,7 @@
 
 **Target Version**: v0.6.0
 **Duration**: 2026-02-03 - 2026-02-17 (2 weeks)
-**Status**: 📋 Planned
+**Status**: 🔄 In Progress
 
 ## Sprint Goal
 
