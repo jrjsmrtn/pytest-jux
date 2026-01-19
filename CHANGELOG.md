@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-01-19
+
+### Changed
+- Requires py-juxlib v0.2.1 (breaking change in PublishResponse model)
+- Updated all code to use `response.test_run_id` instead of `response.test_run.id`
+
 ### Added
 - **Sprint 8 (Integration Testing with jux-mock-server) - Complete**
 - **Integration Test Suite** (`tests/integration/`):

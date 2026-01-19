@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytest-jux"
-version = "0.4.2"
+version = "0.4.3"
 description = "A pytest plugin for signing and publishing JUnit XML test reports to the Jux REST API"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -38,7 +38,7 @@ classifiers = [
 dependencies = [
     # py-juxlib provides metadata, signing, and API client functionality
     # For local development: uv pip install -e ../py-juxlib
-    # For PyPI release, uncomment: "py-juxlib>=0.2.0",
+    # For PyPI release, uncomment: "py-juxlib>=0.2.1",
     "lxml>=5.0",
     "signxml>=3.2",
     "cryptography>=41.0",
