@@ -360,13 +360,17 @@ tests/
 ├── test_config.py          # Configuration management (Sprint 3)
 ├── test_metadata.py        # Environment metadata (Sprint 3)
 ├── test_storage.py         # Local storage & caching (Sprint 3)
+├── test_api_client.py      # REST API client tests (Sprint 4)
 ├── commands/               # CLI command tests
 │   ├── test_keygen.py      # Key generation tests
 │   ├── test_sign.py        # Signing command tests
 │   ├── test_verify.py      # Verification command tests
 │   ├── test_inspect.py     # Inspection command tests
 │   ├── test_cache.py       # Cache management tests (Sprint 3)
-│   └── test_config_cmd.py  # Config management tests (Sprint 3)
+│   ├── test_config_cmd.py  # Config management tests (Sprint 3)
+│   └── test_publish.py     # Publish command tests (Sprint 4)
+├── integration/            # Integration tests (Sprint 8)
+│   └── test_api_publishing.py  # API publishing with jux-mock-server
 ├── security/               # Security tests
 └── fixtures/
     ├── junit_xml/          # Sample JUnit XML files
@@ -728,7 +732,7 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Sprint 8 - Integration Testing with jux-mock-server
+**Current Phase**: Development complete, ready for next sprint planning
 **Completed Sprints**:
 - ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
 - ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
@@ -738,31 +742,31 @@ Each sprint should have:
 - ✅ Sprint 6: OpenSSF Best Practices Badge (v0.2.1)
 - ✅ Sprint 7: Metadata Integration with pytest-metadata (v0.3.0)
 - ✅ Sprint 4: REST API Client & Plugin Integration (v0.4.0)
+- ✅ Sprint 8: Integration Testing with jux-mock-server (v0.5.0)
 
-**Sprint 8 In Progress** (Integration Testing with jux-mock-server - v0.5.0):
-- 📋 US-8.1: Add jux-mock-server as dev dependency
-- 📋 US-8.2: Create integration test fixtures
-- 📋 US-8.3: Test JuxAPIClient against mock server
-- 📋 US-8.4: Test plugin integration with mock server
-- 📋 US-8.5: Test jux-publish command with mock server
-- 📋 US-8.6: Test error scenarios
+**Sprint 8 Completed** (Integration Testing with jux-mock-server):
+- ✅ US-8.1: Add jux-mock-server as dev dependency
+- ✅ US-8.2: Create integration test fixtures (live_mock_server, sample_junit_xml)
+- ✅ US-8.3: Test JuxAPIClient against mock server (4 tests)
+- ✅ US-8.4: Test plugin integration with mock server (3 tests)
+- ✅ US-8.5: Test jux-publish command with mock server (4 tests)
+- ✅ US-8.6: Test error scenarios (server errors, graceful handling)
 
-**New Features in v0.4.0**:
-- `JuxAPIClient` for Jux API v1.0.0 `/junit/submit` endpoint
-- Automatic report publishing in plugin (all storage modes)
-- `jux-publish` command for manual publishing
-- Bearer token authentication support
-- Retry logic with exponential backoff
+**New Features in v0.5.0**:
+- Integration tests using jux-mock-server v0.5.0 LiveMockServer
+- 11 integration tests covering API publishing flow
+- Tests skip gracefully when jux-mock-server not installed
 
-**Version**: 0.4.1 (released 2026-01-08)
+**Version**: 0.4.2 (development)
 **Previous Releases**:
+- v0.4.1 (released 2026-01-08) - py-juxlib v0.2.0 compatibility
 - v0.4.0 (released 2026-01-08) - REST API Client & Plugin Integration
 - v0.3.0 (released 2025-10-24) - Metadata Integration
 - v0.2.1 (released 2025-10-21) - OpenSSF Best Practices Badge
 - v0.2.0 (released 2025-10-20) - Documentation & User Experience
 **Current Branch**: develop
-**Test Coverage**: 86.68% (420 tests passing, 9 skipped, 16 xfailed)
-**Release Notes**: [CHANGELOG.md](CHANGELOG.md#041---2026-01-08)
+**Test Coverage**: 85%+ (423 tests passing, 17 skipped, 16 xfailed)
+**Release Notes**: [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
