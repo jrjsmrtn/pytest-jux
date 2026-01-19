@@ -728,7 +728,7 @@ Each sprint should have:
 
 ## Status
 
-**Current Phase**: Sprint 4 Complete - REST API Client & Plugin Integration (v0.4.0)
+**Current Phase**: Sprint 8 - Integration Testing with jux-mock-server
 **Completed Sprints**:
 - ✅ Sprint 0: Project Initialization (Security framework, ADRs, documentation)
 - ✅ Sprint 1: Core Plugin Infrastructure (XML canonicalization, signing, pytest hooks)
@@ -739,12 +739,13 @@ Each sprint should have:
 - ✅ Sprint 7: Metadata Integration with pytest-metadata (v0.3.0)
 - ✅ Sprint 4: REST API Client & Plugin Integration (v0.4.0)
 
-**Sprint 4 Completed** (REST API Client & Plugin Integration - v0.4.0):
-- ✅ US-4.1: REST API Client (JuxAPIClient for Jux API v1.0.0)
-- ✅ US-4.2: Plugin Integration (automatic publishing in pytest_sessionfinish)
-- ✅ US-4.3: Manual Publishing Command (jux-publish CLI)
-- ✅ US-4.4: Technical Debt Resolution (mypy, ruff, coverage)
-- ⏸️ US-4.5: Integration Testing (deferred - requires Jux API Server)
+**Sprint 8 In Progress** (Integration Testing with jux-mock-server - v0.5.0):
+- 📋 US-8.1: Add jux-mock-server as dev dependency
+- 📋 US-8.2: Create integration test fixtures
+- 📋 US-8.3: Test JuxAPIClient against mock server
+- 📋 US-8.4: Test plugin integration with mock server
+- 📋 US-8.5: Test jux-publish command with mock server
+- 📋 US-8.6: Test error scenarios
 
 **New Features in v0.4.0**:
 - `JuxAPIClient` for Jux API v1.0.0 `/junit/submit` endpoint
