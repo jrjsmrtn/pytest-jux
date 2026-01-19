@@ -302,7 +302,7 @@ def publish_queue(
         try:
             response = client.publish_report(xml_content)
             result["success"] = True
-            result["test_run_id"] = response.test_run.id
+            result["test_run_id"] = response.test_run_id
             result["message"] = response.message
             success_count += 1
 
@@ -311,7 +311,7 @@ def publish_queue(
 
             if verbose and not json_output:
                 console.print(f"  [green]✓[/green] Published: {report_hash}")
-                console.print(f"    Test run ID: {response.test_run.id}")
+                console.print(f"    Test run ID: {response.test_run_id}")
 
         except Exception as e:
             result["error"] = str(e)
