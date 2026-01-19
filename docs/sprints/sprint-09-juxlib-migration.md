@@ -2,7 +2,7 @@
 
 **Target Version**: v0.6.0
 **Duration**: 2026-02-03 - 2026-02-17 (2 weeks)
-**Status**: 🔄 In Progress
+**Status**: ✅ Completed
 
 ## Sprint Goal
 
@@ -29,15 +29,15 @@ This sprint migrates pytest-jux to consume py-juxlib instead of maintaining dupl
 | Category | Points |
 |----------|--------|
 | Total Planned | 21 |
-| Completed | 0 |
+| Completed | 21 |
 | In Progress | 0 |
-| Remaining | 21 |
+| Remaining | 0 |
 
 ## User Stories
 
 ### US-9.1: Add py-juxlib Dependency
 
-**Points**: 2 | **Priority**: High | **Status**: 📋 Planned
+**Points**: 2 | **Priority**: High | **Status**: ✅ Completed
 
 **User Story**:
 > As a maintainer, I want to add py-juxlib as a dependency so that pytest-jux can use shared library modules.
@@ -60,7 +60,7 @@ This sprint migrates pytest-jux to consume py-juxlib instead of maintaining dupl
 
 ### US-9.2: Migrate Metadata Module
 
-**Points**: 3 | **Priority**: High | **Status**: 📋 Planned
+**Points**: 3 | **Priority**: High | **Status**: ✅ Completed
 
 **User Story**:
 > As a maintainer, I want to replace pytest_jux.metadata with juxlib.metadata so that metadata detection uses the shared library.
@@ -88,7 +88,7 @@ This sprint migrates pytest-jux to consume py-juxlib instead of maintaining dupl
 
 ### US-9.3: Migrate Signing Module
 
-**Points**: 3 | **Priority**: High | **Status**: 📋 Planned
+**Points**: 3 | **Priority**: High | **Status**: ✅ Completed
 
 **User Story**:
 > As a maintainer, I want to replace pytest_jux signing modules with juxlib.signing so that XML signing uses the shared library.
@@ -120,7 +120,7 @@ This sprint migrates pytest-jux to consume py-juxlib instead of maintaining dupl
 
 ### US-9.4: Migrate API Client Module
 
-**Points**: 3 | **Priority**: High | **Status**: 📋 Planned
+**Points**: 3 | **Priority**: High | **Status**: ✅ Completed
 
 **User Story**:
 > As a maintainer, I want to replace pytest_jux.api_client with juxlib.api so that API communication uses the shared library.
@@ -148,7 +148,7 @@ This sprint migrates pytest-jux to consume py-juxlib instead of maintaining dupl
 
 ### US-9.5: Migrate Config Module
 
-**Points**: 3 | **Priority**: High | **Status**: 📋 Planned
+**Points**: 3 | **Priority**: High | **Status**: ✅ Completed
 
 **User Story**:
 > As a maintainer, I want to replace pytest_jux.config with juxlib.config so that configuration uses the shared library.
@@ -176,7 +176,7 @@ This sprint migrates pytest-jux to consume py-juxlib instead of maintaining dupl
 
 ### US-9.6: Migrate Storage Module
 
-**Points**: 3 | **Priority**: High | **Status**: 📋 Planned
+**Points**: 3 | **Priority**: High | **Status**: ✅ Completed
 
 **User Story**:
 > As a maintainer, I want to replace pytest_jux.storage with juxlib.storage so that local storage uses the shared library.
@@ -204,7 +204,7 @@ This sprint migrates pytest-jux to consume py-juxlib instead of maintaining dupl
 
 ### US-9.7: Remove Duplicate Code
 
-**Points**: 2 | **Priority**: Medium | **Status**: 📋 Planned
+**Points**: 2 | **Priority**: Medium | **Status**: ✅ Completed
 
 **User Story**:
 > As a maintainer, I want to remove duplicate implementations so that pytest-jux only contains plugin-specific code.
@@ -227,7 +227,7 @@ This sprint migrates pytest-jux to consume py-juxlib instead of maintaining dupl
 
 ### US-9.8: Update Documentation
 
-**Points**: 2 | **Priority**: Medium | **Status**: 📋 Planned
+**Points**: 2 | **Priority**: Medium | **Status**: ✅ Completed
 
 **User Story**:
 > As a user, I want updated documentation reflecting the juxlib migration so that I understand the new architecture.

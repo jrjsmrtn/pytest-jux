@@ -10,8 +10,11 @@ from pathlib import Path
 import pytest
 
 from pytest_jux.storage import (
+    QueuedReportNotFoundError,
+    ReportNotFoundError,
     ReportStorage,
     StorageError,
+    StorageWriteError,
     get_default_storage_path,
 )
 
@@ -124,7 +127,7 @@ class TestReportStorage:
         """Should raise error for nonexistent report."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        with pytest.raises(StorageError):
+        with pytest.raises(ReportNotFoundError):
             storage.get_report("sha256:nonexistent")
 
     def test_list_reports(self, tmp_path: Path) -> None:
@@ -299,7 +302,7 @@ class TestStorageEdgeCases:
         """Should raise error when dequeuing nonexistent report."""
         storage = ReportStorage(storage_path=tmp_path)
 
-        with pytest.raises(StorageError, match="Queued report not found"):
+        with pytest.raises(QueuedReportNotFoundError):
             storage.dequeue_report("sha256:nonexistent")
 
     def test_get_stats_empty_storage(self, tmp_path: Path) -> None:
@@ -328,7 +331,7 @@ class TestStorageEdgeCases:
         canonical_hash = "sha256:readonly123"
 
         try:
-            with pytest.raises(StorageError, match="Failed to write file"):
+            with pytest.raises(StorageWriteError):
                 storage.store_report(xml_content, canonical_hash)
         finally:
             # Restore permissions for cleanup
@@ -348,7 +351,7 @@ class TestStorageEdgeCases:
         report_file.chmod(0o000)  # No permissions
 
         try:
-            with pytest.raises(StorageError, match="Failed to read report"):
+            with pytest.raises(StorageWriteError):
                 storage.get_report(canonical_hash)
         finally:
             # Restore permissions for cleanup
@@ -473,38 +476,27 @@ class TestStorageErrorPaths:
 
         assert path == tmp_path / ".local" / "share" / "jux"
 
+    @pytest.mark.skip(reason="Tests juxlib internals - covered by juxlib tests")
     def test_write_file_atomic_error_cleanup(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Should clean up temp file on write error."""
-        from unittest.mock import patch
+        """Should clean up temp file on write error.
 
-        storage = ReportStorage(storage_path=tmp_path)
-        test_file = tmp_path / "reports" / "test.xml"
+        Note: This test exercises internal _write_file_atomic implementation
+        which is now in juxlib. Covered by juxlib's test suite.
+        """
+        pass
 
-        # Mock os.write to raise an error
-        with patch("os.write", side_effect=OSError("Write error")):
-            with pytest.raises(StorageError, match="Failed to write file"):
-                storage._write_file_atomic(test_file, b"<test/>")
-
-        # Verify no temp files left behind
-        temp_files = list(tmp_path.glob("**/.tmp_*"))
-        assert len(temp_files) == 0
-
+    @pytest.mark.skip(reason="Tests juxlib internals - covered by juxlib tests")
     def test_write_file_atomic_unlink_fails(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Should handle unlink failure during cleanup."""
-        from unittest.mock import patch
+        """Should handle unlink failure during cleanup.
 
-        storage = ReportStorage(storage_path=tmp_path)
-        test_file = tmp_path / "reports" / "test.xml"
-
-        # Mock os.write to fail, then mock os.unlink to also fail
-        with patch("os.write", side_effect=OSError("Write error")):
-            with patch("os.unlink", side_effect=OSError("Unlink error")):
-                with pytest.raises(StorageError, match="Failed to write file"):
-                    storage._write_file_atomic(test_file, b"<test/>")
+        Note: This test exercises internal _write_file_atomic implementation
+        which is now in juxlib. Covered by juxlib's test suite.
+        """
+        pass
 
     def test_get_report_read_error(self, tmp_path: Path) -> None:
         """Should handle read errors when retrieving report."""
@@ -518,7 +510,7 @@ class TestStorageErrorPaths:
 
         # Mock read_bytes to raise an error
         with patch("pathlib.Path.read_bytes", side_effect=PermissionError("Access denied")):
-            with pytest.raises(StorageError, match="Failed to read report"):
+            with pytest.raises(StorageWriteError):
                 storage.get_report(test_hash)
 
     def test_list_reports_empty_dir(self, tmp_path: Path) -> None:
@@ -554,7 +546,7 @@ class TestStorageErrorPaths:
 
         # Mock read_bytes to raise an error
         with patch("pathlib.Path.read_bytes", side_effect=OSError("Read error")):
-            with pytest.raises(StorageError, match="Failed to dequeue report"):
+            with pytest.raises(StorageWriteError):
                 storage.dequeue_report(test_hash)
 
     def test_report_exists_false(self, tmp_path: Path) -> None:
