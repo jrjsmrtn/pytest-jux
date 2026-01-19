@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from pytest_jux.api_client import PublishResponse, TestRun
+from pytest_jux.api_client import PublishResponse
 from pytest_jux.commands.publish import main
 from pytest_jux.storage import ReportStorage
 
@@ -18,24 +18,15 @@ from pytest_jux.storage import ReportStorage
 # Test fixtures
 @pytest.fixture
 def mock_publish_response() -> PublishResponse:
-    """Create a mock successful publish response."""
+    """Create a mock successful publish response (jux-openapi SubmitResponse format)."""
     return PublishResponse(
+        test_run_id="550e8400-e29b-41d4-a716-446655440000",
         message="Test report submitted successfully",
-        status="success",
-        test_run=TestRun(
-            id="550e8400-e29b-41d4-a716-446655440000",
-            status="completed",
-            time=1.5,
-            errors=0,
-            branch="main",
-            project="test-project",
-            failures=0,
-            skipped=0,
-            success_rate=100.0,
-            commit_sha="abc123",
-            total_tests=10,
-            created_at="2025-01-08T12:00:00Z",
-        ),
+        test_count=10,
+        failure_count=0,
+        error_count=0,
+        skipped_count=0,
+        success_rate=100.0,
     )
 
 
@@ -194,7 +185,7 @@ class TestPublishSingleFile:
         assert result == 0
         captured = capsys.readouterr()
         assert "Test run ID" in captured.out
-        assert mock_publish_response.test_run.id in captured.out
+        assert mock_publish_response.test_run_id in captured.out
 
 
 class TestPublishQueue:

@@ -10,7 +10,7 @@ This plugin integrates with pytest to automatically:
 3. Publish signed reports to a Jux REST API backend
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.2"
 __author__ = "Georges Martin"
 __email__ = "jrjsmrtn@gmail.com"
 

@@ -225,13 +225,13 @@ def publish_single_file(
     try:
         response = client.publish_report(xml_content)
         result["success"] = True
-        result["test_run_id"] = response.test_run.id
+        result["test_run_id"] = response.test_run_id
         result["message"] = response.message
 
         if verbose and not json_output:
             console.print(f"  [green]✓[/green] Published: {file_path}")
-            console.print(f"    Test run ID: {response.test_run.id}")
-            console.print(f"    Success rate: {response.test_run.success_rate}%")
+            console.print(f"    Test run ID: {response.test_run_id}")
+            console.print(f"    Success rate: {response.success_rate}%")
 
         return True, result
 
