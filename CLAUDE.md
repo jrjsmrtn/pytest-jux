@@ -757,9 +757,10 @@ Each sprint should have:
 - 11 integration tests covering API publishing flow
 - Tests skip gracefully when jux-mock-server not installed
 
-**Version**: 0.4.2 (development)
+**Version**: 0.4.3 (development)
 **Previous Releases**:
-- v0.4.1 (released 2026-01-08) - py-juxlib v0.2.0 compatibility
+- v0.4.2 (released 2026-01-19) - py-juxlib v0.2.0 compatibility
+- v0.4.1 (released 2026-01-08) - C4 architecture model enhancements
 - v0.4.0 (released 2026-01-08) - REST API Client & Plugin Integration
 - v0.3.0 (released 2025-10-24) - Metadata Integration
 - v0.2.1 (released 2025-10-21) - OpenSSF Best Practices Badge
