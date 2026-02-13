@@ -128,7 +128,7 @@ class TestLoadPrivateKey:
         pem_bytes = dsa_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
 
         # Should raise ValueError for unsupported key type
@@ -612,7 +612,10 @@ class TestIntegrationWithCanonicalizer:
         key = load_private_key(rsa_key_path)
 
         # Mock XMLSigner.sign to raise an exception
-        with patch("pytest_jux.signer.XMLSigner.sign", side_effect=RuntimeError("Signing error")):
+        with patch(
+            "pytest_jux.signer.XMLSigner.sign",
+            side_effect=RuntimeError("Signing error"),
+        ):
             with pytest.raises(ValueError, match="Failed to sign XML"):
                 sign_xml(sample_xml_tree, key)
 
@@ -629,6 +632,9 @@ class TestIntegrationWithCanonicalizer:
         signed_tree = sign_xml(sample_xml_tree, key, cert)
 
         # Mock XMLVerifier.verify to raise an exception
-        with patch("pytest_jux.signer.XMLVerifier.verify", side_effect=RuntimeError("Verification error")):
+        with patch(
+            "pytest_jux.signer.XMLVerifier.verify",
+            side_effect=RuntimeError("Verification error"),
+        ):
             result = verify_signature(signed_tree)
             assert result is False

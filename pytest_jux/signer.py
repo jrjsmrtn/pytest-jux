@@ -12,6 +12,9 @@ Note:
 """
 
 # Re-export types and functions from juxlib.signing
+import signxml
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from juxlib.signing import (
     PrivateKey,
     load_private_key,
@@ -22,9 +25,6 @@ from juxlib.signing import (
 # Re-export for backward compatibility with code using these names
 from lxml import etree
 from signxml import XMLSigner, XMLVerifier
-import signxml
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
 __all__ = [
     "PrivateKey",

@@ -12,17 +12,18 @@ Note:
 """
 
 # Re-export from juxlib.signing
+import hashlib
+
+# Backward compatibility imports
+from pathlib import Path
+from typing import cast
+
 from juxlib.signing import (
     canonicalize_xml,
     compute_canonical_hash,
     load_xml,
 )
-
-# Backward compatibility imports
-from pathlib import Path
-from typing import cast
 from lxml import etree
-import hashlib
 
 __all__ = [
     "canonicalize_xml",

@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from unittest.mock import patch
 
 import pytest
+import requests
 
 from pytest_jux.api_client import JuxAPIClient, PublishResponse
 
@@ -95,7 +95,7 @@ class TestJuxAPIClientIntegration:
             max_retries=1,  # Reduce retries for faster test
         )
 
-        with pytest.raises(Exception):  # HTTPError or similar
+        with pytest.raises(requests.exceptions.RequestException):
             client.publish_report(sample_junit_xml)
 
     def test_publish_report_captures_xml_content(
@@ -139,10 +139,14 @@ class TestPublishCommandIntegration:
         xml_file = tmp_path / "report.xml"
         xml_file.write_text(sample_junit_xml, encoding="utf-8")
 
-        result = main([
-            "--file", str(xml_file),
-            "--api-url", f"{live_mock_server.url}/api/v1",
-        ])
+        result = main(
+            [
+                "--file",
+                str(xml_file),
+                "--api-url",
+                f"{live_mock_server.url}/api/v1",
+            ]
+        )
 
         assert result == 0
 
@@ -162,11 +166,16 @@ class TestPublishCommandIntegration:
         xml_file = tmp_path / "report.xml"
         xml_file.write_text(sample_junit_xml, encoding="utf-8")
 
-        main([
-            "--file", str(xml_file),
-            "--api-url", f"{live_mock_server.url}/api/v1",
-            "--bearer-token", "my-secret-token",  # noqa: S106
-        ])
+        main(
+            [
+                "--file",
+                str(xml_file),
+                "--api-url",
+                f"{live_mock_server.url}/api/v1",
+                "--bearer-token",
+                "my-secret-token",  # noqa: S106
+            ]
+        )
 
         # Verify bearer token was sent
         request = live_mock_server.last_request("/api/v1/junit/submit")
@@ -194,10 +203,14 @@ class TestPublishCommandIntegration:
         xml_file = tmp_path / "report.xml"
         xml_file.write_text(sample_junit_xml, encoding="utf-8")
 
-        result = main([
-            "--file", str(xml_file),
-            "--api-url", f"{live_mock_server.url}/api/v1",
-        ])
+        result = main(
+            [
+                "--file",
+                str(xml_file),
+                "--api-url",
+                f"{live_mock_server.url}/api/v1",
+            ]
+        )
 
         assert result != 0
 
@@ -217,11 +230,15 @@ class TestPublishCommandIntegration:
         xml_file = tmp_path / "report.xml"
         xml_file.write_text(sample_junit_xml, encoding="utf-8")
 
-        result = main([
-            "--file", str(xml_file),
-            "--api-url", f"{live_mock_server.url}/api/v1",
-            "--json",
-        ])
+        result = main(
+            [
+                "--file",
+                str(xml_file),
+                "--api-url",
+                f"{live_mock_server.url}/api/v1",
+                "--json",
+            ]
+        )
 
         assert result == 0
 
@@ -243,7 +260,6 @@ class TestPluginIntegration:
         """Test that plugin publishes report at session end."""
         from unittest.mock import MagicMock
 
-        from pytest_jux.config import StorageMode
         from pytest_jux.plugin import pytest_sessionfinish
 
         # Create XML file

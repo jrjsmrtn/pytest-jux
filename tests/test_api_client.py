@@ -134,7 +134,10 @@ class TestJuxAPIClient:
 
         # Verify request
         assert len(responses.calls) == 1
-        assert responses.calls[0].request.url == "http://localhost:4000/api/v1/junit/submit"
+        assert (
+            responses.calls[0].request.url
+            == "http://localhost:4000/api/v1/junit/submit"
+        )
         assert responses.calls[0].request.headers["Content-Type"] == "application/xml"
         assert responses.calls[0].request.body.decode("utf-8") == signed_xml
 
@@ -161,7 +164,10 @@ class TestJuxAPIClient:
 
         assert response.test_run_id == "550e8400-e29b-41d4-a716-446655440000"
         # Verify Bearer token sent
-        assert responses.calls[0].request.headers["Authorization"] == f"Bearer {bearer_token}"
+        assert (
+            responses.calls[0].request.headers["Authorization"]
+            == f"Bearer {bearer_token}"
+        )
 
     @responses.activate
     def test_publish_report_400_bad_request(
@@ -172,7 +178,9 @@ class TestJuxAPIClient:
             "http://localhost:4000/api/v1/junit/submit",
             json={
                 "error": "Invalid JUnit XML",
-                "details": {"message": "Request body is empty or missing required data"},
+                "details": {
+                    "message": "Request body is empty or missing required data"
+                },
                 "suggestions": ["Ensure request body contains valid JUnit XML"],
             },
             status=400,

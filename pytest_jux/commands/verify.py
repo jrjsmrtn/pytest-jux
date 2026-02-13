@@ -178,7 +178,9 @@ def main() -> int:
                 tree = load_xml(args.input)
             except etree.XMLSyntaxError as e:
                 if args.json:
-                    print(json.dumps({"valid": False, "error": f"XML parse error: {e}"}))
+                    print(
+                        json.dumps({"valid": False, "error": f"XML parse error: {e}"})
+                    )
                     return 1
                 elif not args.quiet:
                     XMLParseError(args.input, str(e)).print_error()
@@ -189,7 +191,9 @@ def main() -> int:
                 tree = etree.fromstring(xml_content.encode("utf-8"))
             except etree.XMLSyntaxError as e:
                 if args.json:
-                    print(json.dumps({"valid": False, "error": f"XML parse error: {e}"}))
+                    print(
+                        json.dumps({"valid": False, "error": f"XML parse error: {e}"})
+                    )
                     return 1
                 elif not args.quiet:
                     XMLParseError(None, str(e)).print_error()
@@ -247,13 +251,16 @@ def main() -> int:
             if debug:
                 raise
             from rich.console import Console
+
             console_err = Console(stderr=True)
             console_err.print("[red]Unexpected error:[/red]")
             console_err.print(f"  {type(e).__name__}: {e}")
             console_err.print("\n[yellow]This is likely a bug in pytest-jux[/yellow]")
             console_err.print("Please report this at:")
             console_err.print("  https://github.com/jrjsmrtn/pytest-jux/issues")
-            console_err.print("\nInclude the error message above and the command you ran.")
+            console_err.print(
+                "\nInclude the error message above and the command you ran."
+            )
             console_err.print("\n[dim]Tip: Run with JUX_DEBUG=1 for more details[/dim]")
         return 1
 

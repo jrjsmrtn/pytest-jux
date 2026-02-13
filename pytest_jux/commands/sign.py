@@ -253,6 +253,7 @@ def main() -> int:
         if debug:
             raise
         from rich.console import Console
+
         console_err = Console(stderr=True)
         console_err.print("[red]Unexpected error:[/red]")
         console_err.print(f"  {type(e).__name__}: {e}")

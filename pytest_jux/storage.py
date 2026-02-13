@@ -12,8 +12,6 @@ Note:
 """
 
 # Re-export from juxlib.storage
-from juxlib.storage import ReportStorage, get_default_storage_path
-
 # Import specific error types from juxlib.errors for re-export
 from juxlib.errors import (
     QueuedReportNotFoundError,
@@ -21,6 +19,7 @@ from juxlib.errors import (
     StorageNotFoundError,
     StorageWriteError,
 )
+from juxlib.storage import ReportStorage, get_default_storage_path
 
 
 class StorageError(Exception):

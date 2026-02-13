@@ -7,7 +7,6 @@ import json
 import re
 import sys
 from datetime import UTC, datetime
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -145,7 +144,13 @@ class TestEnvironmentMetadata:
         """Environment variables should be optional."""
         # Unset CI detection env vars to ensure deterministic behavior
         # (CI auto-detection captures env vars even when not explicitly requested)
-        for ci_var in ["GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL", "TRAVIS", "CIRCLECI"]:
+        for ci_var in [
+            "GITHUB_ACTIONS",
+            "GITLAB_CI",
+            "JENKINS_URL",
+            "TRAVIS",
+            "CIRCLECI",
+        ]:
             monkeypatch.delenv(ci_var, raising=False)
 
         metadata = capture_metadata()
@@ -494,6 +499,7 @@ class TestCIMetadata:
         """Should return None for CI metadata in local development."""
         # Ensure we're not in a CI environment
         import os
+
         ci_vars = ["GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL", "TRAVIS", "CIRCLECI"]
         for var in ci_vars:
             os.environ.pop(var, None)
@@ -505,22 +511,27 @@ class TestCIMetadata:
         assert metadata.ci_build_id is None
         assert metadata.ci_build_url is None
 
-    @patch.dict("os.environ", {
-        "GITHUB_ACTIONS": "true",
-        "GITHUB_RUN_ID": "123456",
-        "GITHUB_REPOSITORY": "owner/repo",
-        "GITHUB_SERVER_URL": "https://github.com",
-        "GITHUB_SHA": "abcdef123456",
-        "GITHUB_REF": "refs/heads/main",
-        "GITHUB_ACTOR": "testuser",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_RUN_ID": "123456",
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_SHA": "abcdef123456",
+            "GITHUB_REF": "refs/heads/main",
+            "GITHUB_ACTOR": "testuser",
+        },
+    )
     def test_github_actions_detection(self) -> None:
         """Should detect GitHub Actions CI environment."""
         metadata = capture_metadata()
 
         assert metadata.ci_provider == "github"
         assert metadata.ci_build_id == "123456"
-        assert metadata.ci_build_url == "https://github.com/owner/repo/actions/runs/123456"
+        assert (
+            metadata.ci_build_url == "https://github.com/owner/repo/actions/runs/123456"
+        )
 
         # Should capture standard GitHub env vars
         assert metadata.env is not None
@@ -529,14 +540,17 @@ class TestCIMetadata:
         assert "GITHUB_REF" in metadata.env
         assert "GITHUB_ACTOR" in metadata.env
 
-    @patch.dict("os.environ", {
-        "GITLAB_CI": "true",
-        "CI_PIPELINE_ID": "789",
-        "CI_PIPELINE_URL": "https://gitlab.com/owner/repo/-/pipelines/789",
-        "CI_COMMIT_SHA": "fedcba654321",
-        "CI_COMMIT_BRANCH": "main",
-        "CI_JOB_ID": "456",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "GITLAB_CI": "true",
+            "CI_PIPELINE_ID": "789",
+            "CI_PIPELINE_URL": "https://gitlab.com/owner/repo/-/pipelines/789",
+            "CI_COMMIT_SHA": "fedcba654321",
+            "CI_COMMIT_BRANCH": "main",
+            "CI_JOB_ID": "456",
+        },
+    )
     def test_gitlab_ci_detection(self) -> None:
         """Should detect GitLab CI environment."""
         metadata = capture_metadata()
@@ -551,14 +565,17 @@ class TestCIMetadata:
         assert "CI_COMMIT_BRANCH" in metadata.env
         assert "CI_JOB_ID" in metadata.env
 
-    @patch.dict("os.environ", {
-        "JENKINS_URL": "https://jenkins.example.com",
-        "BUILD_ID": "42",
-        "BUILD_URL": "https://jenkins.example.com/job/test/42",
-        "GIT_COMMIT": "1234567890abcdef",
-        "GIT_BRANCH": "develop",
-        "JOB_NAME": "test-job",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "JENKINS_URL": "https://jenkins.example.com",
+            "BUILD_ID": "42",
+            "BUILD_URL": "https://jenkins.example.com/job/test/42",
+            "GIT_COMMIT": "1234567890abcdef",
+            "GIT_BRANCH": "develop",
+            "JOB_NAME": "test-job",
+        },
+    )
     def test_jenkins_detection(self) -> None:
         """Should detect Jenkins CI environment."""
         metadata = capture_metadata()
@@ -573,13 +590,16 @@ class TestCIMetadata:
         assert "GIT_BRANCH" in metadata.env
         assert "JOB_NAME" in metadata.env
 
-    @patch.dict("os.environ", {
-        "TRAVIS": "true",
-        "TRAVIS_BUILD_ID": "999",
-        "TRAVIS_BUILD_WEB_URL": "https://travis-ci.org/owner/repo/builds/999",
-        "TRAVIS_COMMIT": "abcd1234",
-        "TRAVIS_BRANCH": "feature-branch",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "TRAVIS": "true",
+            "TRAVIS_BUILD_ID": "999",
+            "TRAVIS_BUILD_WEB_URL": "https://travis-ci.org/owner/repo/builds/999",
+            "TRAVIS_COMMIT": "abcd1234",
+            "TRAVIS_BRANCH": "feature-branch",
+        },
+    )
     def test_travis_ci_detection(self) -> None:
         """Should detect Travis CI environment."""
         metadata = capture_metadata()
@@ -593,13 +613,16 @@ class TestCIMetadata:
         assert "TRAVIS_COMMIT" in metadata.env
         assert "TRAVIS_BRANCH" in metadata.env
 
-    @patch.dict("os.environ", {
-        "CIRCLECI": "true",
-        "CIRCLE_BUILD_NUM": "88",
-        "CIRCLE_BUILD_URL": "https://circleci.com/gh/owner/repo/88",
-        "CIRCLE_SHA1": "fedcba9876",
-        "CIRCLE_BRANCH": "staging",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "CIRCLECI": "true",
+            "CIRCLE_BUILD_NUM": "88",
+            "CIRCLE_BUILD_URL": "https://circleci.com/gh/owner/repo/88",
+            "CIRCLE_SHA1": "fedcba9876",
+            "CIRCLE_BRANCH": "staging",
+        },
+    )
     def test_circleci_detection(self) -> None:
         """Should detect CircleCI environment."""
         metadata = capture_metadata()
@@ -613,13 +636,16 @@ class TestCIMetadata:
         assert "CIRCLE_SHA1" in metadata.env
         assert "CIRCLE_BRANCH" in metadata.env
 
-    @patch.dict("os.environ", {
-        "GITHUB_ACTIONS": "true",
-        "GITHUB_RUN_ID": "123",
-        "GITHUB_REPOSITORY": "owner/repo",
-        "GITHUB_SERVER_URL": "https://github.com",
-        "GITHUB_SHA": "abc123",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_RUN_ID": "123",
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_SHA": "abc123",
+        },
+    )
     def test_ci_env_vars_merge_with_user_vars(self) -> None:
         """CI env vars should merge with user-requested env vars."""
         # Request additional env var
@@ -633,12 +659,15 @@ class TestCIMetadata:
         # Should also have user-requested vars
         assert "PATH" in metadata.env
 
-    @patch.dict("os.environ", {
-        "GITHUB_ACTIONS": "true",
-        "GITHUB_RUN_ID": "123",
-        "GITHUB_SHA": "auto_detected",
-        "CUSTOM_VAR": "custom_value",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_RUN_ID": "123",
+            "GITHUB_SHA": "auto_detected",
+            "CUSTOM_VAR": "custom_value",
+        },
+    )
     def test_user_env_vars_precedence(self) -> None:
         """User-requested env vars should take precedence over CI auto-detected."""
         # Request GITHUB_SHA explicitly (already auto-detected by CI)

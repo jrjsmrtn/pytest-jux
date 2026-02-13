@@ -293,14 +293,22 @@ def main() -> int:
             )
 
         # Validate arguments (defensive - argparse should already validate these)
-        if args.type == "rsa" and args.bits not in (2048, 3072, 4096):  # pragma: no cover
+        if args.type == "rsa" and args.bits not in (
+            2048,
+            3072,
+            4096,
+        ):  # pragma: no cover
             raise InvalidArgumentError(
                 "--bits",
                 f"Invalid RSA key size: {args.bits}",
                 valid_values=["2048", "3072", "4096"],
             )
 
-        if args.type == "ecdsa" and args.curve not in ("P-256", "P-384", "P-521"):  # pragma: no cover
+        if args.type == "ecdsa" and args.curve not in (
+            "P-256",
+            "P-384",
+            "P-521",
+        ):  # pragma: no cover
             raise InvalidArgumentError(
                 "--curve",
                 f"Invalid ECDSA curve: {args.curve}",
@@ -366,6 +374,7 @@ def main() -> int:
         if debug:
             raise
         from rich.console import Console
+
         console_err = Console(stderr=True)
         console_err.print("[red]Unexpected error:[/red]")
         console_err.print(f"  {type(e).__name__}: {e}")

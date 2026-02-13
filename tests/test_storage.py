@@ -13,7 +13,6 @@ from pytest_jux.storage import (
     QueuedReportNotFoundError,
     ReportNotFoundError,
     ReportStorage,
-    StorageError,
     StorageWriteError,
     get_default_storage_path,
 )
@@ -509,7 +508,9 @@ class TestStorageErrorPaths:
         storage.store_report(b"<testsuite name='test'/>", test_hash)
 
         # Mock read_bytes to raise an error
-        with patch("pathlib.Path.read_bytes", side_effect=PermissionError("Access denied")):
+        with patch(
+            "pathlib.Path.read_bytes", side_effect=PermissionError("Access denied")
+        ):
             with pytest.raises(StorageWriteError):
                 storage.get_report(test_hash)
 

@@ -184,7 +184,9 @@ sign = true
             }.get(x, False)
 
             # Should raise error if signing enabled but no key provided
-            with pytest.raises(pytest.UsageError, match="jux_key_path is not configured"):
+            with pytest.raises(
+                pytest.UsageError, match="jux_key_path is not configured"
+            ):
                 pytest_configure(mock_config)
 
         finally:
@@ -222,7 +224,7 @@ enabled = true
 sign = true
 key_path = {test_key_path}
 storage_mode = local
-storage_path = {tmp_path / 'reports'}
+storage_path = {tmp_path / "reports"}
 """
         )
 
@@ -279,9 +281,7 @@ sign = false
         finally:
             os.chdir(original_cwd)
 
-    def test_respects_jux_enabled_flag(
-        self, mock_config: Mock, tmp_path: Path
-    ) -> None:
+    def test_respects_jux_enabled_flag(self, mock_config: Mock, tmp_path: Path) -> None:
         """Test that jux_enabled flag controls plugin activation."""
         # Create .jux.conf with enabled=false
         config_file = tmp_path / ".jux.conf"
@@ -509,7 +509,9 @@ class TestPytestSessionfinishWithStorage:
         metadata_dir = storage_path / "metadata"
         if metadata_dir.exists():
             metadata_files = list(metadata_dir.glob("*.json"))
-            assert len(metadata_files) == 0, "JSON metadata files should not exist in v0.3.0+"
+            assert len(metadata_files) == 0, (
+                "JSON metadata files should not exist in v0.3.0+"
+            )
 
     def test_stores_report_with_cache_storage_mode(
         self,
@@ -598,8 +600,11 @@ class TestPytestSessionfinishWithStorage:
 
         # Parse stored report and verify metadata is embedded
         from lxml import etree
+
         tree = etree.parse(str(report_files[0]))
-        _properties = tree.find(".//properties")  # Prefixed to indicate intentionally unused
+        _properties = tree.find(
+            ".//properties"
+        )  # Prefixed to indicate intentionally unused
 
         # NOTE: In the current test setup, properties might not exist because
         # pytest-metadata hook runs during actual pytest execution, not when
@@ -610,7 +615,9 @@ class TestPytestSessionfinishWithStorage:
         metadata_dir = storage_path / "metadata"
         if metadata_dir.exists():
             metadata_files = list(metadata_dir.glob("*.json"))
-            assert len(metadata_files) == 0, "JSON metadata files should not exist in v0.3.0+"
+            assert len(metadata_files) == 0, (
+                "JSON metadata files should not exist in v0.3.0+"
+            )
 
     def test_handles_storage_error_gracefully(
         self,
@@ -697,6 +704,7 @@ class TestPytestMetadataIntegration:
         """Test that pytest-metadata is installed and importable."""
         try:
             import pytest_metadata
+
             assert pytest_metadata is not None
         except ImportError:
             pytest.fail("pytest-metadata should be installed as a dependency")
@@ -738,15 +746,15 @@ class TestPytestMetadataIntegration:
         assert len(properties) == 3
 
         # Verify property values
-        property_dict = {
-            prop.get("name"): prop.get("value") for prop in properties
-        }
+        property_dict = {prop.get("name"): prop.get("value") for prop in properties}
         assert property_dict["build_id"] == "12345"
         assert property_dict["environment"] == "staging"
         assert property_dict["commit_sha"] == "abc123def"
 
         # Verify signature was added
-        signatures = signed_tree.findall(".//{http://www.w3.org/2000/09/xmldsig#}Signature")
+        signatures = signed_tree.findall(
+            ".//{http://www.w3.org/2000/09/xmldsig#}Signature"
+        )
         assert len(signatures) == 1
 
     def test_preserves_empty_properties_section(
@@ -1156,10 +1164,14 @@ class TestAPIPublishing:
 
         # Mock API failure
         mock_client_instance = mock_api_client.return_value
-        mock_client_instance.publish_report.side_effect = Exception("Connection refused")
+        mock_client_instance.publish_report.side_effect = Exception(
+            "Connection refused"
+        )
 
         # Call sessionfinish - should warn about failure
-        with pytest.warns(UserWarning, match="Failed to publish report to Jux API \\(API mode\\)"):
+        with pytest.warns(
+            UserWarning, match="Failed to publish report to Jux API \\(API mode\\)"
+        ):
             pytest_sessionfinish(mock_session, 0)
 
     def test_cache_mode_queues_on_api_error(
@@ -1184,10 +1196,15 @@ class TestAPIPublishing:
 
         # Mock API failure
         mock_client_instance = mock_api_client.return_value
-        mock_client_instance.publish_report.side_effect = Exception("Connection refused")
+        mock_client_instance.publish_report.side_effect = Exception(
+            "Connection refused"
+        )
 
         # Call sessionfinish - should queue locally
-        with pytest.warns(UserWarning, match="Failed to publish report to Jux API, queued locally \\(CACHE mode\\)"):
+        with pytest.warns(
+            UserWarning,
+            match="Failed to publish report to Jux API, queued locally \\(CACHE mode\\)",
+        ):
             pytest_sessionfinish(mock_session, 0)
 
         # Verify report was stored locally (storage creates reports/ subdir)
@@ -1217,10 +1234,15 @@ class TestAPIPublishing:
 
         # Mock API failure
         mock_client_instance = mock_api_client.return_value
-        mock_client_instance.publish_report.side_effect = Exception("Connection refused")
+        mock_client_instance.publish_report.side_effect = Exception(
+            "Connection refused"
+        )
 
         # Call sessionfinish - should save locally and warn
-        with pytest.warns(UserWarning, match="Failed to publish report to Jux API, local copy saved \\(BOTH mode\\)"):
+        with pytest.warns(
+            UserWarning,
+            match="Failed to publish report to Jux API, local copy saved \\(BOTH mode\\)",
+        ):
             pytest_sessionfinish(mock_session, 0)
 
         # Verify report was stored locally (storage creates reports/ subdir)

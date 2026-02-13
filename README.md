@@ -794,6 +794,14 @@ limitations under the License.
 
 See [LICENSE](LICENSE) for the full license text.
 
+## API Specification
+
+> **Source of Truth**: The canonical API specifications live in **[jux-openapi](https://github.com/jrjsmrtn/jux-openapi)**.
+> - OpenAPI specs: `jux-openapi/specs/v1/`
+> - API changelog: `jux-openapi/docs/CHANGELOG.md`
+
+pytest-jux v0.4.0+ is compliant with jux-openapi API v1.0.0.
+
 ## Related Projects
 
 ### Jux API Server (Separate Project)

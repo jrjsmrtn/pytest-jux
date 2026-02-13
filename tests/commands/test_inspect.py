@@ -272,9 +272,14 @@ class TestInspectCommand:
 
         # Mock load_xml to raise generic exception
         with (
-            patch.object(sys, "argv", ["jux-inspect", "-i", str(unsigned_xml), "--json"]),
+            patch.object(
+                sys, "argv", ["jux-inspect", "-i", str(unsigned_xml), "--json"]
+            ),
             patch("sys.stdout", captured_stdout),
-            patch("pytest_jux.commands.inspect.load_xml", side_effect=RuntimeError("Unexpected error")),
+            patch(
+                "pytest_jux.commands.inspect.load_xml",
+                side_effect=RuntimeError("Unexpected error"),
+            ),
         ):
             exit_code = main()
 
@@ -291,7 +296,10 @@ class TestInspectCommand:
         with (
             patch.object(sys, "argv", ["jux-inspect", "-i", str(unsigned_xml)]),
             patch("sys.stderr", captured_stderr),
-            patch("pytest_jux.commands.inspect.load_xml", side_effect=RuntimeError("Unexpected error")),
+            patch(
+                "pytest_jux.commands.inspect.load_xml",
+                side_effect=RuntimeError("Unexpected error"),
+            ),
         ):
             exit_code = main()
 

@@ -30,7 +30,6 @@ from juxlib.metadata import (
     CIInfo,
     GitInfo,
     capture_git_info,
-    capture_metadata as _juxlib_capture_metadata,
     detect_ci_provider,
     detect_project_name,
     is_ci_environment,
@@ -38,6 +37,9 @@ from juxlib.metadata import (
 )
 from juxlib.metadata import (
     EnvironmentMetadata as _JuxlibEnvironmentMetadata,
+)
+from juxlib.metadata import (
+    capture_metadata as _juxlib_capture_metadata,
 )
 
 

@@ -364,9 +364,7 @@ def main(args: list[str] | None = None) -> int:
         if parsed_args.file:
             # Single file mode
             if not parsed_args.json and not parsed_args.dry_run:
-                console.print(
-                    f"[bold]Publishing report:[/bold] {parsed_args.file}"
-                )
+                console.print(f"[bold]Publishing report:[/bold] {parsed_args.file}")
 
             success, result = publish_single_file(
                 file_path=parsed_args.file,
@@ -386,11 +384,11 @@ def main(args: list[str] | None = None) -> int:
                     print(json.dumps(json_result, indent=2))
                 elif not parsed_args.verbose:
                     if parsed_args.dry_run:
-                        console.print("[yellow]Dry run:[/yellow] Would publish 1 report")
-                    else:
                         console.print(
-                            "[green]✓[/green] Report published successfully"
+                            "[yellow]Dry run:[/yellow] Would publish 1 report"
                         )
+                    else:
+                        console.print("[green]✓[/green] Report published successfully")
                         if result.get("test_run_id"):
                             console.print(f"  Test run ID: {result['test_run_id']}")
 

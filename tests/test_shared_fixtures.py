@@ -10,17 +10,16 @@ from the local test fixtures.
 from pathlib import Path
 
 import pytest
-
-from pytest_jux.canonicalizer import canonicalize_xml, compute_canonical_hash, load_xml
-from pytest_jux.signer import load_private_key, sign_xml
-
-# Import has_signature from juxlib (not re-exported in pytest_jux)
-from juxlib.signing import has_signature
-
 from conftest import (
     KEYS_DIR,
     get_local_junit_xml_files,
 )
+
+# Import has_signature from juxlib (not re-exported in pytest_jux)
+from juxlib.signing import has_signature
+
+from pytest_jux.canonicalizer import canonicalize_xml, compute_canonical_hash, load_xml
+from pytest_jux.signer import load_private_key, sign_xml
 
 # Get fixture file lists for parametrization
 LOCAL_FILES = get_local_junit_xml_files()
@@ -110,9 +109,7 @@ class TestLocalFixtures:
         LOCAL_FILES,
         ids=lambda p: p.name if p else "none",
     )
-    def test_sign_local_fixtures(
-        self, xml_file: Path, rsa_key, rsa_cert_text
-    ) -> None:
+    def test_sign_local_fixtures(self, xml_file: Path, rsa_key, rsa_cert_text) -> None:
         """All local fixtures can be signed."""
         if not xml_file.exists():
             pytest.skip(f"Fixture not available: {xml_file}")

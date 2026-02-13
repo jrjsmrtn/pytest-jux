@@ -12,13 +12,11 @@ Note:
 """
 
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
-from lxml import etree
-
 from juxlib.signing import (
-    verify_signature as _juxlib_verify,
     verify_with_certificate,
     verify_with_public_key,
 )
+from lxml import etree
 
 # Type aliases (backward compatibility)
 PublicKeyTypes = rsa.RSAPublicKey | ec.EllipticCurvePublicKey

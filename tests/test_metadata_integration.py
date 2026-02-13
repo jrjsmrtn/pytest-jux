@@ -74,7 +74,9 @@ class TestPytestMetadataHook:
         timestamp = metadata["jux:timestamp"]
         # ISO 8601 format: 2025-10-24T12:34:56+00:00 or 2025-10-24T12:34:56.123456+00:00
         iso_pattern = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})"
-        assert re.match(iso_pattern, timestamp), f"Invalid timestamp format: {timestamp}"
+        assert re.match(iso_pattern, timestamp), (
+            f"Invalid timestamp format: {timestamp}"
+        )
 
     def test_pytest_metadata_version_format(self) -> None:
         """Test that version strings have expected format."""
@@ -87,13 +89,19 @@ class TestPytestMetadataHook:
 
         # Pytest version should be X.Y.Z format
         pytest_version = metadata["jux:pytest_version"]
-        assert re.match(r"\d+\.\d+\.\d+", pytest_version), f"Invalid pytest version: {pytest_version}"
+        assert re.match(r"\d+\.\d+\.\d+", pytest_version), (
+            f"Invalid pytest version: {pytest_version}"
+        )
 
         # pytest-jux version should be X.Y.Z format
         jux_version = metadata["jux:pytest_jux_version"]
-        assert re.match(r"\d+\.\d+\.\d+", jux_version), f"Invalid jux version: {jux_version}"
+        assert re.match(r"\d+\.\d+\.\d+", jux_version), (
+            f"Invalid jux version: {jux_version}"
+        )
 
-    def test_pytest_metadata_with_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_pytest_metadata_with_env_vars(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test that environment variables are captured with env: prefix."""
         # This test verifies that if capture_metadata() is called with env vars,
         # they get the env: prefix
@@ -124,7 +132,9 @@ class TestPytestMetadataHook:
 class TestMetadataInJUnitXML:
     """Tests for metadata appearing in JUnit XML output."""
 
-    @pytest.mark.xfail(reason="pytester plugin loading is complex - tested via hook tests instead")
+    @pytest.mark.xfail(
+        reason="pytester plugin loading is complex - tested via hook tests instead"
+    )
     def test_metadata_in_junit_xml_properties(self, pytester: pytest.Pytester) -> None:
         """Test that jux metadata appears in JUnit XML <properties> elements.
 
@@ -167,7 +177,9 @@ class TestMetadataInJUnitXML:
         assert "jux:pytest_jux_version" in prop_names
         assert "jux:timestamp" in prop_names
 
-    @pytest.mark.xfail(reason="pytester plugin loading is complex - tested via hook tests instead")
+    @pytest.mark.xfail(
+        reason="pytester plugin loading is complex - tested via hook tests instead"
+    )
     def test_user_metadata_takes_precedence(self, pytester: pytest.Pytester) -> None:
         """Test that user-provided CLI metadata takes precedence over jux metadata."""
 
@@ -181,9 +193,12 @@ class TestMetadataInJUnitXML:
         # Run with both jux metadata and user CLI metadata
         result = pytester.runpytest_inprocess(
             "--junit-xml=report.xml",
-            "--metadata", "jux:hostname", "custom-override-host",
-            "--metadata", "build_id", "12345",
-
+            "--metadata",
+            "jux:hostname",
+            "custom-override-host",
+            "--metadata",
+            "build_id",
+            "12345",
         )
         assert result.ret == 0
 
@@ -193,7 +208,10 @@ class TestMetadataInJUnitXML:
         assert properties is not None
 
         # Get property values as dict
-        props = {prop.get("name"): prop.get("value") for prop in properties.findall("property")}
+        props = {
+            prop.get("name"): prop.get("value")
+            for prop in properties.findall("property")
+        }
 
         # User-provided jux:hostname should override automatic capture
         assert props.get("jux:hostname") == "custom-override-host"
@@ -205,7 +223,9 @@ class TestMetadataInJUnitXML:
         assert "jux:timestamp" in props
         assert "jux:platform" in props
 
-    @pytest.mark.xfail(reason="pytester plugin loading is complex - tested via hook tests instead")
+    @pytest.mark.xfail(
+        reason="pytester plugin loading is complex - tested via hook tests instead"
+    )
     def test_metadata_values_not_empty(self, pytester: pytest.Pytester) -> None:
         """Test that metadata property values are not empty."""
 
@@ -218,14 +238,16 @@ class TestMetadataInJUnitXML:
 
         result = pytester.runpytest_inprocess(
             "--junit-xml=report.xml",
-
         )
         assert result.ret == 0
 
         tree = etree.parse(str(pytester.path / "report.xml"))
         properties = tree.find(".//properties")
 
-        props = {prop.get("name"): prop.get("value") for prop in properties.findall("property")}
+        props = {
+            prop.get("name"): prop.get("value")
+            for prop in properties.findall("property")
+        }
 
         # Verify jux metadata values are not None or empty
         assert props.get("jux:hostname") is not None
@@ -241,7 +263,9 @@ class TestMetadataInJUnitXML:
 class TestMetadataInSignature:
     """Tests for metadata being included in XMLDSig signature."""
 
-    @pytest.mark.xfail(reason="pytester plugin loading is complex - tested via hook tests instead")
+    @pytest.mark.xfail(
+        reason="pytester plugin loading is complex - tested via hook tests instead"
+    )
     def test_metadata_included_in_signature(
         self, pytester: pytest.Pytester, tmp_path: Path
     ) -> None:
@@ -264,7 +288,6 @@ class TestMetadataInSignature:
             "--junit-xml=report.xml",
             f"--jux-key={key_file}",
             "--jux-sign",
-
         )
         assert result.ret == 0
 
@@ -280,7 +303,10 @@ class TestMetadataInSignature:
         properties = tree.find(".//properties")
         assert properties is not None
 
-        props = {prop.get("name"): prop.get("value") for prop in properties.findall("property")}
+        props = {
+            prop.get("name"): prop.get("value")
+            for prop in properties.findall("property")
+        }
         assert "jux:hostname" in props
         assert "jux:timestamp" in props
 
@@ -288,7 +314,9 @@ class TestMetadataInSignature:
         # If we modify a metadata property, signature verification should fail
         # (This is tested in test_verifier.py)
 
-    @pytest.mark.xfail(reason="pytester plugin loading is complex - tested via hook tests instead")
+    @pytest.mark.xfail(
+        reason="pytester plugin loading is complex - tested via hook tests instead"
+    )
     def test_tampering_metadata_invalidates_signature(
         self, pytester: pytest.Pytester, tmp_path: Path
     ) -> None:
@@ -300,9 +328,18 @@ class TestMetadataInSignature:
 
         pytester.run("openssl", "genrsa", "-out", str(key_file), "2048")
         pytester.run(
-            "openssl", "req", "-new", "-x509", "-key", str(key_file),
-            "-out", str(cert_file), "-days", "365",
-            "-subj", "/CN=Test"
+            "openssl",
+            "req",
+            "-new",
+            "-x509",
+            "-key",
+            str(key_file),
+            "-out",
+            str(cert_file),
+            "-days",
+            "365",
+            "-subj",
+            "/CN=Test",
         )
 
         # Create test
@@ -319,7 +356,6 @@ class TestMetadataInSignature:
             f"--jux-key={key_file}",
             f"--jux-cert={cert_file}",
             "--jux-sign",
-
         )
         assert result.ret == 0
 
@@ -342,13 +378,17 @@ class TestMetadataInSignature:
         from pytest_jux.signer import verify_signature
 
         tampered_tree = etree.parse(str(tampered_file))
-        assert not verify_signature(tampered_tree.getroot()), "Signature should be invalid after tampering"
+        assert not verify_signature(tampered_tree.getroot()), (
+            "Signature should be invalid after tampering"
+        )
 
 
 class TestMetadataWithStorage:
     """Tests for metadata with local storage."""
 
-    @pytest.mark.xfail(reason="pytester plugin loading is complex - tested via hook tests instead")
+    @pytest.mark.xfail(
+        reason="pytester plugin loading is complex - tested via hook tests instead"
+    )
     def test_stored_report_contains_metadata(
         self, pytester: pytest.Pytester, tmp_path: Path
     ) -> None:
@@ -383,7 +423,6 @@ storage_path = {storage_path}
         # Run test
         result = pytester.runpytest_inprocess(
             "--junit-xml=report.xml",
-
         )
         assert result.ret == 0
 
@@ -403,7 +442,10 @@ storage_path = {storage_path}
         properties = stored_tree.find(".//properties")
         assert properties is not None
 
-        props = {prop.get("name"): prop.get("value") for prop in properties.findall("property")}
+        props = {
+            prop.get("name"): prop.get("value")
+            for prop in properties.findall("property")
+        }
         assert "jux:hostname" in props
         assert "jux:timestamp" in props
 
@@ -441,7 +483,10 @@ class TestBackwardCompatibility:
         # Properties exist but no jux metadata
         properties = tree.find(".//properties")
         assert properties is not None
-        props = {prop.get("name"): prop.get("value") for prop in properties.findall("property")}
+        props = {
+            prop.get("name"): prop.get("value")
+            for prop in properties.findall("property")
+        }
         assert "build_id" in props
         assert "jux:hostname" not in props  # Old reports don't have jux metadata
 
@@ -449,7 +494,9 @@ class TestBackwardCompatibility:
 class TestMetadataNamespacePrefix:
     """Tests for jux: namespace prefix usage."""
 
-    @pytest.mark.xfail(reason="pytester plugin loading is complex - tested via hook tests instead")
+    @pytest.mark.xfail(
+        reason="pytester plugin loading is complex - tested via hook tests instead"
+    )
     def test_all_jux_metadata_has_prefix(self, pytester: pytest.Pytester) -> None:
         """Test that all jux-generated metadata uses jux: prefix."""
 
@@ -462,7 +509,6 @@ class TestMetadataNamespacePrefix:
 
         result = pytester.runpytest_inprocess(
             "--junit-xml=report.xml",
-
         )
         assert result.ret == 0
 
@@ -473,15 +519,24 @@ class TestMetadataNamespacePrefix:
         prop_names = [prop.get("name") for prop in properties.findall("property")]
 
         # Find properties that look like jux metadata but don't have prefix
-        jux_related = ["hostname", "username", "platform", "python_version",
-                       "pytest_version", "pytest_jux_version", "timestamp"]
+        jux_related = [
+            "hostname",
+            "username",
+            "platform",
+            "python_version",
+            "pytest_version",
+            "pytest_jux_version",
+            "timestamp",
+        ]
 
         for name in prop_names:
             for jux_field in jux_related:
                 if jux_field in name and not name.startswith("jux:"):
                     pytest.fail(f"Jux metadata '{name}' missing 'jux:' prefix")
 
-    @pytest.mark.xfail(reason="pytester plugin loading is complex - tested via hook tests instead")
+    @pytest.mark.xfail(
+        reason="pytester plugin loading is complex - tested via hook tests instead"
+    )
     def test_jux_prefix_avoids_conflicts(self, pytester: pytest.Pytester) -> None:
         """Test that jux: prefix prevents conflicts with user metadata."""
 
@@ -495,15 +550,21 @@ class TestMetadataNamespacePrefix:
         # User provides metadata with same keys as jux (without prefix)
         result = pytester.runpytest_inprocess(
             "--junit-xml=report.xml",
-            "--metadata", "hostname", "user-provided-host",
-            "--metadata", "timestamp", "user-provided-time",
-
+            "--metadata",
+            "hostname",
+            "user-provided-host",
+            "--metadata",
+            "timestamp",
+            "user-provided-time",
         )
         assert result.ret == 0
 
         tree = etree.parse(str(pytester.path / "report.xml"))
         properties = tree.find(".//properties")
-        props = {prop.get("name"): prop.get("value") for prop in properties.findall("property")}
+        props = {
+            prop.get("name"): prop.get("value")
+            for prop in properties.findall("property")
+        }
 
         # Both should exist without conflict
         assert props.get("hostname") == "user-provided-host"  # User metadata

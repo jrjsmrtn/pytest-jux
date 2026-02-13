@@ -358,9 +358,7 @@ class TestConfigErrorPaths:
         with pytest.raises(KeyError, match="Configuration key not found"):
             config.get_source("nonexistent_key")
 
-    def test_load_from_env_invalid_value(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_load_from_env_invalid_value(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should skip invalid env var values."""
         config = ConfigurationManager()
 

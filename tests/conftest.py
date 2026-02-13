@@ -54,7 +54,7 @@ except ImportError:
     LIVE_MOCK_SERVER_AVAILABLE = False
 
 if TYPE_CHECKING:
-    from jux_mock_server.testing import LiveMockServer as LiveMockServerType
+    pass
 
 
 @pytest.fixture
@@ -193,15 +193,11 @@ def shared_fixtures_dir() -> Path:
 # =============================================================================
 
 
-
-
 def get_local_junit_xml_files() -> list[Path]:
     """Get all local JUnit XML fixture files."""
     if not JUNIT_XML_DIR.exists():
         return []
     return sorted(JUNIT_XML_DIR.glob("*.xml"))
-
-
 
 
 # =============================================================================

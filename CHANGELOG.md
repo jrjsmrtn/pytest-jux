@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-02-12
+
+### Changed
+
+- **BREAKING (internal)**: Migrated all core modules to py-juxlib shared library (Sprint 9)
+  - `metadata.py` → thin wrapper around `juxlib.metadata`
+  - `signer.py` → re-exports from `juxlib.signing`
+  - `verifier.py` → re-exports from `juxlib.signing`
+  - `canonicalizer.py` → re-exports from `juxlib.signing`
+  - `api_client.py` → re-exports from `juxlib.api`
+  - `config.py` → re-exports from `juxlib.config`
+  - `storage.py` → re-exports from `juxlib.storage`
+- Public API unchanged — all existing import paths still work
+- ~70% code reduction in migrated modules (~1,100 lines removed)
+- Single-source versioning via `importlib.metadata` (pyproject.toml is source of truth)
+
+### Added
+
+- `py-juxlib>=0.3.0` as runtime dependency
+- 16 additional tests since v0.4.3
+
+### Fixed
+
+- Version mismatch between `__init__.py` and `pyproject.toml`
+
+### Technical Details
+
+- **Sprint**: 9 (py-juxlib migration)
+- **Story Points**: 21
+- **Tests**: 439 passed, 17 skipped, 16 xfailed
+- **Dependency**: py-juxlib v0.3.0+ (errors, metadata, signing, config, storage, api)
+
 ## [0.4.3] - 2026-01-19
 
 ### Changed
@@ -642,7 +674,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.3...v0.6.0
+[0.4.3]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.3.0...v0.4.0
