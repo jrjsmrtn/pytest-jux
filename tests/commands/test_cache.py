@@ -375,10 +375,7 @@ class TestCacheCommand:
 
         # Store a valid report
         report_hash = "sha256:test1"
-        storage.store_report(
-            b"<testsuite name='test1'/>",
-            report_hash
-        )
+        storage.store_report(b"<testsuite name='test1'/>", report_hash)
 
         # Corrupt the XML file to cause read errors
         report_file = tmp_path / "reports" / f"{report_hash}.xml"

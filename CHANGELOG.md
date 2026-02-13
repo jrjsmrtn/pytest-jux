@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-02-12
+
+### Changed
+
+- **BREAKING (internal)**: Migrated all core modules to py-juxlib shared library (Sprint 9)
+  - `metadata.py` → thin wrapper around `juxlib.metadata`
+  - `signer.py` → re-exports from `juxlib.signing`
+  - `verifier.py` → re-exports from `juxlib.signing`
+  - `canonicalizer.py` → re-exports from `juxlib.signing`
+  - `api_client.py` → re-exports from `juxlib.api`
+  - `config.py` → re-exports from `juxlib.config`
+  - `storage.py` → re-exports from `juxlib.storage`
+- Public API unchanged — all existing import paths still work
+- ~70% code reduction in migrated modules (~1,100 lines removed)
+- Single-source versioning via `importlib.metadata` (pyproject.toml is source of truth)
+
+### Added
+
+- `py-juxlib>=0.3.0` as runtime dependency
+- 16 additional tests since v0.4.3
+
+### Fixed
+
+- Version mismatch between `__init__.py` and `pyproject.toml`
+
+### Technical Details
+
+- **Sprint**: 9 (py-juxlib migration)
+- **Story Points**: 21
+- **Tests**: 439 passed, 17 skipped, 16 xfailed
+- **Dependency**: py-juxlib v0.3.0+ (errors, metadata, signing, config, storage, api)
+
+## [0.4.3] - 2026-01-19
+
+### Changed
+- Requires py-juxlib v0.2.1 (breaking change in PublishResponse model)
+- Updated all code to use `response.test_run_id` instead of `response.test_run.id`
+
+### Added
+- **Sprint 8 (Integration Testing with jux-mock-server) - Complete**
+- **Integration Test Suite** (`tests/integration/`):
+  - `test_api_publishing.py` - Comprehensive API publishing integration tests
+  - Uses jux-mock-server v0.5.0 LiveMockServer for real HTTP testing
+  - Tests skip gracefully when jux-mock-server not installed
+- **TestJuxAPIClientIntegration** (4 tests):
+  - `test_publish_report_success` - Successful report publishing
+  - `test_publish_report_with_bearer_token` - Bearer token authentication
+  - `test_publish_report_server_error` - Server error handling (503)
+  - `test_publish_report_captures_xml_content` - XML content verification
+- **TestPublishCommandIntegration** (4 tests):
+  - `test_publish_single_file_success` - Single file publishing
+  - `test_publish_with_bearer_token` - CLI bearer token support
+  - `test_publish_server_error_returns_nonzero` - Error exit codes
+  - `test_publish_json_output` - JSON output format
+- **TestPluginIntegration** (3 tests):
+  - `test_plugin_publishes_on_session_finish` - Automatic publishing on session end
+  - `test_plugin_publishes_with_api_storage_mode` - API storage mode publishing
+  - `test_plugin_handles_server_error_gracefully` - Graceful error handling
+- **Test Fixtures** (`tests/conftest.py`):
+  - `live_mock_server` fixture for LiveMockServer
+  - `sample_junit_xml` fixture for test data
+  - `integration` pytest marker registered in pyproject.toml
+
+### Changed
+- Updated to py-juxlib v0.2.0 PublishResponse format (jux-openapi compliant)
+- Plugin and publish command now use `response.test_run_id` and `response.success_rate`
+
+### Tests
+- 423 tests passing (+3 from integration tests), 17 skipped, 16 xfailed
+- 11 new integration tests covering full API publishing flow
+- Integration tests require jux-mock-server v0.5.0+ (optional dev dependency)
+
+## [0.4.2] - 2026-01-19
+
+### Changed
+- Updated to py-juxlib v0.2.0 PublishResponse format (jux-openapi SubmitResponse compliant)
+- Plugin now uses `response.test_run_id` instead of `response.test_run.id`
+- Plugin now uses `response.success_rate` instead of `response.test_run.success_rate`
+- Publish command updated for new response format
+
+### Fixed
+- Compatibility with py-juxlib v0.2.0 model changes
+
 ## [0.4.1] - 2026-01-08
 
 ### Added
@@ -591,7 +674,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vulnerability reporting process established
 - Coordinated disclosure policy (90-day embargo)
 
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.3...v0.6.0
+[0.4.3]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.2.1...v0.3.0

@@ -225,13 +225,13 @@ def publish_single_file(
     try:
         response = client.publish_report(xml_content)
         result["success"] = True
-        result["test_run_id"] = response.test_run.id
+        result["test_run_id"] = response.test_run_id
         result["message"] = response.message
 
         if verbose and not json_output:
             console.print(f"  [green]✓[/green] Published: {file_path}")
-            console.print(f"    Test run ID: {response.test_run.id}")
-            console.print(f"    Success rate: {response.test_run.success_rate}%")
+            console.print(f"    Test run ID: {response.test_run_id}")
+            console.print(f"    Success rate: {response.success_rate}%")
 
         return True, result
 
@@ -302,7 +302,7 @@ def publish_queue(
         try:
             response = client.publish_report(xml_content)
             result["success"] = True
-            result["test_run_id"] = response.test_run.id
+            result["test_run_id"] = response.test_run_id
             result["message"] = response.message
             success_count += 1
 
@@ -311,7 +311,7 @@ def publish_queue(
 
             if verbose and not json_output:
                 console.print(f"  [green]✓[/green] Published: {report_hash}")
-                console.print(f"    Test run ID: {response.test_run.id}")
+                console.print(f"    Test run ID: {response.test_run_id}")
 
         except Exception as e:
             result["error"] = str(e)
@@ -364,9 +364,7 @@ def main(args: list[str] | None = None) -> int:
         if parsed_args.file:
             # Single file mode
             if not parsed_args.json and not parsed_args.dry_run:
-                console.print(
-                    f"[bold]Publishing report:[/bold] {parsed_args.file}"
-                )
+                console.print(f"[bold]Publishing report:[/bold] {parsed_args.file}")
 
             success, result = publish_single_file(
                 file_path=parsed_args.file,
@@ -386,11 +384,11 @@ def main(args: list[str] | None = None) -> int:
                     print(json.dumps(json_result, indent=2))
                 elif not parsed_args.verbose:
                     if parsed_args.dry_run:
-                        console.print("[yellow]Dry run:[/yellow] Would publish 1 report")
-                    else:
                         console.print(
-                            "[green]✓[/green] Report published successfully"
+                            "[yellow]Dry run:[/yellow] Would publish 1 report"
                         )
+                    else:
+                        console.print("[green]✓[/green] Report published successfully")
                         if result.get("test_run_id"):
                             console.print(f"  Test run ID: {result['test_run_id']}")
 

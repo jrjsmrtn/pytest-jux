@@ -238,6 +238,7 @@ class TestVerifySignature:
         key1 = generate_rsa_key(2048)
         tree = load_xml(xml_path)
         from pytest_jux.commands.keygen import generate_self_signed_cert
+
         cert_path = tmp_path / "cert.crt"
         generate_self_signed_cert(key1, cert_path)
         cert = cert_path.read_bytes()

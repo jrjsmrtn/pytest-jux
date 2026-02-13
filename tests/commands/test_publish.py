@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from pytest_jux.api_client import PublishResponse, TestRun
+from pytest_jux.api_client import PublishResponse
 from pytest_jux.commands.publish import main
 from pytest_jux.storage import ReportStorage
 
@@ -18,24 +18,15 @@ from pytest_jux.storage import ReportStorage
 # Test fixtures
 @pytest.fixture
 def mock_publish_response() -> PublishResponse:
-    """Create a mock successful publish response."""
+    """Create a mock successful publish response (jux-openapi SubmitResponse format)."""
     return PublishResponse(
+        test_run_id="550e8400-e29b-41d4-a716-446655440000",
         message="Test report submitted successfully",
-        status="success",
-        test_run=TestRun(
-            id="550e8400-e29b-41d4-a716-446655440000",
-            status="completed",
-            time=1.5,
-            errors=0,
-            branch="main",
-            project="test-project",
-            failures=0,
-            skipped=0,
-            success_rate=100.0,
-            commit_sha="abc123",
-            total_tests=10,
-            created_at="2025-01-08T12:00:00Z",
-        ),
+        test_count=10,
+        failure_count=0,
+        error_count=0,
+        skipped_count=0,
+        success_rate=100.0,
     )
 
 
@@ -74,10 +65,14 @@ class TestPublishSingleFile:
             mock_client.publish_report.return_value = mock_publish_response
             mock_client_class.return_value = mock_client
 
-            result = main([
-                "--file", str(sample_xml_file),
-                "--api-url", "http://localhost:4000/api/v1",
-            ])
+            result = main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                ]
+            )
 
         assert result == 0
         mock_client.publish_report.assert_called_once()
@@ -96,10 +91,14 @@ class TestPublishSingleFile:
             mock_client = MagicMock()
             mock_client_class.return_value = mock_client
 
-            result = main([
-                "--file", str(nonexistent),
-                "--api-url", "http://localhost:4000/api/v1",
-            ])
+            result = main(
+                [
+                    "--file",
+                    str(nonexistent),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                ]
+            )
 
         assert result == 1
         captured = capsys.readouterr()
@@ -118,10 +117,14 @@ class TestPublishSingleFile:
             )
             mock_client_class.return_value = mock_client
 
-            result = main([
-                "--file", str(sample_xml_file),
-                "--api-url", "http://localhost:4000/api/v1",
-            ])
+            result = main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                ]
+            )
 
         assert result == 1
         captured = capsys.readouterr()
@@ -137,16 +140,22 @@ class TestPublishSingleFile:
             mock_client = MagicMock()
             mock_client_class.return_value = mock_client
 
-            result = main([
-                "--file", str(sample_xml_file),
-                "--api-url", "http://localhost:4000/api/v1",
-                "--dry-run",
-            ])
+            result = main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                    "--dry-run",
+                ]
+            )
 
         assert result == 0
         mock_client.publish_report.assert_not_called()
         captured = capsys.readouterr()
-        assert "dry run" in captured.out.lower() or "would publish" in captured.out.lower()
+        assert (
+            "dry run" in captured.out.lower() or "would publish" in captured.out.lower()
+        )
 
     def test_publish_single_file_json_output(
         self,
@@ -160,11 +169,15 @@ class TestPublishSingleFile:
             mock_client.publish_report.return_value = mock_publish_response
             mock_client_class.return_value = mock_client
 
-            result = main([
-                "--file", str(sample_xml_file),
-                "--api-url", "http://localhost:4000/api/v1",
-                "--json",
-            ])
+            result = main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                    "--json",
+                ]
+            )
 
         assert result == 0
         captured = capsys.readouterr()
@@ -185,16 +198,20 @@ class TestPublishSingleFile:
             mock_client.publish_report.return_value = mock_publish_response
             mock_client_class.return_value = mock_client
 
-            result = main([
-                "--file", str(sample_xml_file),
-                "--api-url", "http://localhost:4000/api/v1",
-                "--verbose",
-            ])
+            result = main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                    "--verbose",
+                ]
+            )
 
         assert result == 0
         captured = capsys.readouterr()
         assert "Test run ID" in captured.out
-        assert mock_publish_response.test_run.id in captured.out
+        assert mock_publish_response.test_run_id in captured.out
 
 
 class TestPublishQueue:
@@ -214,10 +231,13 @@ class TestPublishQueue:
                 mock_client = MagicMock()
                 mock_client_class.return_value = mock_client
 
-                result = main([
-                    "--queue",
-                    "--api-url", "http://localhost:4000/api/v1",
-                ])
+                result = main(
+                    [
+                        "--queue",
+                        "--api-url",
+                        "http://localhost:4000/api/v1",
+                    ]
+                )
 
         assert result == 0
         captured = capsys.readouterr()
@@ -245,10 +265,13 @@ class TestPublishQueue:
                 mock_client.publish_report.return_value = mock_publish_response
                 mock_client_class.return_value = mock_client
 
-                result = main([
-                    "--queue",
-                    "--api-url", "http://localhost:4000/api/v1",
-                ])
+                result = main(
+                    [
+                        "--queue",
+                        "--api-url",
+                        "http://localhost:4000/api/v1",
+                    ]
+                )
 
         assert result == 0
         assert mock_client.publish_report.call_count == 2
@@ -285,10 +308,13 @@ class TestPublishQueue:
                 ]
                 mock_client_class.return_value = mock_client
 
-                result = main([
-                    "--queue",
-                    "--api-url", "http://localhost:4000/api/v1",
-                ])
+                result = main(
+                    [
+                        "--queue",
+                        "--api-url",
+                        "http://localhost:4000/api/v1",
+                    ]
+                )
 
         assert result == 2  # Partial success
         captured = capsys.readouterr()
@@ -317,10 +343,13 @@ class TestPublishQueue:
                 )
                 mock_client_class.return_value = mock_client
 
-                result = main([
-                    "--queue",
-                    "--api-url", "http://localhost:4000/api/v1",
-                ])
+                result = main(
+                    [
+                        "--queue",
+                        "--api-url",
+                        "http://localhost:4000/api/v1",
+                    ]
+                )
 
         assert result == 1  # All failed
         captured = capsys.readouterr()
@@ -346,11 +375,14 @@ class TestPublishQueue:
                 mock_client = MagicMock()
                 mock_client_class.return_value = mock_client
 
-                result = main([
-                    "--queue",
-                    "--api-url", "http://localhost:4000/api/v1",
-                    "--dry-run",
-                ])
+                result = main(
+                    [
+                        "--queue",
+                        "--api-url",
+                        "http://localhost:4000/api/v1",
+                        "--dry-run",
+                    ]
+                )
 
         assert result == 0
         mock_client.publish_report.assert_not_called()
@@ -378,11 +410,14 @@ class TestPublishQueue:
                 mock_client.publish_report.return_value = mock_publish_response
                 mock_client_class.return_value = mock_client
 
-                result = main([
-                    "--queue",
-                    "--api-url", "http://localhost:4000/api/v1",
-                    "--json",
-                ])
+                result = main(
+                    [
+                        "--queue",
+                        "--api-url",
+                        "http://localhost:4000/api/v1",
+                        "--json",
+                    ]
+                )
 
         assert result == 0
         captured = capsys.readouterr()
@@ -409,11 +444,15 @@ class TestPublishQueue:
             mock_client.publish_report.return_value = mock_publish_response
             mock_client_class.return_value = mock_client
 
-            result = main([
-                "--queue",
-                "--api-url", "http://localhost:4000/api/v1",
-                "--storage-path", str(custom_path),
-            ])
+            result = main(
+                [
+                    "--queue",
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                    "--storage-path",
+                    str(custom_path),
+                ]
+            )
 
         assert result == 0
         mock_client.publish_report.assert_called_once()
@@ -433,11 +472,16 @@ class TestPublishConfiguration:
             mock_client.publish_report.return_value = mock_publish_response
             mock_client_class.return_value = mock_client
 
-            main([
-                "--file", str(sample_xml_file),
-                "--api-url", "http://localhost:4000/api/v1",
-                "--bearer-token", "test-token",  # noqa: S106 - Test token
-            ])
+            main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                    "--bearer-token",
+                    "test-token",  # noqa: S106 - Test token
+                ]
+            )
 
         mock_client_class.assert_called_once()
         call_kwargs = mock_client_class.call_args[1]
@@ -454,11 +498,16 @@ class TestPublishConfiguration:
             mock_client.publish_report.return_value = mock_publish_response
             mock_client_class.return_value = mock_client
 
-            main([
-                "--file", str(sample_xml_file),
-                "--api-url", "http://localhost:4000/api/v1",
-                "--timeout", "60",
-            ])
+            main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                    "--timeout",
+                    "60",
+                ]
+            )
 
         mock_client_class.assert_called_once()
         call_kwargs = mock_client_class.call_args[1]
@@ -475,11 +524,16 @@ class TestPublishConfiguration:
             mock_client.publish_report.return_value = mock_publish_response
             mock_client_class.return_value = mock_client
 
-            main([
-                "--file", str(sample_xml_file),
-                "--api-url", "http://localhost:4000/api/v1",
-                "--max-retries", "5",
-            ])
+            main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                    "--max-retries",
+                    "5",
+                ]
+            )
 
         mock_client_class.assert_called_once()
         call_kwargs = mock_client_class.call_args[1]
@@ -503,11 +557,15 @@ class TestPublishArgParsing:
     ) -> None:
         """Should not allow both --file and --queue."""
         with pytest.raises(SystemExit) as exc_info:
-            main([
-                "--file", str(sample_xml_file),
-                "--queue",
-                "--api-url", "http://localhost:4000/api/v1",
-            ])
+            main(
+                [
+                    "--file",
+                    str(sample_xml_file),
+                    "--queue",
+                    "--api-url",
+                    "http://localhost:4000/api/v1",
+                ]
+            )
 
         assert exc_info.value.code != 0
 
@@ -540,11 +598,14 @@ class TestPublishEmptyQueueJson:
                 mock_client = MagicMock()
                 mock_client_class.return_value = mock_client
 
-                result = main([
-                    "--queue",
-                    "--api-url", "http://localhost:4000/api/v1",
-                    "--json",
-                ])
+                result = main(
+                    [
+                        "--queue",
+                        "--api-url",
+                        "http://localhost:4000/api/v1",
+                        "--json",
+                    ]
+                )
 
         assert result == 0
         captured = capsys.readouterr()

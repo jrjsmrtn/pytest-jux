@@ -335,11 +335,15 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
 
         # Publish to API if configured
         # Publish for API, BOTH, and CACHE modes
-        should_publish_to_api = (jux_publish or storage_mode in [
-            StorageMode.API,
-            StorageMode.BOTH,
-            StorageMode.CACHE,
-        ]) and api_url
+        should_publish_to_api = (
+            jux_publish
+            or storage_mode
+            in [
+                StorageMode.API,
+                StorageMode.BOTH,
+                StorageMode.CACHE,
+            ]
+        ) and api_url
 
         if should_publish_to_api:
             # Type narrowing: api_url must be str at this point (checked in should_publish_to_api)
@@ -366,9 +370,10 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
 
                 # Log success (visible in pytest output)
                 import warnings
+
                 warnings.warn(
-                    f"Report published to Jux API: test_run_id={response.test_run.id}, "
-                    f"success_rate={response.test_run.success_rate}%",
+                    f"Report published to Jux API: test_run_id={response.test_run_id}, "
+                    f"success_rate={response.success_rate}%",
                     stacklevel=2,
                 )
 
@@ -377,6 +382,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 if storage_mode == StorageMode.API:
                     # API mode: fail if API publishing fails
                     import warnings
+
                     warnings.warn(
                         f"Failed to publish report to Jux API (API mode): {api_error}",
                         stacklevel=2,
@@ -384,6 +390,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 elif storage_mode == StorageMode.CACHE:
                     # CACHE mode: queue for later (graceful degradation)
                     import warnings
+
                     warnings.warn(
                         f"Failed to publish report to Jux API, queued locally (CACHE mode): {api_error}",
                         stacklevel=2,
@@ -392,6 +399,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 else:
                     # BOTH mode: warn but continue (local copy exists)
                     import warnings
+
                     warnings.warn(
                         f"Failed to publish report to Jux API, local copy saved (BOTH mode): {api_error}",
                         stacklevel=2,

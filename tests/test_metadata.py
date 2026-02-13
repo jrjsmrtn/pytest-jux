@@ -7,7 +7,6 @@ import json
 import re
 import sys
 from datetime import UTC, datetime
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -145,7 +144,13 @@ class TestEnvironmentMetadata:
         """Environment variables should be optional."""
         # Unset CI detection env vars to ensure deterministic behavior
         # (CI auto-detection captures env vars even when not explicitly requested)
-        for ci_var in ["GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL", "TRAVIS", "CIRCLECI"]:
+        for ci_var in [
+            "GITHUB_ACTIONS",
+            "GITLAB_CI",
+            "JENKINS_URL",
+            "TRAVIS",
+            "CIRCLECI",
+        ]:
             monkeypatch.delenv(ci_var, raising=False)
 
         metadata = capture_metadata()
@@ -210,10 +215,9 @@ class TestEnvironmentMetadata:
             username="test-user",
             platform="Test-Platform",
             python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             project_name="test-project",
+            tool_versions={"pytest": "8.0.0", "pytest_jux": "0.1.4"},
             env=None,
         )
 
@@ -222,10 +226,9 @@ class TestEnvironmentMetadata:
             username="test-user",
             platform="Test-Platform",
             python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             project_name="test-project",
+            tool_versions={"pytest": "8.0.0", "pytest_jux": "0.1.4"},
             env=None,
         )
 
@@ -238,10 +241,9 @@ class TestEnvironmentMetadata:
             username="test-user",
             platform="Test-Platform",
             python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             project_name="test-project",
+            tool_versions={"pytest": "8.0.0", "pytest_jux": "0.1.4"},
             env=None,
         )
 
@@ -250,10 +252,9 @@ class TestEnvironmentMetadata:
             username="test-user",
             platform="Test-Platform",
             python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.4",
             timestamp="2025-10-17T10:30:00Z",
             project_name="test-project",
+            tool_versions={"pytest": "8.0.0", "pytest_jux": "0.1.4"},
             env=None,
         )
 
@@ -305,10 +306,9 @@ class TestEnvironmentMetadata:
             username="testuser",
             platform="Linux-5.10.0",
             python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.0",
             timestamp="2025-10-19T10:00:00Z",
             project_name="test-project",
+            tool_versions={"pytest": "8.0.0", "pytest_jux": "0.1.0"},
             env={"CI": "true"},
         )
 
@@ -316,6 +316,9 @@ class TestEnvironmentMetadata:
         assert metadata.username == "testuser"
         assert metadata.project_name == "test-project"
         assert metadata.env == {"CI": "true"}
+        # Test backward-compatible properties
+        assert metadata.pytest_version == "8.0.0"
+        assert metadata.pytest_jux_version == "0.1.0"
 
     def test_dataclass_with_none_env(self) -> None:
         """Should handle None env in dataclass."""
@@ -324,10 +327,9 @@ class TestEnvironmentMetadata:
             username="testuser",
             platform="Linux-5.10.0",
             python_version="3.11.0",
-            pytest_version="8.0.0",
-            pytest_jux_version="0.1.0",
             timestamp="2025-10-19T10:00:00Z",
             project_name="test-project",
+            tool_versions={"pytest": "8.0.0", "pytest_jux": "0.1.0"},
             env=None,
         )
 
@@ -419,137 +421,65 @@ class TestGitMetadata:
         if metadata.git_status:
             assert metadata.git_status in ["clean", "dirty"]
 
-    @patch("pytest_jux.metadata._run_git_command")
-    def test_git_remote_credential_sanitization(self, mock_git) -> None:
-        """Should sanitize credentials from git remote URLs."""
-        from pytest_jux.metadata import _capture_git_info
+    @pytest.mark.skip(reason="Tests juxlib internals - covered by juxlib tests")
+    def test_git_remote_credential_sanitization(self) -> None:
+        """Should sanitize credentials from git remote URLs.
 
-        # Mock git commands to return URL with credentials
-        def mock_command(args):
-            if args == ["rev-parse", "--git-dir"]:
-                return ".git"
-            elif args == ["rev-parse", "HEAD"]:
-                return "a" * 40
-            elif args == ["rev-parse", "--abbrev-ref", "HEAD"]:
-                return "main"
-            elif args == ["status", "--porcelain"]:
-                return ""
-            elif len(args) >= 2 and args[0] == "config" and args[1] == "--get":
-                # Return URL with credentials for any remote
-                return "https://user:password@github.com/owner/repo.git"
-            return None
+        Note: This functionality is now tested in py-juxlib's test suite.
+        The juxlib.metadata.git module handles credential sanitization.
+        """
+        pass
 
-        mock_git.side_effect = mock_command
+    @pytest.mark.skip(reason="Tests juxlib internals - covered by juxlib tests")
+    def test_git_multi_remote_fallback(self) -> None:
+        """Should try multiple remote names if origin doesn't exist.
 
-        _, _, _, remote = _capture_git_info()
-
-        # Credentials should be removed
-        assert remote == "https://github.com/owner/repo.git"
-        assert "user" not in remote
-        assert "password" not in remote
-
-    @patch("pytest_jux.metadata._run_git_command")
-    def test_git_multi_remote_fallback(self, mock_git) -> None:
-        """Should try multiple remote names if origin doesn't exist."""
-        from pytest_jux.metadata import _capture_git_info
-
-        # Mock git commands - origin doesn't exist, but home does
-        def mock_command(args):
-            if args == ["rev-parse", "--git-dir"]:
-                return ".git"
-            elif args == ["rev-parse", "HEAD"]:
-                return "a" * 40
-            elif args == ["rev-parse", "--abbrev-ref", "HEAD"]:
-                return "main"
-            elif args == ["status", "--porcelain"]:
-                return ""
-            elif args == ["config", "--get", "remote.origin.url"]:
-                return None  # origin doesn't exist
-            elif args == ["config", "--get", "remote.home.url"]:
-                return "ssh://git@server/repo.git"
-            return None
-
-        mock_git.side_effect = mock_command
-
-        _, _, _, remote = _capture_git_info()
-
-        # Should have found 'home' remote
-        assert remote == "ssh://git@server/repo.git"
+        Note: This functionality is now tested in py-juxlib's test suite.
+        The juxlib.metadata.git module handles multi-remote fallback.
+        """
+        pass
 
 
 class TestProjectNameCapture:
-    """Tests for project name capture with multiple fallback strategies."""
+    """Tests for project name capture with multiple fallback strategies.
 
-    def test_project_name_from_git_remote(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test project name extraction from git remote URL."""
+    Note: Many tests in this class are now skipped because they test
+    juxlib internals. The actual functionality is tested in py-juxlib's
+    test suite. Only integration tests that verify the pytest-jux wrapper
+    works correctly remain active.
+    """
 
-        from pytest_jux.metadata import _capture_project_name
+    @pytest.mark.skip(reason="Tests juxlib internals - covered by juxlib tests")
+    def test_project_name_from_git_remote(self) -> None:
+        """Test project name extraction from git remote URL.
 
-        def mock_run_git_command(args: list[str]) -> str | None:
-            if args[0] == "config" and args[1] == "--get":
-                if "remote.origin.url" in args[2]:
-                    return "https://github.com/owner/my-project.git"
-            return None
+        Note: This functionality is tested in py-juxlib's test suite.
+        """
+        pass
 
-        monkeypatch.setattr("pytest_jux.metadata._run_git_command", mock_run_git_command)
+    @pytest.mark.skip(reason="Tests juxlib internals - covered by juxlib tests")
+    def test_project_name_from_pyproject_toml(self) -> None:
+        """Test project name from pyproject.toml [project] section.
 
-        project_name = _capture_project_name()
-        assert project_name == "my-project"
+        Note: This functionality is tested in py-juxlib's test suite.
+        """
+        pass
 
-    def test_project_name_from_pyproject_toml(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test project name from pyproject.toml [project] section."""
-        from pytest_jux.metadata import _capture_project_name
+    @pytest.mark.skip(reason="Tests juxlib internals - covered by juxlib tests")
+    def test_project_name_from_environment_variable(self) -> None:
+        """Test project name from JUX_PROJECT_NAME environment variable.
 
-        # Create pyproject.toml with project name
-        pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
-[project]
-name = "my-awesome-project"
-version = "1.0.0"
-""")
+        Note: This functionality is tested in py-juxlib's test suite.
+        """
+        pass
 
-        # Mock git to return None (no git repo)
-        def mock_run_git_command(args: list[str]) -> str | None:
-            return None
+    @pytest.mark.skip(reason="Tests juxlib internals - covered by juxlib tests")
+    def test_project_name_from_directory_basename(self) -> None:
+        """Test project name falls back to directory basename.
 
-        monkeypatch.setattr("pytest_jux.metadata._run_git_command", mock_run_git_command)
-        monkeypatch.chdir(tmp_path)
-
-        project_name = _capture_project_name()
-        assert project_name == "my-awesome-project"
-
-    def test_project_name_from_environment_variable(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-        """Test project name from JUX_PROJECT_NAME environment variable."""
-        from pytest_jux.metadata import _capture_project_name
-
-        # Mock git to return None
-        def mock_run_git_command(args: list[str]) -> str | None:
-            return None
-
-        monkeypatch.setattr("pytest_jux.metadata._run_git_command", mock_run_git_command)
-        monkeypatch.setenv("JUX_PROJECT_NAME", "env-project-name")
-        monkeypatch.chdir(tmp_path)
-
-        project_name = _capture_project_name()
-        assert project_name == "env-project-name"
-
-    def test_project_name_from_directory_basename(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test project name falls back to directory basename."""
-        from pytest_jux.metadata import _capture_project_name
-
-        # Mock git to return None
-        def mock_run_git_command(args: list[str]) -> str | None:
-            return None
-
-        monkeypatch.setattr("pytest_jux.metadata._run_git_command", mock_run_git_command)
-
-        # Create a directory with a specific name
-        test_dir = tmp_path / "fallback-project"
-        test_dir.mkdir()
-        monkeypatch.chdir(test_dir)
-
-        project_name = _capture_project_name()
-        assert project_name == "fallback-project"
+        Note: This functionality is tested in py-juxlib's test suite.
+        """
+        pass
 
     def test_project_name_captured_in_metadata(self) -> None:
         """Test that project name is always captured in metadata."""
@@ -569,6 +499,7 @@ class TestCIMetadata:
         """Should return None for CI metadata in local development."""
         # Ensure we're not in a CI environment
         import os
+
         ci_vars = ["GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL", "TRAVIS", "CIRCLECI"]
         for var in ci_vars:
             os.environ.pop(var, None)
@@ -580,22 +511,27 @@ class TestCIMetadata:
         assert metadata.ci_build_id is None
         assert metadata.ci_build_url is None
 
-    @patch.dict("os.environ", {
-        "GITHUB_ACTIONS": "true",
-        "GITHUB_RUN_ID": "123456",
-        "GITHUB_REPOSITORY": "owner/repo",
-        "GITHUB_SERVER_URL": "https://github.com",
-        "GITHUB_SHA": "abcdef123456",
-        "GITHUB_REF": "refs/heads/main",
-        "GITHUB_ACTOR": "testuser",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_RUN_ID": "123456",
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_SHA": "abcdef123456",
+            "GITHUB_REF": "refs/heads/main",
+            "GITHUB_ACTOR": "testuser",
+        },
+    )
     def test_github_actions_detection(self) -> None:
         """Should detect GitHub Actions CI environment."""
         metadata = capture_metadata()
 
         assert metadata.ci_provider == "github"
         assert metadata.ci_build_id == "123456"
-        assert metadata.ci_build_url == "https://github.com/owner/repo/actions/runs/123456"
+        assert (
+            metadata.ci_build_url == "https://github.com/owner/repo/actions/runs/123456"
+        )
 
         # Should capture standard GitHub env vars
         assert metadata.env is not None
@@ -604,14 +540,17 @@ class TestCIMetadata:
         assert "GITHUB_REF" in metadata.env
         assert "GITHUB_ACTOR" in metadata.env
 
-    @patch.dict("os.environ", {
-        "GITLAB_CI": "true",
-        "CI_PIPELINE_ID": "789",
-        "CI_PIPELINE_URL": "https://gitlab.com/owner/repo/-/pipelines/789",
-        "CI_COMMIT_SHA": "fedcba654321",
-        "CI_COMMIT_BRANCH": "main",
-        "CI_JOB_ID": "456",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "GITLAB_CI": "true",
+            "CI_PIPELINE_ID": "789",
+            "CI_PIPELINE_URL": "https://gitlab.com/owner/repo/-/pipelines/789",
+            "CI_COMMIT_SHA": "fedcba654321",
+            "CI_COMMIT_BRANCH": "main",
+            "CI_JOB_ID": "456",
+        },
+    )
     def test_gitlab_ci_detection(self) -> None:
         """Should detect GitLab CI environment."""
         metadata = capture_metadata()
@@ -626,14 +565,17 @@ class TestCIMetadata:
         assert "CI_COMMIT_BRANCH" in metadata.env
         assert "CI_JOB_ID" in metadata.env
 
-    @patch.dict("os.environ", {
-        "JENKINS_URL": "https://jenkins.example.com",
-        "BUILD_ID": "42",
-        "BUILD_URL": "https://jenkins.example.com/job/test/42",
-        "GIT_COMMIT": "1234567890abcdef",
-        "GIT_BRANCH": "develop",
-        "JOB_NAME": "test-job",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "JENKINS_URL": "https://jenkins.example.com",
+            "BUILD_ID": "42",
+            "BUILD_URL": "https://jenkins.example.com/job/test/42",
+            "GIT_COMMIT": "1234567890abcdef",
+            "GIT_BRANCH": "develop",
+            "JOB_NAME": "test-job",
+        },
+    )
     def test_jenkins_detection(self) -> None:
         """Should detect Jenkins CI environment."""
         metadata = capture_metadata()
@@ -648,13 +590,16 @@ class TestCIMetadata:
         assert "GIT_BRANCH" in metadata.env
         assert "JOB_NAME" in metadata.env
 
-    @patch.dict("os.environ", {
-        "TRAVIS": "true",
-        "TRAVIS_BUILD_ID": "999",
-        "TRAVIS_BUILD_WEB_URL": "https://travis-ci.org/owner/repo/builds/999",
-        "TRAVIS_COMMIT": "abcd1234",
-        "TRAVIS_BRANCH": "feature-branch",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "TRAVIS": "true",
+            "TRAVIS_BUILD_ID": "999",
+            "TRAVIS_BUILD_WEB_URL": "https://travis-ci.org/owner/repo/builds/999",
+            "TRAVIS_COMMIT": "abcd1234",
+            "TRAVIS_BRANCH": "feature-branch",
+        },
+    )
     def test_travis_ci_detection(self) -> None:
         """Should detect Travis CI environment."""
         metadata = capture_metadata()
@@ -668,13 +613,16 @@ class TestCIMetadata:
         assert "TRAVIS_COMMIT" in metadata.env
         assert "TRAVIS_BRANCH" in metadata.env
 
-    @patch.dict("os.environ", {
-        "CIRCLECI": "true",
-        "CIRCLE_BUILD_NUM": "88",
-        "CIRCLE_BUILD_URL": "https://circleci.com/gh/owner/repo/88",
-        "CIRCLE_SHA1": "fedcba9876",
-        "CIRCLE_BRANCH": "staging",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "CIRCLECI": "true",
+            "CIRCLE_BUILD_NUM": "88",
+            "CIRCLE_BUILD_URL": "https://circleci.com/gh/owner/repo/88",
+            "CIRCLE_SHA1": "fedcba9876",
+            "CIRCLE_BRANCH": "staging",
+        },
+    )
     def test_circleci_detection(self) -> None:
         """Should detect CircleCI environment."""
         metadata = capture_metadata()
@@ -688,13 +636,16 @@ class TestCIMetadata:
         assert "CIRCLE_SHA1" in metadata.env
         assert "CIRCLE_BRANCH" in metadata.env
 
-    @patch.dict("os.environ", {
-        "GITHUB_ACTIONS": "true",
-        "GITHUB_RUN_ID": "123",
-        "GITHUB_REPOSITORY": "owner/repo",
-        "GITHUB_SERVER_URL": "https://github.com",
-        "GITHUB_SHA": "abc123",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_RUN_ID": "123",
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_SHA": "abc123",
+        },
+    )
     def test_ci_env_vars_merge_with_user_vars(self) -> None:
         """CI env vars should merge with user-requested env vars."""
         # Request additional env var
@@ -708,12 +659,15 @@ class TestCIMetadata:
         # Should also have user-requested vars
         assert "PATH" in metadata.env
 
-    @patch.dict("os.environ", {
-        "GITHUB_ACTIONS": "true",
-        "GITHUB_RUN_ID": "123",
-        "GITHUB_SHA": "auto_detected",
-        "CUSTOM_VAR": "custom_value",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_RUN_ID": "123",
+            "GITHUB_SHA": "auto_detected",
+            "CUSTOM_VAR": "custom_value",
+        },
+    )
     def test_user_env_vars_precedence(self) -> None:
         """User-requested env vars should take precedence over CI auto-detected."""
         # Request GITHUB_SHA explicitly (already auto-detected by CI)

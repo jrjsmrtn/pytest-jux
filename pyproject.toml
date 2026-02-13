@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytest-jux"
-version = "0.4.1"
+version = "0.6.0"
 description = "A pytest plugin for signing and publishing JUnit XML test reports to the Jux REST API"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -36,8 +36,8 @@ classifiers = [
 ]
 
 dependencies = [
+    "py-juxlib>=0.3.0",
     "lxml>=5.0",
-    "xmlschema>=2.5",
     "signxml>=3.2",
     "cryptography>=41.0",
     "pytest>=7.4",
@@ -116,6 +116,7 @@ pythonpath = ["."]
 markers = [
     "security: security-focused tests",
     "slow: slow-running tests",
+    "integration: integration tests requiring jux-mock-server",
 ]
 
 [tool.coverage.run]

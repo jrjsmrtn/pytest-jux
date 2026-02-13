@@ -104,26 +104,17 @@ class TestJuxAPIClient:
         self, client: JuxAPIClient, signed_xml: str
     ) -> None:
         """Test successful report publishing (201 Created)."""
-        # Mock API response (Jux API v1.0.0 format)
+        # Mock API response (jux-openapi SubmitResponse format)
         responses.post(
             "http://localhost:4000/api/v1/junit/submit",
             json={
+                "test_run_id": "550e8400-e29b-41d4-a716-446655440000",
                 "message": "Test report submitted successfully",
-                "status": "success",
-                "test_run": {
-                    "id": "550e8400-e29b-41d4-a716-446655440000",
-                    "status": "completed",
-                    "time": 5.5,
-                    "errors": 1,
-                    "branch": "main",
-                    "project": "my-application",
-                    "failures": 2,
-                    "skipped": 0,
-                    "success_rate": 70.0,
-                    "commit_sha": "abc123def456",
-                    "total_tests": 10,
-                    "created_at": "2025-10-25T00:00:00.000000Z",
-                },
+                "test_count": 10,
+                "failure_count": 2,
+                "error_count": 1,
+                "skipped_count": 0,
+                "success_rate": 70.0,
             },
             status=201,
         )
@@ -134,19 +125,19 @@ class TestJuxAPIClient:
         # Verify response
         assert isinstance(response, PublishResponse)
         assert response.message == "Test report submitted successfully"
-        assert response.status == "success"
-        assert response.test_run.id == "550e8400-e29b-41d4-a716-446655440000"
-        assert response.test_run.total_tests == 10
-        assert response.test_run.failures == 2
-        assert response.test_run.errors == 1
-        assert response.test_run.skipped == 0
-        assert response.test_run.success_rate == 70.0
-        assert response.test_run.project == "my-application"
-        assert response.test_run.branch == "main"
+        assert response.test_run_id == "550e8400-e29b-41d4-a716-446655440000"
+        assert response.test_count == 10
+        assert response.failure_count == 2
+        assert response.error_count == 1
+        assert response.skipped_count == 0
+        assert response.success_rate == 70.0
 
         # Verify request
         assert len(responses.calls) == 1
-        assert responses.calls[0].request.url == "http://localhost:4000/api/v1/junit/submit"
+        assert (
+            responses.calls[0].request.url
+            == "http://localhost:4000/api/v1/junit/submit"
+        )
         assert responses.calls[0].request.headers["Content-Type"] == "application/xml"
         assert responses.calls[0].request.body.decode("utf-8") == signed_xml
 
@@ -158,31 +149,25 @@ class TestJuxAPIClient:
         responses.post(
             "http://localhost:4000/api/v1/junit/submit",
             json={
+                "test_run_id": "550e8400-e29b-41d4-a716-446655440000",
                 "message": "Test report submitted successfully",
-                "status": "success",
-                "test_run": {
-                    "id": "550e8400-e29b-41d4-a716-446655440000",
-                    "status": "completed",
-                    "time": 5.5,
-                    "errors": 1,
-                    "branch": "main",
-                    "project": "my-application",
-                    "failures": 2,
-                    "skipped": 0,
-                    "success_rate": 70.0,
-                    "commit_sha": None,
-                    "total_tests": 10,
-                    "created_at": "2025-10-25T00:00:00.000000Z",
-                },
+                "test_count": 10,
+                "failure_count": 2,
+                "error_count": 1,
+                "skipped_count": 0,
+                "success_rate": 70.0,
             },
             status=201,
         )
 
         response = authenticated_client.publish_report(signed_xml)
 
-        assert response.test_run.id == "550e8400-e29b-41d4-a716-446655440000"
+        assert response.test_run_id == "550e8400-e29b-41d4-a716-446655440000"
         # Verify Bearer token sent
-        assert responses.calls[0].request.headers["Authorization"] == f"Bearer {bearer_token}"
+        assert (
+            responses.calls[0].request.headers["Authorization"]
+            == f"Bearer {bearer_token}"
+        )
 
     @responses.activate
     def test_publish_report_400_bad_request(
@@ -193,7 +178,9 @@ class TestJuxAPIClient:
             "http://localhost:4000/api/v1/junit/submit",
             json={
                 "error": "Invalid JUnit XML",
-                "details": {"message": "Request body is empty or missing required data"},
+                "details": {
+                    "message": "Request body is empty or missing required data"
+                },
                 "suggestions": ["Ensure request body contains valid JUnit XML"],
             },
             status=400,
@@ -270,29 +257,20 @@ class TestJuxAPIClient:
         responses.post(
             "http://localhost:4000/api/v1/junit/submit",
             json={
+                "test_run_id": "550e8400-e29b-41d4-a716-446655440000",
                 "message": "Test report submitted successfully",
-                "status": "success",
-                "test_run": {
-                    "id": "550e8400-e29b-41d4-a716-446655440000",
-                    "status": "completed",
-                    "time": None,
-                    "errors": 0,
-                    "branch": "main",
-                    "project": "my-application",
-                    "failures": 0,
-                    "skipped": 0,
-                    "success_rate": 100.0,
-                    "commit_sha": None,
-                    "total_tests": 10,
-                    "created_at": "2025-10-25T00:00:00.000000Z",
-                },
+                "test_count": 10,
+                "failure_count": 0,
+                "error_count": 0,
+                "skipped_count": 0,
+                "success_rate": 100.0,
             },
             status=201,
         )
 
         # Should succeed after retries
         response = client.publish_report(signed_xml)
-        assert response.test_run.id == "550e8400-e29b-41d4-a716-446655440000"
+        assert response.test_run_id == "550e8400-e29b-41d4-a716-446655440000"
         # Verify retry happened (3 requests total)
         assert len(responses.calls) == 3
 

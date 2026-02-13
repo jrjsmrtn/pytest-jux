@@ -72,9 +72,7 @@ def extract_code_blocks(markdown_file: Path) -> list[CodeBlock]:
             in_code_block = False
             code = "\n".join(code_lines)
             if code.strip():  # Only include non-empty blocks
-                code_blocks.append(
-                    CodeBlock(language, code, markdown_file, start_line)
-                )
+                code_blocks.append(CodeBlock(language, code, markdown_file, start_line))
             language = None
             code_lines = []
         # Collect code lines
@@ -298,7 +296,9 @@ Examples:
         help="Path to documentation directory or file (default: docs/)",
     )
     parser.add_argument(
-        "--dry-run", action="store_true", help="Show what would be tested without executing"
+        "--dry-run",
+        action="store_true",
+        help="Show what would be tested without executing",
     )
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Show detailed output"
@@ -323,7 +323,9 @@ Examples:
         print(f"{YELLOW}Warning:{RESET} No Markdown files found in {docs_path}")
         return 0
 
-    print(f"{BLUE}Testing code examples in {len(markdown_files)} Markdown files...{RESET}\n")
+    print(
+        f"{BLUE}Testing code examples in {len(markdown_files)} Markdown files...{RESET}\n"
+    )
 
     total_blocks = 0
     tested_blocks = 0
@@ -347,7 +349,9 @@ Examples:
 
         for block in file_blocks:
             if args.dry_run:
-                print(f"  Would test: {block.language} block at line {block.line_number}")
+                print(
+                    f"  Would test: {block.language} block at line {block.line_number}"
+                )
                 tested_blocks += 1
                 continue
 

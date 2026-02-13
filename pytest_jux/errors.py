@@ -437,7 +437,9 @@ class ReportNotFoundError(JuxError):
 class InvalidArgumentError(JuxError):
     """Invalid command-line argument error."""
 
-    def __init__(self, argument: str, reason: str, valid_values: list[str] | None = None):
+    def __init__(
+        self, argument: str, reason: str, valid_values: list[str] | None = None
+    ):
         """Initialize invalid argument error.
 
         Args:

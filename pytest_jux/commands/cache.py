@@ -153,7 +153,9 @@ def cmd_show(args: argparse.Namespace) -> int:
             print(f"  Timestamp:      {metadata.get('jux:timestamp', 'N/A')}")
 
             # Show environment variables (jux:env: prefix)
-            env_vars = {k[8:]: v for k, v in metadata.items() if k.startswith("jux:env:")}
+            env_vars = {
+                k[8:]: v for k, v in metadata.items() if k.startswith("jux:env:")
+            }
             if env_vars:
                 print("  Environment:")
                 for key, value in env_vars.items():

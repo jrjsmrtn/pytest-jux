@@ -322,7 +322,14 @@ class TestVerifyCommand:
             patch.object(
                 sys,
                 "argv",
-                ["jux-verify", "-i", "/nonexistent.xml", "--cert", str(cert_path), "--json"],
+                [
+                    "jux-verify",
+                    "-i",
+                    "/nonexistent.xml",
+                    "--cert",
+                    str(cert_path),
+                    "--json",
+                ],
             ),
             patch("sys.stdout", captured_stdout),
         ):
@@ -340,7 +347,14 @@ class TestVerifyCommand:
             patch.object(
                 sys,
                 "argv",
-                ["jux-verify", "-i", str(signed_path), "--cert", "/nonexistent.crt", "--json"],
+                [
+                    "jux-verify",
+                    "-i",
+                    str(signed_path),
+                    "--cert",
+                    "/nonexistent.crt",
+                    "--json",
+                ],
             ),
             patch("sys.stdout", captured_stdout),
         ):
@@ -419,7 +433,15 @@ class TestVerifyCommand:
             patch.object(
                 sys,
                 "argv",
-                ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "-q", "--json"],
+                [
+                    "jux-verify",
+                    "-i",
+                    str(signed_path),
+                    "--cert",
+                    str(cert_path),
+                    "-q",
+                    "--json",
+                ],
             ),
             patch("sys.stdout", captured_stdout),
         ):
@@ -441,10 +463,20 @@ class TestVerifyCommand:
             patch.object(
                 sys,
                 "argv",
-                ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "--json"],
+                [
+                    "jux-verify",
+                    "-i",
+                    str(signed_path),
+                    "--cert",
+                    str(cert_path),
+                    "--json",
+                ],
             ),
             patch("sys.stdout", captured_stdout),
-            patch("pytest_jux.commands.verify.load_xml", side_effect=RuntimeError("Unexpected error")),
+            patch(
+                "pytest_jux.commands.verify.load_xml",
+                side_effect=RuntimeError("Unexpected error"),
+            ),
         ):
             exit_code = main()
 
@@ -467,7 +499,10 @@ class TestVerifyCommand:
                 ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path), "-q"],
             ),
             patch("sys.stderr", captured_stderr),
-            patch("pytest_jux.commands.verify.load_xml", side_effect=RuntimeError("Unexpected error")),
+            patch(
+                "pytest_jux.commands.verify.load_xml",
+                side_effect=RuntimeError("Unexpected error"),
+            ),
         ):
             exit_code = main()
 
@@ -476,7 +511,9 @@ class TestVerifyCommand:
         output = captured_stderr.getvalue()
         assert output == ""
 
-    def test_generic_exception_normal_output(self, signed_xml: tuple[Path, Path]) -> None:
+    def test_generic_exception_normal_output(
+        self, signed_xml: tuple[Path, Path]
+    ) -> None:
         """Test generic exception handling with normal output."""
         signed_path, cert_path = signed_xml
 
@@ -490,7 +527,10 @@ class TestVerifyCommand:
                 ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path)],
             ),
             patch("sys.stderr", captured_stderr),
-            patch("pytest_jux.commands.verify.load_xml", side_effect=RuntimeError("Unexpected error")),
+            patch(
+                "pytest_jux.commands.verify.load_xml",
+                side_effect=RuntimeError("Unexpected error"),
+            ),
         ):
             exit_code = main()
 
@@ -542,7 +582,14 @@ class TestVerifyCommand:
             patch.object(
                 sys,
                 "argv",
-                ["jux-verify", "-i", str(bad_xml_path), "--cert", str(cert_path), "--json"],
+                [
+                    "jux-verify",
+                    "-i",
+                    str(bad_xml_path),
+                    "--cert",
+                    str(cert_path),
+                    "--json",
+                ],
             ),
             patch("sys.stdout", captured_stdout),
         ):
@@ -682,7 +729,9 @@ class TestVerifyCommand:
 
         assert exit_code == 1
 
-    def test_generic_exception_in_debug_mode(self, signed_xml: tuple[Path, Path]) -> None:
+    def test_generic_exception_in_debug_mode(
+        self, signed_xml: tuple[Path, Path]
+    ) -> None:
         """Test that generic exceptions are re-raised in debug mode."""
         signed_path, cert_path = signed_xml
 
@@ -693,7 +742,10 @@ class TestVerifyCommand:
                 "argv",
                 ["jux-verify", "-i", str(signed_path), "--cert", str(cert_path)],
             ),
-            patch("pytest_jux.commands.verify.load_xml", side_effect=RuntimeError("Unexpected error")),
+            patch(
+                "pytest_jux.commands.verify.load_xml",
+                side_effect=RuntimeError("Unexpected error"),
+            ),
             patch.dict("os.environ", {"JUX_DEBUG": "1"}),
         ):
             with pytest.raises(RuntimeError, match="Unexpected error"):
