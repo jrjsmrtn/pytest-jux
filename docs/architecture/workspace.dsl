@@ -1,3 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Georges Martin <jrjsmrtn@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+
+/*
+ * pytest-jux Architecture (C4 Model)
+ *
+ * Client-side pytest plugin for signing and publishing JUnit XML test reports.
+ * Since Sprint 9, most modules are thin wrappers re-exporting from py-juxlib.
+ *
+ * Version: 0.6.0
+ */
+
 workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUnit XML test reports" {
 
     model {
@@ -7,48 +19,38 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
 
         # External Systems
         pytest = softwareSystem "pytest" "Python testing framework that executes tests and generates JUnit XML reports" "External System"
-
+        pyJuxlib = softwareSystem "py-juxlib" "Shared client library: metadata, signing, config, storage, API" "External System"
         juxApiServer = softwareSystem "Jux API Server" "Server-side backend for receiving, verifying, and storing signed test reports" "External System"
-
         cicdPipeline = softwareSystem "CI/CD Pipeline" "Continuous integration system (GitHub Actions, GitLab CI, Jenkins)" "External System"
 
         # pytest-jux System
         pytestJux = softwareSystem "pytest-jux" "Client-side pytest plugin for signing and publishing JUnit XML test reports" {
 
-            # Containers (runtime components)
             pytestPlugin = container "pytest Plugin" "pytest hook integration for automated report processing" "Python 3.11+" "Plugin" {
-                # Core Components
-                pluginHooks = component "Plugin Hooks" "pytest hook implementations (pytest_sessionfinish)" "Python module (plugin.py)"
+                pluginHooks = component "Plugin Hooks" "pytest hook implementations (addoption, configure, metadata, sessionfinish)" "Python module (plugin.py)"
+                signer = component "XML Signer" "Re-exports sign_xml(), load_private_key() from py-juxlib" "Python module (signer.py)"
+                verifier = component "Signature Verifier" "Re-exports verify_signature(), verify_with_certificate() from py-juxlib" "Python module (verifier.py)"
+                canonicalizer = component "XML Canonicalizer" "Re-exports canonicalize_xml(), compute_canonical_hash() from py-juxlib" "Python module (canonicalizer.py)"
+                configManager = component "Configuration Manager" "Re-exports ConfigurationManager, StorageMode from py-juxlib" "Python module (config.py)"
+                metadataCollector = component "Metadata Collector" "EnvironmentMetadata subclass with pytest-specific properties" "Python module (metadata.py)"
+                storageManager = component "Storage Manager" "Re-exports ReportStorage from py-juxlib (XDG-compliant, 4 modes)" "Python module (storage.py)"
+                apiClient = component "API Client" "Re-exports JuxAPIClient, PublishResponse from py-juxlib" "Python module (api_client.py)"
+                errorHandler = component "Error Handler" "JuxError hierarchy with error codes and user-friendly messages" "Python module (errors.py)"
 
-                # XML Processing
-                signer = component "XML Signer" "Generates XMLDSig signatures using RSA/ECDSA keys" "Python module (signer.py)"
-                verifier = component "Signature Verifier" "Verifies XMLDSig signatures on signed reports" "Python module (verifier.py)"
-                canonicalizer = component "XML Canonicalizer" "C14N canonicalization and hash computation" "Python module (canonicalizer.py)"
-
-                # Configuration & Metadata
-                configManager = component "Configuration Manager" "Multi-source config (CLI, env, files) with precedence" "Python module (config.py)"
-                metadataCollector = component "Metadata Collector" "Captures environment metadata and injects into pytest-metadata hook" "Python module (metadata.py)"
-
-                # Storage & Publishing
-                storageManager = component "Storage Manager" "XDG-compliant local storage and caching (4 modes)" "Python module (storage.py)"
-                apiClient = component "API Client" "REST API client for Jux API v1.0.0 with retry logic" "Python module (api_client.py)"
-
-                # Relationships within plugin
                 pluginHooks -> signer "Signs report with"
                 pluginHooks -> metadataCollector "Injects metadata via pytest_metadata hook"
                 pluginHooks -> storageManager "Stores locally via"
                 pluginHooks -> apiClient "Publishes via"
+                pluginHooks -> configManager "Reads configuration from"
 
                 signer -> canonicalizer "Canonicalizes XML with"
                 verifier -> canonicalizer "Verifies hash with"
 
-                pluginHooks -> configManager "Reads configuration from"
                 storageManager -> configManager "Uses storage config from"
                 apiClient -> configManager "Uses API config from"
             }
 
             cliTools = container "CLI Tools" "Standalone command-line utilities for manual operations" "Python 3.11+" "CLI" {
-                # CLI Components
                 keygenCmd = component "jux-keygen" "Generate RSA/ECDSA signing keys with certificates" "Python CLI (commands/keygen.py)"
                 signCmd = component "jux-sign" "Offline signing of JUnit XML reports" "Python CLI (commands/sign.py)"
                 verifyCmd = component "jux-verify" "Signature verification for signed reports" "Python CLI (commands/verify.py)"
@@ -57,8 +59,7 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
                 configCmd = component "jux-config" "Configuration management (init, dump, validate)" "Python CLI (commands/config_cmd.py)"
                 publishCmd = component "jux-publish" "Manual publishing to Jux API (single file or queue)" "Python CLI (commands/publish.py)"
 
-                # CLI tool relationships
-                keygenCmd -> signer "Generates keys for" "Uses cryptography library"
+                keygenCmd -> signer "Generates keys for"
                 signCmd -> signer "Signs reports with"
                 signCmd -> canonicalizer "Canonicalizes with"
                 verifyCmd -> verifier "Verifies signatures with"
@@ -69,7 +70,6 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
                 publishCmd -> storageManager "Reads queue from"
             }
 
-            # Container relationships
             pytestPlugin -> cliTools "Uses shared components" "Python imports"
         }
 
@@ -77,60 +77,50 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
         developer -> pytest "Runs tests with" "pytest CLI"
         pytest -> pytestJux "Invokes plugin hooks" "pytest_sessionfinish"
         sysadmin -> pytestJux "Configures and manages" "CLI tools"
-
-        pytestJux -> juxApiServer "Publishes signed reports to" "HTTPS/REST API (POST /api/v1/junit/submit)"
-
+        pytestJux -> pyJuxlib "Delegates core operations to" "Python import"
+        pytestJux -> juxApiServer "Publishes signed reports to" "HTTPS/REST (POST /api/v1/junit/submit)"
         cicdPipeline -> pytest "Executes tests with" "pytest --junit-xml --jux-publish"
 
-        # Container-level relationships (for dynamic views)
+        # Container-level relationships
+        pytestPlugin -> juxApiServer "Publishes signed reports to" "HTTPS/REST"
         developer -> pytestPlugin "Executes tests via pytest" "pytest hooks"
         developer -> cliTools "Uses offline tools" "CLI commands"
         sysadmin -> pytestPlugin "Configures plugin" "Configuration files"
         sysadmin -> cliTools "Manages keys and reports" "CLI commands"
         pytest -> pytestPlugin "Invokes hooks" "pytest_sessionfinish"
-
-        # External dependencies (shown as relationships)
-        signer -> juxApiServer "References API endpoint" "Configuration only"
     }
 
     views {
-        # System Context View
         systemContext pytestJux "SystemContext" {
             include *
             autolayout lr
-            description "System context diagram showing pytest-jux in the Jux ecosystem"
+            description "pytest-jux in the Jux ecosystem: delegates to py-juxlib, publishes to API server"
         }
 
-        # Container View
         container pytestJux "Containers" {
             include *
             autolayout lr
-            description "Container diagram showing pytest plugin and CLI tools"
+            description "Plugin container (pytest hooks) and CLI tools container"
         }
 
-        # Component View - pytest Plugin
         component pytestPlugin "PluginComponents" {
             include *
             autolayout lr
-            description "Component diagram showing pytest plugin internal structure"
+            description "Plugin internals: most modules re-export from py-juxlib"
         }
 
-        # Component View - CLI Tools
         component cliTools "CLIComponents" {
             include *
             autolayout tb
-            description "Component diagram showing standalone CLI utilities"
+            description "Standalone CLI utilities for offline operations"
         }
 
-        # Dynamic View - Test Execution Flow (System Level)
         dynamic pytestJux "TestExecutionFlow" "Test execution and report signing workflow" {
-            developer -> pytest "1. Runs pytest --junit-xml --jux-publish"
-            pytest -> pytestPlugin "2. Invokes pytest_sessionfinish hook"
-            pytestPlugin -> juxApiServer "3. Signs and publishes report"
+            developer -> pytestPlugin "1. Runs pytest --junit-xml --jux-publish"
+            pytestPlugin -> juxApiServer "2. Signs and publishes report"
             autolayout lr
         }
 
-        # Dynamic View - Offline Signing Flow (Container Level)
         dynamic pytestJux "OfflineSigningFlow" "Manual offline signing workflow" {
             sysadmin -> cliTools "1. Generate keys (jux-keygen)"
             sysadmin -> cliTools "2. Sign report (jux-sign)"
@@ -138,7 +128,6 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
             autolayout lr
         }
 
-        # Styling
         styles {
             element "Software System" {
                 background #1168bd
@@ -171,11 +160,6 @@ workspace "pytest-jux" "Client-side pytest plugin for signing and publishing JUn
                 background #85bbf0
                 color #000000
                 shape Component
-            }
-            element "Future" {
-                background #cccccc
-                color #666666
-                opacity 50
             }
         }
 
