@@ -1159,6 +1159,23 @@ wheels = [
 ]
 
 [[package]]
+name = "py-juxlib"
+version = "0.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "lxml" },
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "rich" },
+    { name = "signxml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a1/ec/bf0fdd21952ad3a5c15445fe8db62a5910118559dc3a799435fda9afe485/py_juxlib-0.3.1.tar.gz", hash = "sha256:8e0cc5794420031a61c076ebb39d6c547828cfbe99fcc4085fa26b3fb275151b", size = 60385, upload-time = "2026-02-13T05:55:18.792Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/09/33/cdf183764cda30519750694ff78938e347130382106a6031262adc992c2a/py_juxlib-0.3.1-py3-none-any.whl", hash = "sha256:2c42ca51e4d15448642a2356d69005cf685bdc7da7ef39067189fe97d5030a28", size = 46492, upload-time = "2026-02-13T05:55:17.48Z" },
+]
+
+[[package]]
 name = "py-serializable"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1337,12 +1354,13 @@ wheels = [
 
 [[package]]
 name = "pytest-jux"
-version = "0.4.3"
+version = "0.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "configargparse" },
     { name = "cryptography" },
     { name = "lxml" },
+    { name = "py-juxlib" },
     { name = "pydantic" },
     { name = "pytest" },
     { name = "pytest-metadata" },
@@ -1388,6 +1406,7 @@ requires-dist = [
     { name = "myst-parser", marker = "extra == 'docs'", specifier = ">=4.0" },
     { name = "pip-audit", marker = "extra == 'security'", specifier = ">=2.6" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.5" },
+    { name = "py-juxlib", specifier = ">=0.3.0" },
     { name = "pydantic", specifier = ">=2.5" },
     { name = "pytest", specifier = ">=7.4" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1" },

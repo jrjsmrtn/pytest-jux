@@ -219,7 +219,7 @@ File an issue with the "research" label describing:
 ## Questions or Feedback
 
 For questions about this research:
-- **General questions**: Use [pytest-jux Discussions](https://github.com/jrjsmrtn/pytest-jux/discussions)
+- **General questions**: Use [pytest-jux Discussions](https://github.com/jux-tools/pytest-jux/discussions)
 - **Technical corrections**: File an issue with "documentation" label
 - **Research requests**: File an issue with "research" label
 

@@ -253,12 +253,12 @@ grep -rn "search term" docs/
 
 1. **Check the [Troubleshooting Guide](howto/troubleshooting.md)** - Covers most common issues
 2. **Search the documentation** - Use tips above
-3. **Check [GitHub Issues](https://github.com/jrjsmrtn/pytest-jux/issues)** - See if others had similar questions
+3. **Check [GitHub Issues](https://github.com/jux-tools/pytest-jux/issues)** - See if others had similar questions
 4. **Review [ADRs](adr/README.md)** - Understand design decisions
 5. **Read the [Security Documentation](security/SECURITY.md)** - For security-related questions
 
 **Still stuck?**
-- Open a [GitHub Issue](https://github.com/jrjsmrtn/pytest-jux/issues/new)
+- Open a [GitHub Issue](https://github.com/jux-tools/pytest-jux/issues/new)
 - Check the [Contributing Guide](../CONTRIBUTING.md) for community guidelines
 
 ---

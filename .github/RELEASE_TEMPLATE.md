@@ -63,8 +63,8 @@ Move items from `[Unreleased]` to new version section:
 Update version comparison links at bottom:
 
 ```markdown
-[Unreleased]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.x...HEAD
-[0.1.x]: https://github.com/jrjsmrtn/pytest-jux/compare/v0.1.PREVIOUS...v0.1.x
+[Unreleased]: https://github.com/jux-tools/pytest-jux/compare/v0.1.x...HEAD
+[0.1.x]: https://github.com/jux-tools/pytest-jux/compare/v0.1.PREVIOUS...v0.1.x
 ```
 
 ### 4. Commit Release Preparation
@@ -156,7 +156,7 @@ git push home --delete release/0.1.x
 
 ### 9. Verify Release on GitHub
 
-1. Go to https://github.com/jrjsmrtn/pytest-jux/releases
+1. Go to https://github.com/jux-tools/pytest-jux/releases
 2. Verify tag v0.1.x appears
 3. If needed, create GitHub Release from tag (optional)
 

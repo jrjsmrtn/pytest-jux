@@ -31,12 +31,12 @@ go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
 pip download pytest-jux==0.1.5 --no-deps
 
 # 2. Download provenance from GitHub Release
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
 
 # 3. Verify provenance
 slsa-verifier verify-artifact \
   --provenance-path pytest-jux-0.1.5.intoto.jsonl \
-  --source-uri github.com/jrjsmrtn/pytest-jux \
+  --source-uri github.com/jux-tools/pytest-jux \
   pytest_jux-0.1.5-py3-none-any.whl
 ```
 
@@ -59,7 +59,7 @@ Verify that a package was built from a specific source commit:
 ```bash
 slsa-verifier verify-artifact \
   --provenance-path pytest-jux-0.1.5.intoto.jsonl \
-  --source-uri github.com/jrjsmrtn/pytest-jux \
+  --source-uri github.com/jux-tools/pytest-jux \
   --source-tag v0.1.5 \
   pytest_jux-0.1.5-py3-none-any.whl
 ```
@@ -71,7 +71,7 @@ Verify the package was built from the main branch:
 ```bash
 slsa-verifier verify-artifact \
   --provenance-path pytest-jux-0.1.5.intoto.jsonl \
-  --source-uri github.com/jrjsmrtn/pytest-jux \
+  --source-uri github.com/jux-tools/pytest-jux \
   --source-branch main \
   pytest_jux-0.1.5-py3-none-any.whl
 ```
@@ -104,13 +104,13 @@ Example provenance structure:
       "externalParameters": {
         "workflow": {
           "ref": "refs/tags/v0.1.5",
-          "repository": "https://github.com/jrjsmrtn/pytest-jux",
+          "repository": "https://github.com/jux-tools/pytest-jux",
           "path": ".github/workflows/build-release.yml"
         }
       },
       "resolvedDependencies": [
         {
-          "uri": "git+https://github.com/jrjsmrtn/pytest-jux@refs/tags/v0.1.5",
+          "uri": "git+https://github.com/jux-tools/pytest-jux@refs/tags/v0.1.5",
           "digest": {
             "gitCommit": "abc123def456..."
           }
@@ -122,7 +122,7 @@ Example provenance structure:
         "id": "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.0.0"
       },
       "metadata": {
-        "invocationId": "https://github.com/jrjsmrtn/pytest-jux/actions/runs/1234567890",
+        "invocationId": "https://github.com/jux-tools/pytest-jux/actions/runs/1234567890",
         "startedOn": "2025-10-26T12:00:00Z",
         "finishedOn": "2025-10-26T12:05:00Z"
       }
@@ -179,11 +179,11 @@ jobs:
         run: |
           VERSION="0.1.5"
           pip download pytest-jux==${VERSION} --no-deps
-          curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}.intoto.jsonl
+          curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}.intoto.jsonl
 
           slsa-verifier verify-artifact \
             --provenance-path pytest-jux-${VERSION}.intoto.jsonl \
-            --source-uri github.com/jrjsmrtn/pytest-jux \
+            --source-uri github.com/jux-tools/pytest-jux \
             pytest_jux-${VERSION}-py3-none-any.whl
 ```
 
@@ -200,12 +200,12 @@ verify-dependencies:
 
     - VERSION="0.1.5"
     - pip download pytest-jux==${VERSION} --no-deps
-    - curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}.intoto.jsonl
+    - curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}.intoto.jsonl
 
     - |
       slsa-verifier verify-artifact \
         --provenance-path pytest-jux-${VERSION}.intoto.jsonl \
-        --source-uri github.com/jrjsmrtn/pytest-jux \
+        --source-uri github.com/jux-tools/pytest-jux \
         pytest_jux-${VERSION}-py3-none-any.whl
 ```
 
@@ -266,13 +266,13 @@ go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
 
 **Error:**
 ```
-FAILED: expected source 'github.com/jrjsmrtn/pytest-jux', got 'https://github.com/jrjsmrtn/pytest-jux'
+FAILED: expected source 'github.com/jux-tools/pytest-jux', got 'https://github.com/jux-tools/pytest-jux'
 ```
 
 **Solution:**
 Use the short form without `https://`:
 ```bash
---source-uri github.com/jrjsmrtn/pytest-jux
+--source-uri github.com/jux-tools/pytest-jux
 ```
 
 ### Provenance File Not Found
@@ -286,7 +286,7 @@ no such file or directory: pytest-jux-0.1.5.intoto.jsonl
 Download provenance from GitHub Release:
 ```bash
 VERSION="0.1.5"
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}.intoto.jsonl
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}.intoto.jsonl
 ```
 
 ## Security Best Practices
@@ -327,7 +327,7 @@ def verify_package(version: str) -> bool:
         "slsa-verifier",
         "verify-artifact",
         "--provenance-path", provenance,
-        "--source-uri", "github.com/jrjsmrtn/pytest-jux",
+        "--source-uri", "github.com/jux-tools/pytest-jux",
         "--source-tag", f"v{version}",
         package,
     ]
@@ -388,7 +388,7 @@ pip install cyclonedx-bom
 ```bash
 # 1. Download SBOM from GitHub Release
 VERSION="0.2.0"
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
 
 # 2. Validate SBOM format
 cyclonedx-cli validate \
@@ -519,7 +519,7 @@ jobs:
       - name: Download SBOM
         run: |
           VERSION="0.2.0"
-          curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
+          curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
 
       - name: Install tools
         run: |
@@ -550,7 +550,7 @@ sbom-audit:
   image: python:3.11
   script:
     - VERSION="0.2.0"
-    - curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
+    - curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v${VERSION}/pytest-jux-${VERSION}-sbom.cdx.json
 
     - npm install -g @cyclonedx/cyclonedx-cli
     - pip install pip-audit
@@ -587,8 +587,8 @@ Compare SBOMs between versions to track dependency changes:
 
 ```bash
 # Download two versions
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.8/pytest-jux-0.1.8-sbom.cdx.json
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.2.0/pytest-jux-0.2.0-sbom.cdx.json
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v0.1.8/pytest-jux-0.1.8-sbom.cdx.json
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v0.2.0/pytest-jux-0.2.0-sbom.cdx.json
 
 # Extract component names and versions
 jq '.components[] | "\(.name)@\(.version)"' pytest-jux-0.1.8-sbom.cdx.json | sort > v0.1.8-deps.txt
@@ -757,7 +757,7 @@ If you encounter issues with SLSA verification:
 
 1. Check this guide's [Troubleshooting](#troubleshooting) section
 2. Review the [SLSA Verifier Issues](https://github.com/slsa-framework/slsa-verifier/issues)
-3. Open an issue: https://github.com/jrjsmrtn/pytest-jux/issues
+3. Open an issue: https://github.com/jux-tools/pytest-jux/issues
 4. Security concerns: See [SECURITY.md](SECURITY.md) for responsible disclosure
 
 ---

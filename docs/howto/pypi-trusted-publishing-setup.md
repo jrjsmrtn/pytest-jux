@@ -14,7 +14,7 @@ PyPI Trusted Publishing uses OpenID Connect (OIDC) to authenticate GitHub Action
 ## Prerequisites
 
 - PyPI account with maintainer access to pytest-jux
-- Repository admin access to github.com/jrjsmrtn/pytest-jux
+- Repository admin access to github.com/jux-tools/pytest-jux
 - Existing package published to PyPI (for first-time setup)
 
 ## Step 1: Configure PyPI Trusted Publishing
@@ -51,14 +51,14 @@ Click "Add".
 You should see:
 
 ```
-✓ Trusted publisher: github.com/jrjsmrtn/pytest-jux (workflow: build-release.yml, environment: pypi)
+✓ Trusted publisher: github.com/jux-tools/pytest-jux (workflow: build-release.yml, environment: pypi)
 ```
 
 ## Step 2: Configure GitHub Environment
 
 ### 2.1 Create PyPI Environment
 
-1. Go to https://github.com/jrjsmrtn/pytest-jux
+1. Go to https://github.com/jux-tools/pytest-jux
 2. Click "Settings" → "Environments"
 3. Click "New environment"
 4. Name: `pypi`
@@ -104,7 +104,7 @@ git push github v0.1.5-alpha1
 
 ### 3.2 Monitor Workflow
 
-1. Go to https://github.com/jrjsmrtn/pytest-jux/actions
+1. Go to https://github.com/jux-tools/pytest-jux/actions
 2. Watch the "Build and Release" workflow
 3. The workflow should:
    - ✅ Build the package
@@ -139,12 +139,12 @@ go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
 pip download pytest-jux==0.1.5a1 --no-deps
 
 # Download provenance from GitHub Release
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.5-alpha1/pytest-jux-0.1.5a1.intoto.jsonl
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v0.1.5-alpha1/pytest-jux-0.1.5a1.intoto.jsonl
 
 # Verify
 slsa-verifier verify-artifact \
   --provenance-path pytest-jux-0.1.5a1.intoto.jsonl \
-  --source-uri github.com/jrjsmrtn/pytest-jux \
+  --source-uri github.com/jux-tools/pytest-jux \
   --source-tag v0.1.5-alpha1 \
   pytest_jux-0.1.5a1-py3-none-any.whl
 
@@ -190,20 +190,20 @@ Share release announcement with verification instructions:
 ### What's New
 - SLSA Build Level 2 compliance
 - Cryptographic provenance for all releases
-- [Full changelog](https://github.com/jrjsmrtn/pytest-jux/blob/main/CHANGELOG.md)
+- [Full changelog](https://github.com/jux-tools/pytest-jux/blob/main/CHANGELOG.md)
 
 ### Verify This Release
 \`\`\`bash
 pip download pytest-jux==0.1.5 --no-deps
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
 
 slsa-verifier verify-artifact \
   --provenance-path pytest-jux-0.1.5.intoto.jsonl \
-  --source-uri github.com/jrjsmrtn/pytest-jux \
+  --source-uri github.com/jux-tools/pytest-jux \
   pytest_jux-0.1.5-py3-none-any.whl
 \`\`\`
 
-See [SLSA Verification Guide](https://github.com/jrjsmrtn/pytest-jux/blob/main/docs/security/SLSA_VERIFICATION.md)
+See [SLSA Verification Guide](https://github.com/jux-tools/pytest-jux/blob/main/docs/security/SLSA_VERIFICATION.md)
 ```
 
 ## Troubleshooting

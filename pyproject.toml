@@ -76,11 +76,11 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jrjsmrtn/pytest-jux"
-Documentation = "https://github.com/jrjsmrtn/pytest-jux/tree/main/docs"
-Repository = "https://github.com/jrjsmrtn/pytest-jux"
-Issues = "https://github.com/jrjsmrtn/pytest-jux/issues"
-Security = "https://github.com/jrjsmrtn/pytest-jux/blob/main/docs/security/SECURITY.md"
+Homepage = "https://github.com/jux-tools/pytest-jux"
+Documentation = "https://github.com/jux-tools/pytest-jux/tree/main/docs"
+Repository = "https://github.com/jux-tools/pytest-jux"
+Issues = "https://github.com/jux-tools/pytest-jux/issues"
+Security = "https://github.com/jux-tools/pytest-jux/blob/main/docs/security/SECURITY.md"
 
 [project.entry-points.pytest11]
 jux_publisher = "pytest_jux.plugin"

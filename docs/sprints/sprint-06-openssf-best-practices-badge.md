@@ -404,7 +404,7 @@ files: |
 ### Reporting Process
 
 **Preferred Method: GitHub Security Advisories**
-1. Go to https://github.com/jrjsmrtn/pytest-jux/security/advisories
+1. Go to https://github.com/jux-tools/pytest-jux/security/advisories
 2. Click "Report a vulnerability"
 3. Fill in the advisory form with details
 
@@ -451,7 +451,7 @@ files: |
 
 ### Security Advisories
 
-Published security advisories: https://github.com/jrjsmrtn/pytest-jux/security/advisories
+Published security advisories: https://github.com/jux-tools/pytest-jux/security/advisories
 
 ### Out of Scope
 
@@ -515,7 +515,7 @@ pytest-jux implements the following security features:
 | Criterion | Status | Evidence |
 |-----------|--------|----------|
 | **basics_oss** | ✅ Met | MIT license in pyproject.toml |
-| **repo_public** | ✅ Met | https://github.com/jrjsmrtn/pytest-jux |
+| **repo_public** | ✅ Met | https://github.com/jux-tools/pytest-jux |
 | **repo_track** | ✅ Met | Git with GitHub |
 | **version_unique** | ✅ Met | Semantic versioning in pyproject.toml |
 | **version_semver** | ✅ Met | 0.1.x format |

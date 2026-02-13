@@ -854,7 +854,7 @@ jux-cache purge
 
 Was this tutorial helpful? Have suggestions?
 
-- **Report Issues**: https://github.com/jrjsmrtn/pytest-jux/issues
+- **Report Issues**: https://github.com/jux-tools/pytest-jux/issues
 - **Contribute**: PRs welcome!
 
 ---

@@ -556,7 +556,7 @@ jux-cache purge
 
 Was this tutorial helpful? Have suggestions for improvement?
 
-- **Report Issues**: https://github.com/jrjsmrtn/pytest-jux/issues
+- **Report Issues**: https://github.com/jux-tools/pytest-jux/issues
 - **Contribute**: PRs welcome for documentation improvements
 
 ---
