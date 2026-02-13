@@ -9,18 +9,18 @@
 **Email**: jrjsmrtn+security@gmail.com
 **Subject**: [SECURITY] pytest-jux vulnerability report
 
-**Response Timeline**:
-- **Initial Response**: Within 48 hours
-- **Triage Assessment**: Within 5 business days
+**Response Timeline** (solo maintainer):
+- **Initial Response**: Within 1 week
+- **Triage Assessment**: Within 2 weeks
 - **Public Disclosure**: 90 days (coordinated disclosure)
 
 ### Severity Levels
 
 | Severity | Description | Target Fix Time |
 |----------|-------------|-----------------|
-| **Critical** | Remote code execution, private key compromise | 7 days |
-| **High** | Signature bypass, authentication bypass | 14 days |
-| **Medium** | Information disclosure, DoS | 30 days |
+| **Critical** | Remote code execution, private key compromise | 14 days |
+| **High** | Signature bypass, authentication bypass | 30 days |
+| **Medium** | Information disclosure, DoS | 60 days |
 | **Low** | Minor security issues | Next release |
 
 ## Full Security Policy
