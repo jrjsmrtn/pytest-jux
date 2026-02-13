@@ -18,7 +18,7 @@ This document tracks pytest-jux's readiness for the OpenSSF Best Practices Badge
 
 | Criterion | Status | Evidence | Notes |
 |-----------|--------|----------|-------|
-| **identification** | ✅ PASS | GitHub: https://github.com/jrjsmrtn/pytest-jux | Public repository |
+| **identification** | ✅ PASS | GitHub: https://github.com/jux-tools/pytest-jux | Public repository |
 | **basic_project_website** | ✅ PASS | PyPI: https://pypi.org/project/pytest-jux/ | Package page |
 | **description_good** | ✅ PASS | README.md, pyproject.toml | Clear project description |
 | **interact** | ✅ PASS | GitHub Issues, Discussions | Community interaction enabled |
@@ -39,7 +39,7 @@ This document tracks pytest-jux's readiness for the OpenSSF Best Practices Badge
 
 | Criterion | Status | Evidence | Notes |
 |-----------|--------|----------|-------|
-| **repo_public** | ✅ PASS | https://github.com/jrjsmrtn/pytest-jux | Public GitHub repository |
+| **repo_public** | ✅ PASS | https://github.com/jux-tools/pytest-jux | Public GitHub repository |
 | **repo_track** | ✅ PASS | Git version control | Full commit history |
 | **repo_interim** | ✅ PASS | GitHub repository | Accessible to all |
 | **repo_distributed** | ✅ PASS | Git (distributed VCS) | Anyone can clone |
@@ -66,7 +66,7 @@ This document tracks pytest-jux's readiness for the OpenSSF Best Practices Badge
 | Criterion | Status | Evidence | Notes |
 |-----------|--------|----------|-------|
 | **report_process** | ✅ PASS | GitHub Issues | Public bug tracker |
-| **report_tracker** | ✅ PASS | https://github.com/jrjsmrtn/pytest-jux/issues | Issue tracker |
+| **report_tracker** | ✅ PASS | https://github.com/jux-tools/pytest-jux/issues | Issue tracker |
 | **report_responses** | ✅ PASS | Active maintenance | Issues triaged and responded to |
 | **enhancement_responses** | ✅ PASS | GitHub Discussions | Enhancement requests welcomed |
 | **report_archive** | ✅ PASS | GitHub Issues history | Full archive available |
@@ -213,7 +213,7 @@ This document tracks pytest-jux's readiness for the OpenSSF Best Practices Badge
   - CRYPTO_REVIEWS.md
 
 ### Infrastructure Evidence
-- **GitHub Repository**: https://github.com/jrjsmrtn/pytest-jux
+- **GitHub Repository**: https://github.com/jux-tools/pytest-jux
 - **PyPI Package**: https://pypi.org/project/pytest-jux/
 - **GitHub Issues**: Bug tracking enabled
 - **GitHub Security Advisories**: Private vulnerability reporting enabled
@@ -233,7 +233,7 @@ This document tracks pytest-jux's readiness for the OpenSSF Best Practices Badge
 ### Release Evidence
 - **Semantic Versioning**: 0.2.0 format
 - **Git Tags**: v0.1.0, v0.1.5, v0.2.0
-- **GitHub Releases**: https://github.com/jrjsmrtn/pytest-jux/releases
+- **GitHub Releases**: https://github.com/jux-tools/pytest-jux/releases
 - **SLSA Provenance**: Available for all releases
 - **SBOM**: Available for all releases (starting v0.2.0)
 
@@ -243,7 +243,7 @@ This document tracks pytest-jux's readiness for the OpenSSF Best Practices Badge
 1. Visit https://www.bestpractices.dev/
 2. Sign in with GitHub account
 3. Click "Add a Project"
-4. Enter repository URL: https://github.com/jrjsmrtn/pytest-jux
+4. Enter repository URL: https://github.com/jux-tools/pytest-jux
 
 ### Step 2: Complete Questionnaire
 

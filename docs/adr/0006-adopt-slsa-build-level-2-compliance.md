@@ -144,7 +144,7 @@ We will adopt **SLSA Build Level 2 compliance** for all pytest-jux releases usin
 ```bash
 slsa-verifier verify-artifact \
   --provenance-path pytest-jux-0.1.4.intoto.jsonl \
-  --source-uri github.com/jrjsmrtn/pytest-jux \
+  --source-uri github.com/jux-tools/pytest-jux \
   pytest_jux-0.1.4-py3-none-any.whl
 ```
 

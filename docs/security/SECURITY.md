@@ -119,7 +119,7 @@ We follow responsible disclosure principles:
 Security advisories will be published:
 
 1. **GitHub Security Advisories**: Primary publication channel
-   - URL: https://github.com/jrjsmrtn/pytest-jux/security/advisories
+   - URL: https://github.com/jux-tools/pytest-jux/security/advisories
 2. **CHANGELOG.md**: Security fixes documented
 3. **PyPI Release Notes**: Referenced in release description
 4. **Mailing List**: (Future) Security-announce mailing list

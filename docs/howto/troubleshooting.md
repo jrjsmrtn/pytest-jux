@@ -513,7 +513,7 @@ pytest --version
    uv pip install --upgrade pytest-jux pytest-<other-plugin>
    ```
 
-3. **Report incompatibility**: [Open an issue](https://github.com/jrjsmrtn/pytest-jux/issues)
+3. **Report incompatibility**: [Open an issue](https://github.com/jux-tools/pytest-jux/issues)
 
 ### Symptom: CI/CD integration failing
 
@@ -658,7 +658,7 @@ jux-sign -i junit.xml -o signed.xml --key new-key.pem --cert new-key.crt
 
 ### 2. Search Existing Issues
 
-- **[GitHub Issues](https://github.com/jrjsmrtn/pytest-jux/issues)**: Search for similar problems
+- **[GitHub Issues](https://github.com/jux-tools/pytest-jux/issues)**: Search for similar problems
 
 ### 3. Report a Bug
 
@@ -682,7 +682,7 @@ jux-config show
 pytest --junitxml=junit.xml --jux-key key.pem 2>&1 | tee error.log
 ```
 
-**Submit bug report**: https://github.com/jrjsmrtn/pytest-jux/issues/new
+**Submit bug report**: https://github.com/jux-tools/pytest-jux/issues/new
 
 Include:
 - pytest-jux version

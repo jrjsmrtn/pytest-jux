@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![pytest](https://img.shields.io/badge/pytest-7.4%2B%20%7C%208.x-blue.svg)](https://pytest.org/)
-[![codecov](https://codecov.io/gh/jrjsmrtn/pytest-jux/branch/main/graph/badge.svg)](https://codecov.io/gh/jrjsmrtn/pytest-jux)
+[![codecov](https://codecov.io/gh/jux-tools/pytest-jux/branch/main/graph/badge.svg)](https://codecov.io/gh/jux-tools/pytest-jux)
 [![SLSA 2](https://slsa.dev/images/gh-badge-level2.svg)](https://slsa.dev/spec/v1.0/levels#build-l2)
 [![Security](https://img.shields.io/badge/security-framework-green.svg)](docs/security/SECURITY.md)
 
@@ -72,11 +72,11 @@ go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
 
 # Download and verify
 pip download pytest-jux==0.4.1 --no-deps
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.4.1/pytest-jux-0.4.1.intoto.jsonl
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v0.4.1/pytest-jux-0.4.1.intoto.jsonl
 
 slsa-verifier verify-artifact \
   --provenance-path pytest-jux-0.4.1.intoto.jsonl \
-  --source-uri github.com/jrjsmrtn/pytest-jux \
+  --source-uri github.com/jux-tools/pytest-jux \
   pytest_jux-0.4.1-py3-none-any.whl
 ```
 
@@ -568,7 +568,7 @@ Conceptual understanding and design discussions:
 
 ```bash
 # Clone repository
-git clone https://github.com/jrjsmrtn/pytest-jux.git
+git clone https://github.com/jux-tools/pytest-jux.git
 cd pytest-jux
 
 # Create virtual environment
@@ -796,7 +796,7 @@ See [LICENSE](LICENSE) for the full license text.
 
 ## API Specification
 
-> **Source of Truth**: The canonical API specifications live in **[jux-openapi](https://github.com/jrjsmrtn/jux-openapi)**.
+> **Source of Truth**: The canonical API specifications live in **[jux-openapi](https://github.com/jux-tools/jux-openapi)**.
 > - OpenAPI specs: `jux-openapi/specs/v1/`
 > - API changelog: `jux-openapi/docs/CHANGELOG.md`
 
@@ -834,7 +834,7 @@ For more information about the Jux API Server, refer to its separate repository 
 
 ## Releases
 
-**Latest Release**: [v0.4.1 - Documentation & C4 Model Updates](https://github.com/jrjsmrtn/pytest-jux/releases/tag/v0.4.1) (2026-01-08)
+**Latest Release**: [v0.4.1 - Documentation & C4 Model Updates](https://github.com/jux-tools/pytest-jux/releases/tag/v0.4.1) (2026-01-08)
 
 **Release Notes**: See [docs/release-notes/](docs/release-notes/) for detailed release notes for all versions.
 
@@ -844,5 +844,5 @@ For more information about the Jux API Server, refer to its separate repository 
 
 - Documentation: [docs/](docs/)
 - Security: [Security Policy](docs/security/SECURITY.md)
-- Issues: [GitHub Issues](https://github.com/jrjsmrtn/pytest-jux/issues)
-- Discussions: [GitHub Discussions](https://github.com/jrjsmrtn/pytest-jux/discussions)
+- Issues: [GitHub Issues](https://github.com/jux-tools/pytest-jux/issues)
+- Discussions: [GitHub Discussions](https://github.com/jux-tools/pytest-jux/discussions)

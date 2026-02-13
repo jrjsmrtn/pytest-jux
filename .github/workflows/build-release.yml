@@ -245,12 +245,12 @@ jobs:
 
           # Download package and provenance
           pip download pytest-jux==${VERSION_NUM} --no-deps
-          curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/${VERSION}/pytest-jux-${VERSION_NUM}.intoto.jsonl
+          curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/${VERSION}/pytest-jux-${VERSION_NUM}.intoto.jsonl
 
           # Verify provenance
           slsa-verifier verify-artifact \
             --provenance-path pytest-jux-${VERSION_NUM}.intoto.jsonl \
-            --source-uri github.com/jrjsmrtn/pytest-jux \
+            --source-uri github.com/jux-tools/pytest-jux \
             pytest_jux-${VERSION_NUM}-py3-none-any.whl
           ```
 

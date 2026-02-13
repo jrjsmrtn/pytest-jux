@@ -41,4 +41,4 @@ For complete security policy, vulnerability disclosure process, security guarant
 
 - **Security Reports**: jrjsmrtn+security@gmail.com (urgent)
 - **General Questions**: jrjsmrtn@gmail.com (non-urgent)
-- **GitHub Security Advisories**: https://github.com/jrjsmrtn/pytest-jux/security/advisories
+- **GitHub Security Advisories**: https://github.com/jux-tools/pytest-jux/security/advisories

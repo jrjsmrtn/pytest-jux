@@ -84,12 +84,12 @@ print_error() {
 prompt_yes_no() {
     local prompt="$1"
     local default="${2:-y}"
-    
+
     if [ "$INTERACTIVE" = false ]; then
         echo "$default"
         return
     fi
-    
+
     local choice
     if [ "$default" = "y" ]; then
         read -p "$prompt [Y/n]: " choice
@@ -98,19 +98,19 @@ prompt_yes_no() {
         read -p "$prompt [y/N]: " choice
         choice=${choice:-n}
     fi
-    
+
     echo "$choice"
 }
 
 prompt_input() {
     local prompt="$1"
     local default="$2"
-    
+
     if [ "$INTERACTIVE" = false ]; then
         echo "$default"
         return
     fi
-    
+
     local value
     read -p "$prompt [$default]: " value
     echo "${value:-$default}"
@@ -138,7 +138,7 @@ echo "  4. Sign and verify the report"
 echo ""
 
 if [ "$INTERACTIVE" = true ]; then
-    read -p "Press Enter to continue..." 
+    read -p "Press Enter to continue..."
 fi
 
 # Step 1: Check prerequisites
@@ -172,13 +172,13 @@ fi
 # Check if pytest-jux is installed
 if python3 -c "import pytest_jux" 2>/dev/null; then
     print_step "pytest-jux is installed"
-    
+
     # Get version
     JUX_VERSION=$(python3 -c "import pytest_jux; print(pytest_jux.__version__)" 2>/dev/null || echo "unknown")
     print_info "Version: $JUX_VERSION"
 else
     print_warning "pytest-jux is not installed"
-    
+
     choice=$(prompt_yes_no "Would you like to install it now?")
     if [[ "$choice" =~ ^[Yy] ]]; then
         print_info "Installing pytest-jux..."
@@ -205,7 +205,7 @@ print_header "Step 3: Generating Signing Keys"
 
 if [ -f "$KEY_PATH" ]; then
     print_warning "Keys already exist at $KEY_PATH"
-    
+
     choice=$(prompt_yes_no "Overwrite existing keys?" "n")
     if [[ ! "$choice" =~ ^[Yy] ]]; then
         print_info "Using existing keys"
@@ -219,9 +219,9 @@ if [ "${KEY_EXISTS:-false}" = false ]; then
     echo "  2. RSA-4096 (slower, good for production)"
     echo "  3. ECDSA-P256 (fast, modern)"
     echo ""
-    
+
     KEY_TYPE_CHOICE=$(prompt_input "Select key type [1-3]" "1")
-    
+
     case "$KEY_TYPE_CHOICE" in
         1)
             KEY_TYPE="rsa"
@@ -241,9 +241,9 @@ if [ "${KEY_EXISTS:-false}" = false ]; then
             KEY_BITS="2048"
             ;;
     esac
-    
+
     print_info "Generating $KEY_TYPE keys..."
-    
+
     if command -v jux-keygen &> /dev/null; then
         if [ "$KEY_TYPE" = "rsa" ]; then
             jux-keygen --type rsa --bits "$KEY_BITS" --output "$KEY_PATH" --cert
@@ -263,7 +263,7 @@ print_header "Step 4: Creating Configuration File"
 
 if [ -f "$CONFIG_PATH" ]; then
     print_warning "Configuration already exists at $CONFIG_PATH"
-    
+
     choice=$(prompt_yes_no "Overwrite existing configuration?" "n")
     if [[ ! "$choice" =~ ^[Yy] ]]; then
         print_info "Using existing configuration"
@@ -277,31 +277,31 @@ if [ "${CONFIG_EXISTS:-false}" = false ]; then
     echo "  2. Development (local signing, no API)"
     echo "  3. Full (all options with comments)"
     echo ""
-    
+
     TEMPLATE_CHOICE=$(prompt_input "Select template [1-3]" "2")
-    
+
     case "$TEMPLATE_CHOICE" in
         1) TEMPLATE="minimal" ;;
         2) TEMPLATE="development" ;;
         3) TEMPLATE="full" ;;
-        *) 
+        *)
             print_warning "Invalid choice, using development template"
             TEMPLATE="development"
             ;;
     esac
-    
+
     print_info "Creating configuration with $TEMPLATE template..."
-    
+
     if command -v jux-config &> /dev/null; then
         jux-config init --path "$CONFIG_PATH" --template "$TEMPLATE" --force
-        
+
         # Update configuration with generated key paths
         if [ -f "$KEY_PATH" ]; then
             sed -i.bak "s|# key_path = .*|key_path = $KEY_PATH|" "$CONFIG_PATH"
             sed -i.bak "s|# cert_path = .*|cert_path = $CERT_PATH|" "$CONFIG_PATH"
             rm -f "${CONFIG_PATH}.bak"
         fi
-        
+
         print_step "Configuration created: $CONFIG_PATH"
     else
         print_error "jux-config command not found"
@@ -336,7 +336,7 @@ print_header "Step 6: Signing the Test Report"
 
 if [ -f "$KEY_PATH" ]; then
     print_info "Signing report with generated keys..."
-    
+
     if command -v jux-sign &> /dev/null; then
         jux-sign "$SAMPLE_REPORT" --key "$KEY_PATH" --cert "$CERT_PATH" --output "$SIGNED_REPORT"
         print_step "Report signed: $SIGNED_REPORT"
@@ -353,7 +353,7 @@ print_header "Step 7: Verifying the Signature"
 
 if [ -f "$SIGNED_REPORT" ]; then
     print_info "Verifying signature..."
-    
+
     if command -v jux-verify &> /dev/null; then
         if jux-verify "$SIGNED_REPORT" --cert "$CERT_PATH"; then
             print_step "Signature verification: PASSED"
@@ -388,7 +388,7 @@ echo "  2. Read the Quick Start tutorial: docs/tutorials/quick-start.md"
 echo "  3. Try signing your own reports: jux-sign <report.xml> --key $KEY_PATH"
 echo "  4. Integrate with pytest: pytest --junit-xml=report.xml --jux-sign"
 echo ""
-echo "Documentation: https://github.com/jrjsmrtn/pytest-jux/blob/main/docs/INDEX.md"
+echo "Documentation: https://github.com/jux-tools/pytest-jux/blob/main/docs/INDEX.md"
 echo ""
 echo -e "${BOLD}Happy testing with pytest-jux!${RESET}"
 echo ""

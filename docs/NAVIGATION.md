@@ -303,7 +303,7 @@ grep -r "class ClassName" pytest_jux/
 
 1. **Start here**: [Troubleshooting Guide](howto/troubleshooting.md)
 2. **Check error code**: [Error Code Reference](reference/error-codes.md)
-3. **Still stuck?**: [GitHub Issues](https://github.com/jrjsmrtn/pytest-jux/issues)
+3. **Still stuck?**: [GitHub Issues](https://github.com/jux-tools/pytest-jux/issues)
 
 ### "I want to use pytest-jux programmatically"
 
@@ -335,7 +335,7 @@ grep -r "class ClassName" pytest_jux/
 
 **Staying Updated**:
 - Check [CHANGELOG.md](../CHANGELOG.md) for documentation changes
-- Follow [GitHub Releases](https://github.com/jrjsmrtn/pytest-jux/releases) for updates
+- Follow [GitHub Releases](https://github.com/jux-tools/pytest-jux/releases) for updates
 
 ---
 
@@ -343,13 +343,13 @@ grep -r "class ClassName" pytest_jux/
 
 1. **Check the [Complete Documentation Index](INDEX.md)** - Full map of all docs
 2. **Search the documentation** - Use strategies above
-3. **Check [GitHub Issues](https://github.com/jrjsmrtn/pytest-jux/issues)** - See if others asked
+3. **Check [GitHub Issues](https://github.com/jux-tools/pytest-jux/issues)** - See if others asked
 4. **Review [ADRs](adr/README.md)** - Understand design decisions
 5. **Read [Security Documentation](security/SECURITY.md)** - Security-related questions
 
 **Still stuck?**
-- Open a [GitHub Issue](https://github.com/jrjsmrtn/pytest-jux/issues/new)
-- Start a [GitHub Discussion](https://github.com/jrjsmrtn/pytest-jux/discussions)
+- Open a [GitHub Issue](https://github.com/jux-tools/pytest-jux/issues/new)
+- Start a [GitHub Discussion](https://github.com/jux-tools/pytest-jux/discussions)
 - Check the [Contributing Guide](../CONTRIBUTING.md) for community guidelines
 
 ---

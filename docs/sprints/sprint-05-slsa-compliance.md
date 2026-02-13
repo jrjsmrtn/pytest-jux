@@ -329,7 +329,7 @@ jobs:
       "externalParameters": {
         "workflow": {
           "ref": "refs/tags/v0.1.5",
-          "repository": "https://github.com/jrjsmrtn/pytest-jux"
+          "repository": "https://github.com/jux-tools/pytest-jux"
         }
       },
       "internalParameters": {
@@ -340,7 +340,7 @@ jobs:
       },
       "resolvedDependencies": [
         {
-          "uri": "git+https://github.com/jrjsmrtn/pytest-jux@refs/tags/v0.1.5",
+          "uri": "git+https://github.com/jux-tools/pytest-jux@refs/tags/v0.1.5",
           "digest": {
             "gitCommit": "abc123..."
           }
@@ -352,7 +352,7 @@ jobs:
         "id": "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.0.0"
       },
       "metadata": {
-        "invocationId": "https://github.com/jrjsmrtn/pytest-jux/actions/runs/123456",
+        "invocationId": "https://github.com/jux-tools/pytest-jux/actions/runs/123456",
         "startedOn": "2025-10-26T12:00:00Z",
         "finishedOn": "2025-10-26T12:05:00Z"
       }
@@ -373,12 +373,12 @@ go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
 pip download pytest-jux==0.1.5 --no-deps
 
 # 3. Download provenance (from GitHub Releases)
-curl -L -O https://github.com/jrjsmrtn/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
+curl -L -O https://github.com/jux-tools/pytest-jux/releases/download/v0.1.5/pytest-jux-0.1.5.intoto.jsonl
 
 # 4. Verify provenance
 slsa-verifier verify-artifact \
   --provenance-path pytest-jux-0.1.5.intoto.jsonl \
-  --source-uri github.com/jrjsmrtn/pytest-jux \
+  --source-uri github.com/jux-tools/pytest-jux \
   pytest_jux-0.1.5-py3-none-any.whl
 
 # Expected output:

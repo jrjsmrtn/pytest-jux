@@ -380,7 +380,7 @@ def main() -> int:
         console_err.print(f"  {type(e).__name__}: {e}")
         console_err.print("\n[yellow]This is likely a bug in pytest-jux[/yellow]")
         console_err.print("Please report this at:")
-        console_err.print("  https://github.com/jrjsmrtn/pytest-jux/issues")
+        console_err.print("  https://github.com/jux-tools/pytest-jux/issues")
         console_err.print("\nInclude the error message above and the command you ran.")
         console_err.print("\n[dim]Tip: Run with JUX_DEBUG=1 for more details[/dim]")
         return 1

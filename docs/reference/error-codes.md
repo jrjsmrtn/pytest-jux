@@ -657,7 +657,7 @@ chmod 600 ~/.ssh/jux/key.pem
 
 If you encounter an error not listed here:
 
-1. **Check GitHub Issues**: https://github.com/jrjsmrtn/pytest-jux/issues
+1. **Check GitHub Issues**: https://github.com/jux-tools/pytest-jux/issues
 2. **Review Documentation**: See [Troubleshooting Guide](../howto/troubleshooting.md)
 3. **Report Bug**: Include error message, command, and pytest-jux version
 

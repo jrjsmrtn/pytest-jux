@@ -278,7 +278,7 @@ chmod 700 ~/.local/share/jux
 ## Getting Help
 
 - **Documentation:** [docs/](../../)
-- **Issues:** [GitHub Issues](https://github.com/jrjsmrtn/pytest-jux/issues)
+- **Issues:** [GitHub Issues](https://github.com/jux-tools/pytest-jux/issues)
 - **Security:** [Security Policy](../../security/SECURITY.md)
 
 ---
